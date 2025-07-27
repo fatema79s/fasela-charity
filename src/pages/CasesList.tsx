@@ -33,7 +33,7 @@ const CasesList = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Heart className="w-8 h-8 text-white" />
-                <span className="text-xl font-bold">فاصلة خير</span>
+                <span className="text-xl font-bold">فَسِيلَة خير</span>
               </div>
               <Navigation />
             </div>
