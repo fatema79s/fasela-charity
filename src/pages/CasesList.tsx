@@ -123,23 +123,30 @@ const CasesList = () => {
           {/* Statistics Section */}
           <div className="mt-10 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {/* Admin-configurable stats */}
-              {programStats?.slice(0, 2).map((stat, index) => (
-                <div key={stat.id} className="text-center">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
-                    <div className="text-3xl mb-2">{stat.icon}</div>
-                    <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-                    <div className="text-sm text-white/80">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Calculated statistic - Total families helped */}
+              {/* Number of sponsored families */}
               <div className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">👨‍👩‍👧‍👦</div>
                   <div className="text-3xl font-bold text-white mb-1">{allCases?.length || 0}</div>
-                  <div className="text-sm text-white/80">أسرة محتاجة</div>
+                  <div className="text-sm text-white/80">عدد الأسر المتكفلين بيهم</div>
+                </div>
+              </div>
+              
+              {/* Number of sponsored orphan children - admin configurable */}
+              <div className="text-center">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
+                  <div className="text-3xl mb-2">👶</div>
+                  <div className="text-3xl font-bold text-white mb-1">{programStats?.find(stat => stat.key === 'sponsored_orphans')?.value || '0'}</div>
+                  <div className="text-sm text-white/80">عدد أطفال الأيتام المتكفلين بيهم</div>
+                </div>
+              </div>
+              
+              {/* Number of children taught Quran, Sunnah and electronics - admin configurable */}
+              <div className="text-center">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
+                  <div className="text-3xl mb-2">📚</div>
+                  <div className="text-3xl font-bold text-white mb-1">{programStats?.find(stat => stat.key === 'children_educated')?.value || '0'}</div>
+                  <div className="text-sm text-white/80">عدد الأطفال الذي علمناهم قرآن وسنة وإلكترونيات</div>
                 </div>
               </div>
             </div>
