@@ -44,17 +44,18 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentConfirm = async () => {
+  const handlePaymentConfirm = async (donorName: string, amount: number) => {
     try {
       if (!caseId || !paymentCode) return;
       
-      // Record pending donation
+      // Record pending donation with donor name and custom amount
       const { error } = await supabase
         .from('donations')
         .insert({
           case_id: caseId,
-          amount: totalAmount,
-          months_pledged: donationType === 'monthly' ? months : 1,
+          donor_name: donorName,
+          amount: amount,
+          months_pledged: donationType === 'monthly' ? months : Math.ceil(amount / monthlyNeed),
           payment_code: paymentCode,
           donation_type: donationType,
           status: 'pending'
@@ -72,7 +73,7 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
 
       toast({
         title: "تم تسجيل نية التبرع",
-        description: "سيتم مراجعة تبرعك وتأكيده من قبل الإدارة بعد إتمام الدفع.",
+        description: `شكراً ${donorName}، سيتم مراجعة تبرعك وتأكيده من قبل الإدارة بعد إتمام الدفع.`,
       });
 
       setShowPaymentDialog(false);
@@ -267,7 +268,7 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
         open={showPaymentDialog}
         onOpenChange={setShowPaymentDialog}
         paymentCode={paymentCode || ''}
-        amount={totalAmount}
+        initialAmount={totalAmount}
         caseTitle={caseTitle || ''}
         onConfirm={handlePaymentConfirm}
       />
