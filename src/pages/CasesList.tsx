@@ -131,7 +131,7 @@ const CasesList = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">👨‍👩‍👧‍👦</div>
                   <div className="text-3xl font-bold text-white mb-1">{allCases?.length || 0}</div>
-                  <div className="text-sm text-white/80">عدد الأسر المتكفلين بيهم</div>
+                  <div className="text-sm text-white/80">الأسر المكفولة</div>
                 </div>
               </div>
               
@@ -140,7 +140,7 @@ const CasesList = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">👶</div>
                   <div className="text-3xl font-bold text-white mb-1">{programStats?.find(stat => stat.key === 'sponsored_orphans')?.value || '0'}</div>
-                  <div className="text-sm text-white/80">عدد أطفال الأيتام المتكفلين بيهم</div>
+                  <div className="text-sm text-white/80">الأيتام المكفولين</div>
                 </div>
               </div>
               
@@ -149,7 +149,7 @@ const CasesList = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">📚</div>
                   <div className="text-3xl font-bold text-white mb-1">{programStats?.find(stat => stat.key === 'children_educated')?.value || '0'}</div>
-                  <div className="text-sm text-white/80">عدد الأطفال الذي علمناهم قرآن وسنة وإلكترونيات</div>
+                  <div className="text-sm text-white/80">الأطفال المتعلمين</div>
                 </div>
               </div>
               
@@ -158,7 +158,7 @@ const CasesList = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">✅</div>
                   <div className="text-3xl font-bold text-white mb-1">{completedCases}</div>
-                  <div className="text-sm text-white/80">عدد الحالات التي ساعدناهم</div>
+                  <div className="text-sm text-white/80">الحالات المكتملة</div>
                 </div>
               </div>
             </div>
