@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Users, Calendar, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import Navigation from "@/components/Navigation";
 
 const CasesList = () => {
   const { data: cases, isLoading } = useQuery({
@@ -26,6 +27,20 @@ const CasesList = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Navigation Header */}
+        <header className="gradient-hero text-white py-4">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Heart className="w-8 h-8 text-white" />
+                <span className="text-xl font-bold">فاصلة خير</span>
+              </div>
+              <Navigation />
+            </div>
+          </div>
+        </header>
+        
+        {/* Hero Section */}
         <div className="gradient-hero text-white py-16">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
@@ -45,7 +60,20 @@ const CasesList = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* الرأس */}
+      {/* Navigation Header */}
+      <header className="gradient-hero text-white py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Heart className="w-8 h-8 text-white" />
+              <span className="text-xl font-bold">فاصلة خير</span>
+            </div>
+            <Navigation />
+          </div>
+        </div>
+      </header>
+      
+      {/* Hero Section */}
       <div className="gradient-hero text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
