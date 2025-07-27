@@ -397,6 +397,68 @@ export type Database = {
         }
         Relationships: []
       }
+      donations: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          case_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          donation_type: string
+          donor_email: string | null
+          donor_name: string | null
+          id: string
+          months_pledged: number
+          payment_code: string
+          payment_reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          case_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          donation_type?: string
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          months_pledged?: number
+          payment_code: string
+          payment_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          case_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          donation_type?: string
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          months_pledged?: number
+          payment_code?: string
+          payment_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           budget: number

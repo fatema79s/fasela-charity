@@ -5,12 +5,13 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, LogOut, FileText, Users, BarChart3 } from "lucide-react";
+import { Plus, LogOut, FileText, Users, BarChart3, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CaseForm from "@/components/admin/CaseForm";
 import CasesList from "@/components/admin/CasesList";
 import ReportForm from "@/components/admin/ReportForm";
 import ReportsList from "@/components/admin/ReportsList";
+import { DonationsManagement } from "@/components/admin/DonationsManagement";
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -131,7 +132,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               نظرة عامة
@@ -139,6 +140,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="cases" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               إدارة الحالات
+            </TabsTrigger>
+            <TabsTrigger value="donations" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              التبرعات
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -189,6 +194,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="cases">
             <CasesList />
+          </TabsContent>
+
+          <TabsContent value="donations">
+            <DonationsManagement />
           </TabsContent>
 
           <TabsContent value="reports">

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Heart, Calendar, Gift, CheckCircle } from "lucide-react";
 import { PaymentConfirmationDialog } from "./PaymentConfirmationDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface DonationSectionProps {
   monthlyNeed: number;
@@ -13,12 +15,14 @@ interface DonationSectionProps {
   monthsNeeded?: number;
   paymentCode?: string;
   caseTitle?: string;
+  caseId?: string;
 }
 
-export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle }: DonationSectionProps) => {
+export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle, caseId }: DonationSectionProps) => {
   const [selectedMonths, setSelectedMonths] = useState([3]);
   const [donationType, setDonationType] = useState<'monthly' | 'custom'>('monthly');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { toast } = useToast();
 
   const months = selectedMonths[0];
   const totalAmount = donationType === 'monthly' ? monthlyNeed * months : selectedMonths[0];
@@ -40,9 +44,47 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentConfirm = () => {
-    setShowPaymentDialog(false);
-    window.open('https://ipn.eg/S/asayedrb/instapay/2c0Zdf', '_blank');
+  const handlePaymentConfirm = async () => {
+    try {
+      if (!caseId || !paymentCode) return;
+      
+      // Record pending donation
+      const { error } = await supabase
+        .from('donations')
+        .insert({
+          case_id: caseId,
+          amount: totalAmount,
+          months_pledged: donationType === 'monthly' ? months : 1,
+          payment_code: paymentCode,
+          donation_type: donationType,
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Error recording donation:', error);
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ في تسجيل التبرع. يرجى المحاولة مرة أخرى.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "تم تسجيل نية التبرع",
+        description: "سيتم مراجعة تبرعك وتأكيده من قبل الإدارة بعد إتمام الدفع.",
+      });
+
+      setShowPaymentDialog(false);
+      window.open('https://ipn.eg/S/asayedrb/instapay/2c0Zdf', '_blank');
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
