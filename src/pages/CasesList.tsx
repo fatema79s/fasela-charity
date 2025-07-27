@@ -109,22 +109,36 @@ const CasesList = () => {
           
           {/* Progress Section */}
           <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold mb-2">إجمالي التقدم في جمع التبرعات</h3>
-                <div className="flex justify-between items-center text-sm opacity-90">
-                  <span>المجمع: {totalCollected.toLocaleString()} جنيه</span>
-                  <span>المطلوب: {totalNeeded.toLocaleString()} جنيه</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 shadow-lg">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-semibold mb-3 text-white">إجمالي التقدم في جمع التبرعات</h3>
+                <div className="flex justify-between items-center text-sm opacity-90 mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{totalCollected.toLocaleString()}</div>
+                    <div className="text-xs text-white/80">المجمع (جنيه)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{totalNeeded.toLocaleString()}</div>
+                    <div className="text-xs text-white/80">المطلوب (جنيه)</div>
+                  </div>
                 </div>
               </div>
-              <Progress 
-                value={progressPercentage} 
-                className="h-3 bg-white/20"
-              />
-              <div className="text-center mt-2">
-                <span className="text-lg font-bold">
-                  {Math.round(progressPercentage)}%
-                </span>
+              
+              {/* Enhanced Progress Bar */}
+              <div className="relative">
+                <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden shadow-inner">
+                  <div 
+                    className="h-full bg-gradient-to-r from-white to-white/90 rounded-full transition-all duration-1000 ease-out animate-scale-in relative overflow-hidden"
+                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="text-center mt-3">
+                  <span className="text-2xl font-bold text-white drop-shadow-lg">
+                    {Math.round(progressPercentage)}%
+                  </span>
+                </div>
               </div>
             </div>
           </div>
