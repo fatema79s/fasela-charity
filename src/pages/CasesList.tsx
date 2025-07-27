@@ -135,63 +135,38 @@ const CasesList = () => {
         </div>
       </div>
 
-      {/* الفلاتر وقائمة الحالات */}
+      {/* قائمة الحالات */}
       <div className="container mx-auto px-4 py-12">
         {/* الفلاتر البسيطة */}
-        <div className="mb-6 space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-muted-foreground self-center ml-2">حالة المشروع:</span>
-            <Badge 
-              variant={statusFilter === "all" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setStatusFilter("all")}
-            >
-              جميع الحالات
-            </Badge>
-            <Badge 
-              variant={statusFilter === "active" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setStatusFilter("active")}
-            >
-              نشطة
-            </Badge>
-            <Badge 
-              variant={statusFilter === "complete" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setStatusFilter("complete")}
-            >
-              مكتملة
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-muted-foreground self-center ml-2">استحقاق الزكاة:</span>
-            <Badge 
-              variant={zakahFilter === "all" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setZakahFilter("all")}
-            >
-              جميع الحالات
-            </Badge>
-            <Badge 
-              variant={zakahFilter === "true" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setZakahFilter("true")}
-            >
-              مستحق للزكاة
-            </Badge>
-            <Badge 
-              variant={zakahFilter === "false" ? "default" : "outline"}
-              className="cursor-pointer hover:bg-primary/80"
-              onClick={() => setZakahFilter("false")}
-            >
-              غير مستحق للزكاة
-            </Badge>
-          </div>
-
-          <div className="text-sm text-muted-foreground">
-            عدد الحالات: {cases?.length || 0}
-          </div>
+        <div className="mb-6 flex flex-wrap gap-2 justify-center">
+          <Badge 
+            variant={statusFilter === "all" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setStatusFilter("all")}
+          >
+            جميع الحالات
+          </Badge>
+          <Badge 
+            variant={statusFilter === "active" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setStatusFilter("active")}
+          >
+            نشطة
+          </Badge>
+          <Badge 
+            variant={statusFilter === "complete" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setStatusFilter("complete")}
+          >
+            مكتملة
+          </Badge>
+          <Badge 
+            variant={zakahFilter === "true" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setZakahFilter("true")}
+          >
+            مستحق للزكاة
+          </Badge>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
