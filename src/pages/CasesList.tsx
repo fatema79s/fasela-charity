@@ -158,7 +158,7 @@ const CasesList = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
                   <div className="text-3xl mb-2">✅</div>
                   <div className="text-3xl font-bold text-white mb-1">{completedCases}</div>
-                  <div className="text-sm text-white/80">الحالات المكتملة</div>
+                  <div className="text-sm text-white/80">مجمل الحالات</div>
                 </div>
               </div>
             </div>
