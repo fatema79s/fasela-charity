@@ -73,15 +73,7 @@ const Navigation = () => {
         <span className="hidden md:inline">الرئيسية</span>
       </Link>
       
-      <Link 
-        to="/cases" 
-        className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-          isActive('/cases') ? 'text-white font-medium' : ''
-        }`}
-      >
-        <Users className="w-4 h-4" />
-        <span className="hidden md:inline">جميع الحالات</span>
-      </Link>
+      
       
       {!user && (
         <Link 
