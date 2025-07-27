@@ -30,6 +30,19 @@ const CasesList = () => {
     }
   });
 
+  const { data: programStats } = useQuery({
+    queryKey: ["program_stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("program_stats")
+        .select("*")
+        .order("created_at", { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   // Apply filters
   const cases = allCases?.filter((caseItem) => {
     const statusMatch = statusFilter === "all" || caseItem.status === statusFilter;
@@ -106,6 +119,31 @@ const CasesList = () => {
           <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto leading-relaxed">
             اختر الأسرة التي تود كفالتها واتبع رحلتها الشهرية بشفافية كاملة
           </p>
+          
+          {/* Statistics Section */}
+          <div className="mt-10 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {/* Admin-configurable stats */}
+              {programStats?.slice(0, 2).map((stat, index) => (
+                <div key={stat.id} className="text-center">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
+                    <div className="text-3xl mb-2">{stat.icon}</div>
+                    <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+                    <div className="text-sm text-white/80">{stat.label}</div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Calculated statistic - Total families helped */}
+              <div className="text-center">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all">
+                  <div className="text-3xl mb-2">👨‍👩‍👧‍👦</div>
+                  <div className="text-3xl font-bold text-white mb-1">{allCases?.length || 0}</div>
+                  <div className="text-sm text-white/80">أسرة محتاجة</div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           {/* Progress Section */}
           <div className="mt-12 max-w-2xl mx-auto">
