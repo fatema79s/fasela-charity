@@ -11,31 +11,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Copy, ExternalLink, CreditCard, User, DollarSign } from "lucide-react";
+import { Copy, ExternalLink, CreditCard, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface PaymentConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   paymentCode: string;
-  initialAmount: number;
+  amount: number; // Final calculated amount from the main page
   caseTitle: string;
-  onConfirm: (donorName: string, amount: number) => void;
+  onConfirm: (donorName: string) => void; // Only need donor name now
 }
 
 export const PaymentConfirmationDialog = ({
   open,
   onOpenChange,
   paymentCode,
-  initialAmount = 500, // Default fallback value
+  amount,
   caseTitle,
   onConfirm,
 }: PaymentConfirmationDialogProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1); // 1: donor info, 2: payment instructions
   const [donorName, setDonorName] = useState("");
-  const [donationAmount, setDonationAmount] = useState([Math.max(initialAmount || 500, 50)]); // Ensure minimum value and fallback
 
   const copyPaymentCode = () => {
     navigator.clipboard.writeText(paymentCode);
@@ -58,23 +56,18 @@ export const PaymentConfirmationDialog = ({
   };
 
   const handleConfirm = () => {
-    const amount = donationAmount?.[0] || 500; // Safe access with fallback
-    onConfirm(donorName, amount);
+    onConfirm(donorName);
   };
 
   const resetDialog = () => {
     setStep(1);
     setDonorName("");
-    setDonationAmount([Math.max(initialAmount || 500, 50)]); // Use same safe initialization
   };
 
   const handleClose = () => {
     resetDialog();
     onOpenChange(false);
   };
-
-  // Safe access to donation amount
-  const currentAmount = donationAmount?.[0] || 500;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -86,7 +79,7 @@ export const PaymentConfirmationDialog = ({
           </DialogTitle>
           <DialogDescription>
             {step === 1 
-              ? "يرجى إدخال بياناتك ومبلغ التبرع"
+              ? "يرجى إدخال اسمك الكريم"
               : "يرجى اتباع التعليمات التالية لإتمام عملية التبرع"
             }
           </DialogDescription>
@@ -111,47 +104,6 @@ export const PaymentConfirmationDialog = ({
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    مبلغ التبرع
-                  </Label>
-                  
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary mb-2">
-                      {currentAmount.toLocaleString()} جنيه
-                    </div>
-                  </div>
-
-                  <Slider
-                    value={donationAmount}
-                    onValueChange={setDonationAmount}
-                    max={5000}
-                    min={50}
-                    step={50}
-                    className="w-full"
-                  />
-                  
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>50 جنيه</span>
-                    <span>5,000 جنيه</span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 mt-3">
-                    {[100, 250, 500, 1000, 2000, 3000].map((amount) => (
-                      <Button
-                        key={amount}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDonationAmount([amount])}
-                        className={`text-xs ${currentAmount === amount ? 'border-primary bg-primary/10' : ''}`}
-                      >
-                        {amount.toLocaleString()}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="bg-accent/30 p-4 rounded-lg">
                   <h4 className="font-semibold mb-2">ملخص التبرع:</h4>
                   <div className="space-y-1 text-sm">
@@ -165,7 +117,7 @@ export const PaymentConfirmationDialog = ({
                     </div>
                     <div className="flex justify-between">
                       <span>المبلغ:</span>
-                      <span className="font-medium text-primary">{currentAmount.toLocaleString()} جنيه</span>
+                      <span className="font-medium text-primary">{amount.toLocaleString()} جنيه</span>
                     </div>
                   </div>
                 </div>
@@ -187,7 +139,7 @@ export const PaymentConfirmationDialog = ({
                   </div>
                   <div className="flex justify-between">
                     <span>المبلغ:</span>
-                    <span className="font-medium text-primary">{currentAmount.toLocaleString()} جنيه</span>
+                    <span className="font-medium text-primary">{amount.toLocaleString()} جنيه</span>
                   </div>
                 </div>
               </div>
