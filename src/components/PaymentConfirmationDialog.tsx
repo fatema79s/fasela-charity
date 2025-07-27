@@ -28,14 +28,14 @@ export const PaymentConfirmationDialog = ({
   open,
   onOpenChange,
   paymentCode,
-  initialAmount,
+  initialAmount = 500, // Default fallback value
   caseTitle,
   onConfirm,
 }: PaymentConfirmationDialogProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1); // 1: donor info, 2: payment instructions
   const [donorName, setDonorName] = useState("");
-  const [donationAmount, setDonationAmount] = useState([initialAmount]);
+  const [donationAmount, setDonationAmount] = useState([Math.max(initialAmount || 500, 50)]); // Ensure minimum value and fallback
 
   const copyPaymentCode = () => {
     navigator.clipboard.writeText(paymentCode);
@@ -58,19 +58,23 @@ export const PaymentConfirmationDialog = ({
   };
 
   const handleConfirm = () => {
-    onConfirm(donorName, donationAmount[0]);
+    const amount = donationAmount?.[0] || 500; // Safe access with fallback
+    onConfirm(donorName, amount);
   };
 
   const resetDialog = () => {
     setStep(1);
     setDonorName("");
-    setDonationAmount([initialAmount]);
+    setDonationAmount([Math.max(initialAmount || 500, 50)]); // Use same safe initialization
   };
 
   const handleClose = () => {
     resetDialog();
     onOpenChange(false);
   };
+
+  // Safe access to donation amount
+  const currentAmount = donationAmount?.[0] || 500;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -115,7 +119,7 @@ export const PaymentConfirmationDialog = ({
                   
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary mb-2">
-                      {donationAmount[0].toLocaleString()} جنيه
+                      {currentAmount.toLocaleString()} جنيه
                     </div>
                   </div>
 
@@ -140,7 +144,7 @@ export const PaymentConfirmationDialog = ({
                         variant="outline"
                         size="sm"
                         onClick={() => setDonationAmount([amount])}
-                        className={`text-xs ${donationAmount[0] === amount ? 'border-primary bg-primary/10' : ''}`}
+                        className={`text-xs ${currentAmount === amount ? 'border-primary bg-primary/10' : ''}`}
                       >
                         {amount.toLocaleString()}
                       </Button>
@@ -161,7 +165,7 @@ export const PaymentConfirmationDialog = ({
                     </div>
                     <div className="flex justify-between">
                       <span>المبلغ:</span>
-                      <span className="font-medium text-primary">{donationAmount[0].toLocaleString()} جنيه</span>
+                      <span className="font-medium text-primary">{currentAmount.toLocaleString()} جنيه</span>
                     </div>
                   </div>
                 </div>
@@ -183,7 +187,7 @@ export const PaymentConfirmationDialog = ({
                   </div>
                   <div className="flex justify-between">
                     <span>المبلغ:</span>
-                    <span className="font-medium text-primary">{donationAmount[0].toLocaleString()} جنيه</span>
+                    <span className="font-medium text-primary">{currentAmount.toLocaleString()} جنيه</span>
                   </div>
                 </div>
               </div>
