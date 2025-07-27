@@ -4,12 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Users, Calendar, Heart } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Users, Calendar, Heart, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 
 const CasesList = () => {
-  const { data: cases, isLoading } = useQuery({
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [zakahFilter, setZakahFilter] = useState<string>("all");
+
+  const { data: allCases, isLoading } = useQuery({
     queryKey: ["cases"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -23,6 +28,16 @@ const CasesList = () => {
       if (error) throw error;
       return data;
     }
+  });
+
+  // Apply filters
+  const cases = allCases?.filter((caseItem) => {
+    const statusMatch = statusFilter === "all" || caseItem.status === statusFilter;
+    const zakahMatch = zakahFilter === "all" || 
+      (zakahFilter === "true" && caseItem.deserve_zakkah) ||
+      (zakahFilter === "false" && !caseItem.deserve_zakkah);
+    
+    return statusMatch && zakahMatch;
   });
 
   // Calculate total needed and collected money
@@ -120,8 +135,56 @@ const CasesList = () => {
         </div>
       </div>
 
-      {/* قائمة الحالات */}
+      {/* الفلاتر وقائمة الحالات */}
       <div className="container mx-auto px-4 py-12">
+        {/* الفلاتر */}
+        <div className="mb-8 bg-card rounded-lg p-6 shadow-soft">
+          <div className="flex items-center gap-3 mb-4">
+            <Filter className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold">تصفية الحالات</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">حالة المشروع</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="اختر حالة المشروع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="active">الحالات النشطة</SelectItem>
+                  <SelectItem value="complete">الحالات المكتملة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">استحقاق الزكاة</label>
+              <Select value={zakahFilter} onValueChange={setZakahFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="اختر استحقاق الزكاة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="true">مستحق للزكاة</SelectItem>
+                  <SelectItem value="false">غير مستحق للزكاة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* عداد النتائج */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground">
+              عدد الحالات المعروضة: <span className="font-semibold text-foreground">{cases?.length || 0}</span>
+              {allCases && (
+                <span> من أصل <span className="font-semibold text-foreground">{allCases.length}</span></span>
+              )}
+            </p>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cases?.map((caseItem) => (
             <Card key={caseItem.id} className="overflow-hidden shadow-soft hover:shadow-lg transition-shadow">
