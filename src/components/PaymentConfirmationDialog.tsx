@@ -27,13 +27,16 @@ export const PaymentConfirmationDialog = ({
   open,
   onOpenChange,
   paymentCode,
-  amount,
+  amount = 500, // Default fallback value
   caseTitle,
   onConfirm,
 }: PaymentConfirmationDialogProps) => {
   const { toast } = useToast();
   const [step, setStep] = useState(1); // 1: donor info, 2: payment instructions
   const [donorName, setDonorName] = useState("");
+
+  // Safe amount with fallback to prevent undefined errors
+  const safeAmount = amount && typeof amount === 'number' && !isNaN(amount) ? amount : 500;
 
   const copyPaymentCode = () => {
     navigator.clipboard.writeText(paymentCode);
@@ -117,7 +120,7 @@ export const PaymentConfirmationDialog = ({
                     </div>
                     <div className="flex justify-between">
                       <span>المبلغ:</span>
-                      <span className="font-medium text-primary">{amount.toLocaleString()} جنيه</span>
+                      <span className="font-medium text-primary">{safeAmount.toLocaleString()} جنيه</span>
                     </div>
                   </div>
                 </div>
@@ -139,7 +142,7 @@ export const PaymentConfirmationDialog = ({
                   </div>
                   <div className="flex justify-between">
                     <span>المبلغ:</span>
-                    <span className="font-medium text-primary">{amount.toLocaleString()} جنيه</span>
+                    <span className="font-medium text-primary">{safeAmount.toLocaleString()} جنيه</span>
                   </div>
                 </div>
               </div>
