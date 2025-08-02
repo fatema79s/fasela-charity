@@ -407,7 +407,7 @@ const CaseForm = ({ caseId }: CaseFormProps) => {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">المحافظة</Label>
-              <Select onValueChange={(value) => setValue("city", value)}>
+              <Select onValueChange={(value) => setValue("city", value)} defaultValue="">
                 <SelectTrigger>
                   <SelectValue placeholder="اختر المحافظة" />
                 </SelectTrigger>
@@ -507,7 +507,7 @@ const CaseForm = ({ caseId }: CaseFormProps) => {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>الفئة</Label>
-                  <Select onValueChange={(value) => updateMonthlyNeed(index, "category", value)}>
+                  <Select onValueChange={(value) => updateMonthlyNeed(index, "category", value)} value={need.category}>
                     <SelectTrigger>
                       <SelectValue placeholder="اختر الفئة" />
                     </SelectTrigger>
