@@ -299,7 +299,7 @@ const CasesList = () => {
                         className="bg-white/90 hover:bg-white text-gray-800"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Link to={`/admin`}>
+                        <Link to={`/admin?edit=${caseItem.id}`}>
                           <Edit className="w-4 h-4 mr-1" />
                           تعديل
                         </Link>
@@ -318,7 +318,7 @@ const CasesList = () => {
                       size="sm"
                       variant="outline"
                     >
-                      <Link to={`/admin`}>
+                      <Link to={`/admin?edit=${caseItem.id}`}>
                         <Edit className="w-4 h-4 mr-1" />
                         تعديل
                       </Link>
