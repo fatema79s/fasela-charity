@@ -414,7 +414,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">المحافظة</Label>
-              <Select onValueChange={(value) => setValue("city", value)} defaultValue="">
+              <Select onValueChange={(value) => setValue("city", value)} defaultValue="القاهرة">
                 <SelectTrigger>
                   <SelectValue placeholder="اختر المحافظة" />
                 </SelectTrigger>
