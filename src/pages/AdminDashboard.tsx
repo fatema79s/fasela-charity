@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, LogOut, FileText, Users, BarChart3, CreditCard } from "lucide-react";
+import { Plus, LogOut, FileText, Users, BarChart3, CreditCard, Home, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import CaseForm from "@/components/admin/CaseForm";
 import CasesList from "@/components/admin/CasesList";
@@ -117,15 +119,30 @@ const AdminDashboard = () => {
       <header className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold">لوحة تحكم المتطوعين</h1>
-              <p className="text-muted-foreground text-sm sm:text-base">{user.email}</p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Heart className="w-8 h-8 text-primary" />
+                <span className="text-xl font-bold">فَسِيلَة خير</span>
+              </div>
+              <nav className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/" className="flex items-center gap-2">
+                    <Home className="w-4 h-4" />
+                    الرئيسية
+                  </Link>
+                </Button>
+              </nav>
             </div>
-            <Button variant="outline" onClick={handleSignOut} className="text-sm sm:text-base">
-              <LogOut className="w-4 h-4 ml-2" />
-              <span className="hidden sm:inline">تسجيل الخروج</span>
-              <span className="sm:hidden">خروج</span>
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <h1 className="text-lg font-semibold">لوحة تحكم المتطوعين</h1>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
+              <Button variant="outline" onClick={handleSignOut} className="text-sm">
+                <LogOut className="w-4 h-4 ml-2" />
+                خروج
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -162,40 +179,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">إجمالي الحالات</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">24</div>
-                  <p className="text-xs text-muted-foreground">+2 عن الشهر الماضي</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">الحالات النشطة</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">18</div>
-                  <p className="text-xs text-muted-foreground">75% من إجمالي الحالات</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">التقارير هذا الشهر</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">47</div>
-                  <p className="text-xs text-muted-foreground">+12 عن الشهر الماضي</p>
-                </CardContent>
-              </Card>
-            </div>
+            <StatsOverview />
           </TabsContent>
 
           <TabsContent value="cases">
@@ -224,6 +208,95 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+};
+
+const StatsOverview = () => {
+  const { data: cases } = useQuery({
+    queryKey: ["admin-cases"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cases")
+        .select("*");
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: donations } = useQuery({
+    queryKey: ["admin-donations"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donations")
+        .select("*");
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: reports } = useQuery({
+    queryKey: ["admin-reports"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("monthly_reports")
+        .select("*")
+        .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const totalCases = cases?.length || 0;
+  const activeCases = cases?.filter(c => c.status === 'active').length || 0;
+  const totalDonations = donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
+  const monthlyReports = reports?.length || 0;
+
+  return (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">إجمالي الحالات</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalCases}</div>
+          <p className="text-xs text-muted-foreground">جميع الحالات المسجلة</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">الحالات النشطة</CardTitle>
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{activeCases}</div>
+          <p className="text-xs text-muted-foreground">{totalCases > 0 ? Math.round((activeCases / totalCases) * 100) : 0}% من إجمالي الحالات</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">إجمالي التبرعات</CardTitle>
+          <CreditCard className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalDonations.toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground">جنيه مصري</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">التقارير هذا الشهر</CardTitle>
+          <FileText className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{monthlyReports}</div>
+          <p className="text-xs text-muted-foreground">تقرير شهري</p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
