@@ -14,6 +14,7 @@ import CasesList from "@/components/admin/CasesList";
 import ReportForm from "@/components/admin/ReportForm";
 import ReportsList from "@/components/admin/ReportsList";
 import { DonationsManagement } from "@/components/admin/DonationsManagement";
+import { DonationsByCaseView } from "@/components/admin/DonationsByCaseView";
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -157,7 +158,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
-            <TabsList className="grid w-full min-w-[600px] sm:min-w-0 grid-cols-5 gap-1 h-auto p-1">
+            <TabsList className="grid w-full min-w-[700px] sm:min-w-0 grid-cols-6 gap-1 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <BarChart3 className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">نظرة عامة</span>
@@ -172,6 +173,11 @@ const AdminDashboard = () => {
                 <CreditCard className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">التبرعات</span>
                 <span className="sm:hidden text-[10px] leading-tight">تبرعات</span>
+              </TabsTrigger>
+              <TabsTrigger value="donations-by-case" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
+                <CreditCard className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">تبرعات الحالات</span>
+                <span className="sm:hidden text-[10px] leading-tight">حالات</span>
               </TabsTrigger>
               <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <FileText className="w-4 h-4 flex-shrink-0" />
@@ -196,6 +202,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="donations">
             <DonationsManagement />
+          </TabsContent>
+
+          <TabsContent value="donations-by-case">
+            <DonationsByCaseView />
           </TabsContent>
 
           <TabsContent value="reports">
