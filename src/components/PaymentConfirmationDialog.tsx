@@ -103,19 +103,19 @@ export const PaymentConfirmationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col p-4" dir="rtl">
-        <DialogHeader className="flex-shrink-0 pb-2">
-          <DialogTitle className="flex items-center gap-2 text-lg">
+      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col p-3" dir="rtl">
+        <DialogHeader className="flex-shrink-0 pb-1">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <CreditCard className="w-4 h-4" />
             {getDialogTitle()}
           </DialogTitle>
-          <DialogDescription className="text-sm">
+          <DialogDescription className="text-xs">
             {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 max-h-[55vh] pr-2">
-          <div className="space-y-3 pb-2">
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="space-y-2">
           {step === 1 ? (
             <>
               {/* معلومات المتبرع */}
@@ -134,8 +134,8 @@ export const PaymentConfirmationDialog = ({
                   />
                 </div>
 
-                <div className="bg-accent/30 p-3 rounded-lg">
-                  <h4 className="font-semibold mb-2 text-sm">ملخص التبرع:</h4>
+                <div className="bg-accent/30 p-2 rounded-lg">
+                  <h4 className="font-semibold mb-1 text-xs">ملخص التبرع:</h4>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span>الحالة:</span>
@@ -156,8 +156,8 @@ export const PaymentConfirmationDialog = ({
           ) : step === 2 ? (
             <>
               {/* تعليمات الدفع */}
-              <div className="bg-accent/30 p-3 rounded-lg">
-                <h4 className="font-semibold mb-2 text-sm">ملخص التبرع:</h4>
+              <div className="bg-accent/30 p-2 rounded-lg">
+                <h4 className="font-semibold mb-1 text-xs">ملخص التبرع:</h4>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span>المتبرع:</span>
@@ -174,8 +174,8 @@ export const PaymentConfirmationDialog = ({
                 </div>
               </div>
 
-              <div className="border-2 border-primary/20 bg-primary/5 p-3 rounded-lg">
-                <h4 className="font-semibold mb-2 text-primary text-sm">مهم جداً - كود الدفع:</h4>
+              <div className="border-2 border-primary/20 bg-primary/5 p-2 rounded-lg">
+                <h4 className="font-semibold mb-1 text-primary text-xs">مهم جداً - كود الدفع:</h4>
                 
                 <div className="bg-background p-2 rounded-md border mb-2">
                   <div className="flex items-center justify-between">
@@ -193,29 +193,27 @@ export const PaymentConfirmationDialog = ({
                   </div>
                 </div>
 
-                <div className="text-xs space-y-2">
-                  <p className="text-destructive font-medium">
-                    ⚠️ يجب كتابة الكود "{paymentCode}" في خانة البيان عند الدفع
+                <div className="text-xs space-y-1">
+                  <p className="text-destructive font-medium text-xs">
+                    ⚠️ اكتب الكود "{paymentCode}" في خانة البيان
                   </p>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    <li>هذا الكود ضروري لربط تبرعك بهذه الحالة</li>
-                    <li>بدون هذا الكود لن نتمكن من تحديد الحالة المُراد التبرع لها</li>
-                    <li>تأكد من كتابة الكود بشكل صحيح</li>
-                  </ul>
+                  <p className="text-muted-foreground text-xs">
+                    ضروري لربط تبرعك بهذه الحالة
+                  </p>
                 </div>
               </div>
 
-              <div className="bg-green-50 border border-green-200 p-2 rounded-lg">
+              <div className="bg-green-50 border border-green-200 p-1 rounded">
                 <p className="text-xs text-green-800">
-                  ✅ سيتم تسجيل تبرعك ومراجعته من قبل الإدارة بعد إتمام الدفع
+                  ✅ سيتم مراجعة التبرع من الإدارة
                 </p>
               </div>
             </>
           ) : (
             <>
               {/* تأكيد الفهم */}
-              <div className="bg-accent/30 p-3 rounded-lg">
-                <h4 className="font-semibold mb-2 text-sm">ملخص التبرع:</h4>
+              <div className="bg-accent/30 p-2 rounded-lg">
+                <h4 className="font-semibold mb-1 text-xs">ملخص التبرع:</h4>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span>المتبرع:</span>
@@ -233,34 +231,27 @@ export const PaymentConfirmationDialog = ({
               </div>
 
               {!confirmed ? (
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-                  <h4 className="font-semibold mb-2 text-yellow-800 text-sm">تأكيد الفهم:</h4>
-                  <p className="text-xs text-yellow-700 mb-2">
-                    يرجى التأكد من فهمك للتعليمات التالية قبل المتابعة:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-xs text-yellow-700">
-                    <li>سأكتب كود الدفع "{paymentCode}" في خانة البيان</li>
-                    <li>أفهم أن بدون هذا الكود لن يتم ربط تبرعي بالحالة الصحيحة</li>
-                    <li>سأقوم بدفع المبلغ كاملاً: {safeAmount.toLocaleString()} جنيه</li>
-                  </ul>
-                  <p className="text-xs text-yellow-700 mt-2">
-                    اضغط "فهمت التعليمات" للمتابعة
-                  </p>
+                <div className="bg-yellow-50 border border-yellow-200 p-2 rounded-lg">
+                  <h4 className="font-semibold mb-1 text-yellow-800 text-xs">تأكيد الفهم:</h4>
+                  <div className="text-xs text-yellow-700 space-y-1">
+                    <p>• كتابة كود "{paymentCode}" في البيان</p>
+                    <p>• دفع {safeAmount.toLocaleString()} جنيه كاملاً</p>
+                  </div>
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                  <p className="text-xs text-green-800 flex items-center gap-2">
+                <div className="bg-green-50 border border-green-200 p-2 rounded-lg">
+                  <p className="text-xs text-green-800 flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />
-                    ممتاز! يمكنك الآن المتابعة إلى صفحة الدفع
+                    جاهز للمتابعة للدفع
                   </p>
                 </div>
               )}
             </>
           )}
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="flex-shrink-0 pt-2 border-t gap-2">
+        <DialogFooter className="flex-shrink-0 pt-1 border-t gap-1">
           {step === 1 ? (
             <div className="flex gap-2 w-full">
               <Button variant="outline" onClick={handleClose} size="sm" className="flex-1">
