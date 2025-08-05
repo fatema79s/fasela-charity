@@ -52,14 +52,18 @@ export const FamilyProfile = ({
             </h2>
             
             <div className="flex flex-wrap gap-4 mb-6">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-5 h-5" />
-                <span>{location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Users className="w-5 h-5" />
-                <span>{familySize} أفراد</span>
-              </div>
+              {location && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-5 h-5" />
+                  <span>{location}</span>
+                </div>
+              )}
+              {familySize > 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Users className="w-5 h-5" />
+                  <span>{familySize} أفراد</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="w-5 h-5" />
                 <span>متاحة للكفالة</span>
@@ -67,28 +71,32 @@ export const FamilyProfile = ({
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xl font-semibold mb-4">أفراد العائلة</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {members.map((member, index) => (
-                <div key={index} className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
-                  <span className="font-medium">{member.name}</span>
-                  <div className="text-sm text-muted-foreground">
-                    <span>{member.relation}</span>
-                    <span className="mx-2">•</span>
-                    <span>{member.age} سنة</span>
+          {members.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">أفراد العائلة</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {members.map((member, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-accent/50 rounded-lg">
+                    <span className="font-medium">{member.name}</span>
+                    <div className="text-sm text-muted-foreground">
+                      <span>{member.relation}</span>
+                      <span className="mx-2">•</span>
+                      <span>{member.age} سنة</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <h3 className="text-xl font-semibold mb-4">قصة العائلة</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              {story}
-            </p>
-          </div>
+          {story && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">قصة العائلة</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {story}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </Card>

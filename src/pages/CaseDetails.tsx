@@ -66,114 +66,41 @@ const CaseDetails = () => {
     enabled: !!id
   });
 
-  // بيانات العائلة من قاعدة البيانات
+  // بيانات العائلة من قاعدة البيانات فقط
   const familyData = {
-    familyName: caseData?.title_ar || caseData?.title || "عائلة محتاجة",
-    location: caseData?.city ? `${caseData.city}, مصر` : "القاهرة, مصر", // استخدام المحافظة من قاعدة البيانات أو القاهرة كافتراضي
-    familySize: 5, // يمكن إضافة حقل family_size في قاعدة البيانات
-    members: [
-      // يمكن إنشاء جدول منفصل لأعضاء العائلة
-      { name: "أم العائلة", age: 45, relation: "أم العائلة" },
-      { name: "الطفل الأول", age: 16, relation: "الابن الأكبر" },
-      { name: "الطفلة الثانية", age: 14, relation: "ابنة" },
-      { name: "الطفل الثالث", age: 12, relation: "ابن" },
-      { name: "الطفلة الصغرى", age: 8, relation: "الابنة الصغرى" }
-    ],
-    story: caseData?.description_ar || caseData?.description || "قصة العائلة...",
-    image: caseData?.photo_url || "https://images.unsplash.com/photo-1609220136736-443140cffec6?w=400&h=300&fit=crop"
+    familyName: caseData?.title_ar || caseData?.title || "",
+    location: caseData?.city || "",
+    familySize: 0, // سيتم إخفاء هذا إذا لم تكن هناك بيانات
+    members: [], // لا توجد أعضاء مُحددين - يجب إضافة جدول منفصل لأعضاء العائلة
+    story: caseData?.description_ar || caseData?.description || "",
+    image: caseData?.photo_url || "/images/default-case-image.jpg"
   };
 
-  // الاحتياجات الشهرية من قاعدة البيانات أو البيانات الافتراضية
-  const monthlyNeeds = monthlyNeedsData?.length ? 
-    monthlyNeedsData.map((need) => ({
-      category: need.category,
-      amount: Number(need.amount),
-      description: need.description || "",
-      icon: <Heart className="w-5 h-5 text-white" />, // يمكن تحسين هذا لاستخدام الأيقونة من قاعدة البيانات
-      color: need.color || "bg-blue-500"
-    })) :
-    [
-      {
-        category: "الطعام والمواد الغذائية",
-        amount: Math.round((caseData?.monthly_cost || 2700) * 0.44),
-        description: "مواد غذائية أساسية شهرية للعائلة",
-        icon: <Heart className="w-5 h-5 text-white" />,
-        color: "bg-orange-500"
-      },
-      {
-        category: "الإيجار والمرافق",
-        amount: Math.round((caseData?.monthly_cost || 2700) * 0.30),
-        description: "إيجار المنزل وفواتير الكهرباء والماء",
-        icon: <Shield className="w-5 h-5 text-white" />,
-        color: "bg-blue-500"
-      },
-      {
-        category: "التعليم والمدرسة",
-        amount: Math.round((caseData?.monthly_cost || 2700) * 0.15),
-        description: "مصاريف دراسية ومستلزمات تعليمية",
-        icon: <Eye className="w-5 h-5 text-white" />,
-        color: "bg-green-500"
-      },
-      {
-        category: "الصحة والعلاج",
-        amount: Math.round((caseData?.monthly_cost || 2700) * 0.08),
-        description: "أدوية ومراجعات طبية ضرورية",
-        icon: <Users className="w-5 h-5 text-white" />,
-        color: "bg-red-500"
-      },
-      {
-        category: "الملابس والاحتياجات",
-        amount: Math.round((caseData?.monthly_cost || 2700) * 0.03),
-        description: "ملابس وحاجيات شخصية أساسية",
-        icon: <Heart className="w-5 h-5 text-white" />,
-        color: "bg-purple-500"
-      }
-    ];
+  // الاحتياجات الشهرية من قاعدة البيانات فقط
+  const monthlyNeeds = monthlyNeedsData?.map((need) => ({
+    category: need.category,
+    amount: Number(need.amount),
+    description: need.description || "",
+    icon: <Heart className="w-5 h-5 text-white" />,
+    color: need.color || "bg-blue-500"
+  })) || [];
 
-  const totalMonthlyNeed = caseData?.monthly_cost || monthlyNeeds.reduce((sum, need) => sum + need.amount, 0);
+  const totalMonthlyNeed = caseData?.monthly_cost || 0;
 
-  // التحديثات الشهرية من قاعدة البيانات أو البيانات الافتراضية
-  const monthlyUpdates = monthlyReportsData?.length ?
-    monthlyReportsData.map((report) => ({
-      id: report.id,
-      date: new Date(report.report_date).toLocaleDateString('ar-SA', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      title: report.title,
-      description: report.description || "",
-      status: report.status as "completed" | "pending",
-      category: report.category as "food" | "housing" | "general",
-      images: Array.isArray(report.images) ? report.images.map(img => String(img)) : []
-    })) :
-    [
-      {
-        id: "1",
-        date: new Date().toLocaleDateString('ar-SA', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        title: "زيارة ميدانية وتوزيع المساعدات",
-        description: "تم توزيع المساعدات الشهرية والاطمئنان على أحوال العائلة. الأطفال بصحة جيدة والعائلة ممتنة للدعم المستمر.",
-        status: "completed" as const,
-        category: "food" as const,
-        images: ["https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&h=200&fit=crop"]
-      },
-      {
-        id: "2", 
-        date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toLocaleDateString('ar-SA', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        title: "دفع المصاريف الأساسية",
-        description: "تم دفع الإيجار وفواتير المرافق في الوقت المناسب، مما وفر الاستقرار للعائلة.",
-        status: "completed" as const,
-        category: "housing" as const
-      }
-    ];
+  // التحديثات الشهرية من قاعدة البيانات فقط
+  const monthlyUpdates = monthlyReportsData?.map((report) => ({
+    id: report.id,
+    date: new Date(report.report_date).toLocaleDateString('ar-SA', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
+    title: report.title,
+    description: report.description || "",
+    status: report.status as "completed" | "pending",
+    category: report.category as "food" | "housing" | "general",
+    images: Array.isArray(report.images) ? report.images.map(img => String(img)) : []
+  })) || [];
 
   if (isLoading) {
     return (
