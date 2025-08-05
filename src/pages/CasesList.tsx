@@ -276,21 +276,21 @@ const CasesList = () => {
                   </div>
                 </div>
 
-                {/* شريط التقدم */}
+                {/* شريط التقدم المالي */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>التقدم</span>
+                    <span>التقدم المالي</span>
                     <span>
-                      {Math.round((caseItem.months_covered / caseItem.months_needed) * 100)}%
+                      {Math.round(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-primary to-primary-glow h-2 rounded-full transition-all"
-                      style={{ 
-                        width: `${Math.min((caseItem.months_covered / caseItem.months_needed) * 100, 100)}%` 
-                      }}
-                    ></div>
+                  <Progress 
+                    value={Math.min(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100, 100)}
+                    className="h-3"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{(caseItem.total_secured_money || 0).toLocaleString()} جنيه</span>
+                    <span>{(caseItem.monthly_cost * caseItem.months_needed).toLocaleString()} جنيه</span>
                   </div>
                 </div>
 

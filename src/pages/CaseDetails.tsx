@@ -8,6 +8,7 @@ import { MonthlyUpdates } from "@/components/MonthlyUpdates";
 import { Heart, Shield, Eye, Users, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 const CaseDetails = () => {
   const { id } = useParams();
@@ -162,6 +163,54 @@ const CaseDetails = () => {
 
           {/* العمود الأيمن - قسم التبرع */}
           <div className="space-y-6">
+            {/* شريط التقدم المالي */}
+            <Card className="p-6 shadow-soft bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-2">التقدم المالي للحالة</h3>
+                <p className="text-muted-foreground text-sm">
+                  المبلغ المجمع من إجمالي المطلوب
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="relative">
+                  <Progress 
+                    value={Math.min(((caseData.total_secured_money || 0) / (caseData.monthly_cost * caseData.months_needed)) * 100, 100)}
+                    className="h-6 bg-white/50"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-sm font-bold text-primary-foreground">
+                      {Math.round(((caseData.total_secured_money || 0) / (caseData.monthly_cost * caseData.months_needed)) * 100)}%
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center text-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-primary text-lg">
+                      {(caseData.total_secured_money || 0).toLocaleString()}
+                    </div>
+                    <div className="text-muted-foreground">المجمع</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-muted-foreground text-lg">
+                      {(caseData.monthly_cost * caseData.months_needed).toLocaleString()}
+                    </div>
+                    <div className="text-muted-foreground">المطلوب</div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/30 p-3 rounded-lg">
+                  <div className="flex justify-between text-sm">
+                    <span>المتبقي:</span>
+                    <span className="font-bold">
+                      {Math.max(0, (caseData.monthly_cost * caseData.months_needed) - (caseData.total_secured_money || 0)).toLocaleString()} جنيه
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
             <DonationSection 
               monthlyNeed={totalMonthlyNeed} 
               caseStatus={caseData.status}
