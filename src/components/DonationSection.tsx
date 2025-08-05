@@ -19,7 +19,7 @@ interface DonationSectionProps {
 }
 
 export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle, caseId }: DonationSectionProps) => {
-  const [selectedMonths, setSelectedMonths] = useState([3]);
+  const [selectedMonths, setSelectedMonths] = useState([1]);
   const [donationType, setDonationType] = useState<'monthly' | 'custom'>('monthly');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
