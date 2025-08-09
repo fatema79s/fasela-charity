@@ -585,6 +585,139 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_transactions: {
+        Row: {
+          created_at: string
+          fees: number | null
+          id: string
+          investment_id: string
+          notes: string | null
+          price: number
+          quantity: number
+          total_amount: number
+          transaction_date: string
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          fees?: number | null
+          id?: string
+          investment_id: string
+          notes?: string | null
+          price: number
+          quantity: number
+          total_amount: number
+          transaction_date: string
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string
+          fees?: number | null
+          id?: string
+          investment_id?: string
+          notes?: string | null
+          price?: number
+          quantity?: number
+          total_amount?: number
+          transaction_date?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_transactions_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investments: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          current_price: number | null
+          id: string
+          investment_type: string
+          name: string
+          notes: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity: number
+          symbol: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          current_price?: number | null
+          id?: string
+          investment_type?: string
+          name: string
+          notes?: string | null
+          purchase_date: string
+          purchase_price: number
+          quantity?: number
+          symbol?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          current_price?: number | null
+          id?: string
+          investment_type?: string
+          name?: string
+          notes?: string | null
+          purchase_date?: string
+          purchase_price?: number
+          quantity?: number
+          symbol?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "investment_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_budgets: {
         Row: {
           created_at: string
@@ -694,6 +827,186 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      olive_listings: {
+        Row: {
+          created_at: string
+          custom_olive_type: string | null
+          description: string | null
+          farmer_id: string | null
+          harvest_date: string | null
+          id: string
+          images: string[] | null
+          location: string
+          olive_types: string[]
+          price_per_kg: number
+          quantity_kg: number
+          seller_location: string | null
+          seller_name: string | null
+          seller_phone: string | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_olive_type?: string | null
+          description?: string | null
+          farmer_id?: string | null
+          harvest_date?: string | null
+          id?: string
+          images?: string[] | null
+          location: string
+          olive_types?: string[]
+          price_per_kg: number
+          quantity_kg: number
+          seller_location?: string | null
+          seller_name?: string | null
+          seller_phone?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_olive_type?: string | null
+          description?: string | null
+          farmer_id?: string | null
+          harvest_date?: string | null
+          id?: string
+          images?: string[] | null
+          location?: string
+          olive_types?: string[]
+          price_per_kg?: number
+          quantity_kg?: number
+          seller_location?: string | null
+          seller_name?: string | null
+          seller_phone?: string | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olive_listings_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "olive_user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      olive_transactions: {
+        Row: {
+          buyer_location: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          farmer_id: string | null
+          id: string
+          listing_id: string
+          notes: string | null
+          price_per_kg: number
+          quantity_kg: number
+          status: Database["public"]["Enums"]["transaction_status"]
+          total_price: number
+          trader_id: string | null
+          transaction_date: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_location?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          farmer_id?: string | null
+          id?: string
+          listing_id: string
+          notes?: string | null
+          price_per_kg: number
+          quantity_kg: number
+          status?: Database["public"]["Enums"]["transaction_status"]
+          total_price: number
+          trader_id?: string | null
+          transaction_date?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_location?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          farmer_id?: string | null
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          price_per_kg?: number
+          quantity_kg?: number
+          status?: Database["public"]["Enums"]["transaction_status"]
+          total_price?: number
+          trader_id?: string | null
+          transaction_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olive_transactions_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "olive_user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olive_transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "olive_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olive_transactions_trader_id_fkey"
+            columns: ["trader_id"]
+            isOneToOne: false
+            referencedRelation: "olive_user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      olive_user_profiles: {
+        Row: {
+          created_at: string
+          experience_years: number | null
+          id: string
+          location: string
+          name: string
+          phone: string
+          updated_at: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          location: string
+          name: string
+          phone: string
+          updated_at?: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          experience_years?: number | null
+          id?: string
+          location?: string
+          name?: string
+          phone?: string
+          updated_at?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
       }
       pledges: {
         Row: {
@@ -1299,6 +1612,81 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_listings: {
+        Row: {
+          availability_end: string | null
+          availability_start: string | null
+          can_travel: boolean | null
+          created_at: string
+          description: string | null
+          experience_years: number | null
+          id: string
+          images: string[] | null
+          location: string
+          max_travel_distance: number | null
+          price_per_day: number | null
+          price_per_hour: number | null
+          service_type: string
+          status: string
+          team_size: number | null
+          title: string
+          tools_available: string[] | null
+          updated_at: string
+          worker_id: string | null
+          worker_location: string | null
+          worker_name: string | null
+          worker_phone: string | null
+        }
+        Insert: {
+          availability_end?: string | null
+          availability_start?: string | null
+          can_travel?: boolean | null
+          created_at?: string
+          description?: string | null
+          experience_years?: number | null
+          id?: string
+          images?: string[] | null
+          location: string
+          max_travel_distance?: number | null
+          price_per_day?: number | null
+          price_per_hour?: number | null
+          service_type: string
+          status?: string
+          team_size?: number | null
+          title: string
+          tools_available?: string[] | null
+          updated_at?: string
+          worker_id?: string | null
+          worker_location?: string | null
+          worker_name?: string | null
+          worker_phone?: string | null
+        }
+        Update: {
+          availability_end?: string | null
+          availability_start?: string | null
+          can_travel?: boolean | null
+          created_at?: string
+          description?: string | null
+          experience_years?: number | null
+          id?: string
+          images?: string[] | null
+          location?: string
+          max_travel_distance?: number | null
+          price_per_day?: number | null
+          price_per_hour?: number | null
+          service_type?: string
+          status?: string
+          team_size?: number | null
+          title?: string
+          tools_available?: string[] | null
+          updated_at?: string
+          worker_id?: string | null
+          worker_location?: string | null
+          worker_name?: string | null
+          worker_phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       transcription_jobs: {
@@ -1363,6 +1751,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
+      create_default_investment_categories: {
+        Args: { user_uuid: string }
+        Returns: undefined
+      }
       generate_payment_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1414,7 +1806,26 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      listing_status: "active" | "sold" | "cancelled"
+      olive_type:
+        | "agizy"
+        | "cypriot"
+        | "tafahi"
+        | "baladi"
+        | "manzanillo"
+        | "kalamata"
+        | "koroneiki"
+        | "coratina"
+        | "frantoio"
+        | "arbequina"
+        | "maraki"
+        | "picual"
+        | "wateqan"
+        | "hamid"
+        | "khudairi"
+      transaction_status: "pending" | "completed" | "cancelled"
       user_role: "user" | "admin"
+      user_type: "farmer" | "trader"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1543,7 +1954,27 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      listing_status: ["active", "sold", "cancelled"],
+      olive_type: [
+        "agizy",
+        "cypriot",
+        "tafahi",
+        "baladi",
+        "manzanillo",
+        "kalamata",
+        "koroneiki",
+        "coratina",
+        "frantoio",
+        "arbequina",
+        "maraki",
+        "picual",
+        "wateqan",
+        "hamid",
+        "khudairi",
+      ],
+      transaction_status: ["pending", "completed", "cancelled"],
       user_role: ["user", "admin"],
+      user_type: ["farmer", "trader"],
     },
   },
 } as const
