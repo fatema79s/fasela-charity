@@ -136,7 +136,7 @@ const AdminDashboard = () => {
             {/* Second row - Navigation and user info */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <nav className="flex items-center gap-2 sm:gap-4">
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="bg-primary text-primary-foreground border-primary hover:bg-primary/90">
                   <Link to="/" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <Home className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">الرئيسية</span>

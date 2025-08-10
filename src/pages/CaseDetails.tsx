@@ -132,7 +132,7 @@ const CaseDetails = () => {
       <div className="gradient-hero text-white py-12 md:py-16">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4 mb-6">
-            <Button variant="outline" size="sm" asChild className="text-white border-white hover:bg-white hover:text-primary text-sm">
+            <Button variant="outline" size="sm" asChild className="bg-primary text-primary-foreground border-primary hover:bg-primary/90">
               <Link to="/cases">
                 <ArrowLeft className="w-4 h-4 ml-2" />
                 <span className="hidden sm:inline">العودة إلى القائمة</span>

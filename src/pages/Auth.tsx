@@ -210,7 +210,7 @@ const Auth = () => {
         </Tabs>
 
         <div className="text-center mt-6">
-          <Button variant="link" asChild>
+          <Button variant="outline" asChild className="bg-primary text-primary-foreground border-primary hover:bg-primary/90">
             <Link to="/">العودة إلى الموقع الرئيسي</Link>
           </Button>
         </div>
