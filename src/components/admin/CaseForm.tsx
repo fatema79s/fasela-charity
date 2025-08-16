@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface CaseFormData {
@@ -51,6 +51,8 @@ interface CaseFormProps {
 const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   const [loading, setLoading] = useState(false);
   const [loadingCase, setLoadingCase] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>("");
   const [monthlyNeeds, setMonthlyNeeds] = useState<MonthlyNeed[]>([
     { category: "", amount: 0, description: "", icon: "💰", color: "bg-blue-500" }
   ]);
@@ -113,6 +115,9 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("city", caseData.city || "");
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
+        
+        // Set current image URL
+        setCurrentImageUrl(caseData.photo_url || "");
       }
 
       // Populate monthly needs
@@ -151,6 +156,72 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
   const getDefaultImage = () => {
     return "/images/default-case-image.jpg";
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار صورة صالحة (JPEG, PNG, WebP)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "خطأ",
+        description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('case-images')
+        .upload(fileName, file);
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('case-images')
+        .getPublicUrl(fileName);
+
+      setCurrentImageUrl(publicUrl);
+      setValue('photo_url', publicUrl);
+
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: "تم رفع صورة الحالة بنجاح",
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء رفع الصورة",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeImage = () => {
+    setCurrentImageUrl("");
+    setValue('photo_url', "");
   };
 
   const addMonthlyNeed = () => {
@@ -493,12 +564,53 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="photo_url">رابط الصورة</Label>
-              <Input
-                id="photo_url"
-                {...register("photo_url")}
-                placeholder="https://example.com/image.jpg"
-              />
+              <Label>صورة الحالة</Label>
+              <div className="space-y-3">
+                {currentImageUrl && (
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    <img 
+                      src={currentImageUrl} 
+                      alt="صورة الحالة" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 p-1 h-6 w-6"
+                      onClick={removeImage}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="hidden"
+                    id="case-image-upload"
+                  />
+                  <Label 
+                    htmlFor="case-image-upload" 
+                    className="cursor-pointer"
+                  >
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      disabled={uploadingImage}
+                      asChild
+                    >
+                      <span className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        {uploadingImage ? "جاري الرفع..." : "رفع صورة"}
+                      </span>
+                    </Button>
+                  </Label>
+                </div>
+              </div>
             </div>
           </div>
 
