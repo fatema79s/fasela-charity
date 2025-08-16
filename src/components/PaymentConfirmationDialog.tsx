@@ -288,7 +288,7 @@ export const PaymentConfirmationDialog = ({
                 size="sm"
                 className="flex-1"
               >
-                فهمت التعليمات
+                  متابعه - فهمت التعليمات
               </Button>
             </div>
           ) : (
