@@ -15,6 +15,7 @@ import ReportForm from "@/components/admin/ReportForm";
 import ReportsList from "@/components/admin/ReportsList";
 import { DonationsManagement } from "@/components/admin/DonationsManagement";
 import { DonationsByCaseView } from "@/components/admin/DonationsByCaseView";
+import { HandedOverDonationsByCase } from "@/components/admin/HandedOverDonationsByCase";
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -158,7 +159,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
-            <TabsList className="grid w-full min-w-[700px] sm:min-w-0 grid-cols-6 gap-1 h-auto p-1">
+            <TabsList className="grid w-full min-w-[800px] sm:min-w-0 grid-cols-7 gap-1 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <BarChart3 className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">نظرة عامة</span>
@@ -178,6 +179,11 @@ const AdminDashboard = () => {
                 <CreditCard className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">تبرعات الحالات</span>
                 <span className="sm:hidden text-[10px] leading-tight">حالات</span>
+              </TabsTrigger>
+              <TabsTrigger value="handed-over" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
+                <Heart className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">المسلم للعائلات</span>
+                <span className="sm:hidden text-[10px] leading-tight">مسلم</span>
               </TabsTrigger>
               <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <FileText className="w-4 h-4 flex-shrink-0" />
@@ -206,6 +212,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="donations-by-case">
             <DonationsByCaseView />
+          </TabsContent>
+
+          <TabsContent value="handed-over">
+            <HandedOverDonationsByCase />
           </TabsContent>
 
           <TabsContent value="reports">
