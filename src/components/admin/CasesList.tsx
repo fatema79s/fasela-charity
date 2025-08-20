@@ -18,13 +18,34 @@ const CasesList = () => {
   const { data: cases, refetch } = useQuery({
     queryKey: ["admin-cases"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: casesData, error: casesError } = await supabase
         .from("cases")
         .select("*")
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (casesError) throw casesError;
+      
+      // Get handed over donations for each case
+      const { data: donations, error: donationsError } = await supabase
+        .from("donations")
+        .select("case_id, amount")
+        .eq("status", "redeemed");
+      
+      if (donationsError) throw donationsError;
+      
+      // Calculate handed over amount for each case
+      const casesWithHandedOver = casesData.map(caseItem => {
+        const handedOverAmount = donations
+          .filter(donation => donation.case_id === caseItem.id)
+          .reduce((sum, donation) => sum + donation.amount, 0);
+        
+        return {
+          ...caseItem,
+          handed_over_amount: handedOverAmount
+        };
+      });
+      
+      return casesWithHandedOver;
     }
   });
 
@@ -132,7 +153,7 @@ const CasesList = () => {
             </CardHeader>
             
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-4 mb-4">
+              <div className="grid md:grid-cols-4 gap-4 mb-4">
                 <div className="text-sm">
                   <span className="font-medium">التكلفة الشهرية:</span>
                   <br />
@@ -147,6 +168,13 @@ const CasesList = () => {
                   <span className="font-medium">المبلغ المجمع:</span>
                   <br />
                   {caseItem.total_secured_money?.toLocaleString() || 0} جنيه
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">المسلم للعائلة:</span>
+                  <br />
+                  <span className="text-primary font-semibold">
+                    {caseItem.handed_over_amount?.toLocaleString() || 0} جنيه
+                  </span>
                 </div>
               </div>
 
