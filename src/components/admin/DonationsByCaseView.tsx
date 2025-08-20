@@ -109,6 +109,7 @@ export const DonationsByCaseView = () => {
       cancelled: donations.filter(d => d.status === 'cancelled').length,
       totalAmount: donations.reduce((sum, d) => sum + d.amount, 0),
       confirmedAmount: donations.filter(d => d.status === 'confirmed').reduce((sum, d) => sum + d.amount, 0),
+      redeemedAmount: donations.filter(d => d.status === 'redeemed').reduce((sum, d) => sum + d.amount, 0),
     };
     return stats;
   };
@@ -119,8 +120,20 @@ export const DonationsByCaseView = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl sm:text-2xl font-bold">التبرعات حسب الحالة</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold">التبرعات حسب الحالة</h2>
+          <div className="mt-2 p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
+            <div className="text-lg font-bold text-primary">
+              إجمالي التبرعات المسلمة: {casesWithDonations?.reduce((total, caseItem) => 
+                total + getDonationStats(caseItem.donations).redeemedAmount, 0)?.toLocaleString() || 0} جنيه
+            </div>
+            <div className="text-sm text-muted-foreground">
+              من {casesWithDonations?.reduce((total, caseItem) => 
+                total + getDonationStats(caseItem.donations).redeemed, 0) || 0} تبرع مسلم
+            </div>
+          </div>
+        </div>
         <div className="text-sm text-muted-foreground">
           {casesWithDonations?.length || 0} حالة
         </div>

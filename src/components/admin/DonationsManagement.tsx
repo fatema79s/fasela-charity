@@ -252,8 +252,18 @@ export const DonationsManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">إدارة التبرعات</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">إدارة التبرعات</h2>
+          <div className="mt-2 p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
+            <div className="text-lg font-bold text-primary">
+              إجمالي التبرعات المسلمة: {redeemedSum.toLocaleString()} جنيه
+            </div>
+            <div className="text-sm text-muted-foreground">
+              تم تسليم {redeemedDonations.length} تبرع للعائلات
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
             <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
