@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronDown, User, Calendar, CreditCard, Check, X, Package, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -50,9 +51,27 @@ export const DonationsByCaseView = () => {
   const [openCases, setOpenCases] = useState<Set<string>>(new Set());
   const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
+  const [newPaymentReference, setNewPaymentReference] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: paymentReferences } = useQuery({
+    queryKey: ["payment-references"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donations")
+        .select("payment_reference")
+        .not("payment_reference", "is", null)
+        .neq("payment_reference", "");
+
+      if (error) throw error;
+      
+      // Get unique payment references
+      const uniqueRefs = [...new Set(data.map(d => d.payment_reference))];
+      return uniqueRefs.filter(Boolean);
+    }
+  });
 
   const { data: casesWithDonations, isLoading } = useQuery({
     queryKey: ["donations-by-case"],
@@ -108,6 +127,7 @@ export const DonationsByCaseView = () => {
       });
       setSelectedDonation(null);
       setPaymentReference("");
+      setNewPaymentReference("");
       setAdminNotes("");
     },
     onError: () => {
@@ -181,9 +201,10 @@ export const DonationsByCaseView = () => {
 
   const handleConfirmDonation = () => {
     if (!selectedDonation) return;
+    const finalPaymentRef = paymentReference === 'new' ? newPaymentReference : paymentReference;
     confirmDonationMutation.mutate({
       id: selectedDonation.id,
-      paymentRef: paymentReference,
+      paymentRef: finalPaymentRef,
       notes: adminNotes
     });
   };
@@ -498,12 +519,28 @@ export const DonationsByCaseView = () => {
           <div className="space-y-4">
             {selectedDonation?.status === 'pending' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">مرجع الدفع</label>
-                <Input
-                  value={paymentReference}
-                  onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="أدخل مرجع الدفع"
-                />
+                <label className="text-sm font-medium">رقم العملية/المرجع</label>
+                <Select value={paymentReference} onValueChange={setPaymentReference}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر مرجع الدفع أو أدخل جديد" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">إدخال مرجع جديد</SelectItem>
+                    {paymentReferences?.map((ref) => (
+                      <SelectItem key={ref} value={ref}>
+                        {ref}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {paymentReference === 'new' && (
+                  <Input
+                    value={newPaymentReference}
+                    onChange={(e) => setNewPaymentReference(e.target.value)}
+                    placeholder="أدخل مرجع الدفع الجديد"
+                    autoFocus
+                  />
+                )}
               </div>
             )}
             
@@ -523,7 +560,8 @@ export const DonationsByCaseView = () => {
               <>
                 <Button
                   onClick={handleConfirmDonation}
-                  disabled={confirmDonationMutation.isPending || !paymentReference.trim()}
+                  disabled={confirmDonationMutation.isPending || 
+                    (!paymentReference.trim() || (paymentReference === 'new' && !newPaymentReference.trim()))}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Check className="w-4 h-4 ml-1" />
