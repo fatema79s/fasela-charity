@@ -81,7 +81,7 @@ export const DonationsByCaseView = () => {
         .from("cases")
         .select("id, title, title_ar, monthly_cost, total_secured_money, months_covered, status")
         .eq("is_published", true)
-        .order("title_ar");
+        .order("updated_at", { ascending: false });
 
       if (casesError) throw casesError;
 
