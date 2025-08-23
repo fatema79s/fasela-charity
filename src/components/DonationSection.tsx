@@ -22,7 +22,7 @@ interface DonationSectionProps {
 export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle, caseId }: DonationSectionProps) => {
   const [selectedMonths, setSelectedMonths] = useState([1]);
   const [customAmount, setCustomAmount] = useState("");
-  const [donationType, setDonationType] = useState<'monthly' | 'custom'>('monthly');
+  const [donationType, setDonationType] = useState<'monthly' | 'custom'>(monthsNeeded === 1 ? 'custom' : 'monthly');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
 
@@ -113,7 +113,7 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
         )}
 
         {/* نوع التبرع */}
-        {!isDonationDisabled && (
+        {!isDonationDisabled && monthsNeeded !== 1 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               variant={donationType === 'monthly' ? 'default' : 'outline'}
