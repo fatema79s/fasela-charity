@@ -40,11 +40,20 @@ interface CaseWithHandedOverDonations {
   handedOverDonations: HandedOverDonation[];
 }
 
+interface MonthlyData {
+  month: string;
+  displayMonth: string;
+  cases: CaseWithHandedOverDonations[];
+  totalAmount: number;
+  totalDonations: number;
+}
+
 export const HandedOverDonationsByCase = () => {
+  const [openMonths, setOpenMonths] = useState<Set<string>>(new Set());
   const [openCases, setOpenCases] = useState<Set<string>>(new Set());
 
-  const { data: casesWithHandedOverDonations, isLoading } = useQuery({
-    queryKey: ["handed-over-donations-by-case"],
+  const { data: monthlyData, isLoading } = useQuery({
+    queryKey: ["handed-over-donations-by-case-monthly"],
     queryFn: async () => {
       // First get all cases
       const { data: cases, error: casesError } = await supabase
@@ -65,15 +74,61 @@ export const HandedOverDonationsByCase = () => {
 
       if (donationsError) throw donationsError;
 
-      // Group handed over donations by case
-      const casesWithHandedOverDonations: CaseWithHandedOverDonations[] = cases.map(caseItem => ({
-        ...caseItem,
-        handedOverDonations: handedOverDonations.filter(d => d.case_id === caseItem.id)
-      })).filter(caseItem => caseItem.handedOverDonations.length > 0); // Only show cases with handed over donations
+      // Group donations by month and case
+      const monthlyGroups: { [key: string]: MonthlyData } = {};
 
-      return casesWithHandedOverDonations;
+      handedOverDonations.forEach(donation => {
+        const date = new Date(donation.created_at);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const displayMonth = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+        
+        if (!monthlyGroups[monthKey]) {
+          monthlyGroups[monthKey] = {
+            month: monthKey,
+            displayMonth,
+            cases: [],
+            totalAmount: 0,
+            totalDonations: 0
+          };
+        }
+
+        monthlyGroups[monthKey].totalAmount += donation.amount;
+        monthlyGroups[monthKey].totalDonations += 1;
+
+        // Find or create case in this month
+        let caseInMonth = monthlyGroups[monthKey].cases.find(c => c.id === donation.case_id);
+        if (!caseInMonth) {
+          const caseData = cases.find(c => c.id === donation.case_id);
+          if (caseData) {
+            caseInMonth = {
+              ...caseData,
+              handedOverDonations: []
+            };
+            monthlyGroups[monthKey].cases.push(caseInMonth);
+          }
+        }
+        
+        if (caseInMonth) {
+          caseInMonth.handedOverDonations.push(donation);
+        }
+      });
+
+      // Convert to array and sort by month (newest first)
+      const sortedMonthlyData = Object.values(monthlyGroups).sort((a, b) => b.month.localeCompare(a.month));
+      
+      return sortedMonthlyData;
     }
   });
+
+  const toggleMonth = (monthKey: string) => {
+    const newOpenMonths = new Set(openMonths);
+    if (newOpenMonths.has(monthKey)) {
+      newOpenMonths.delete(monthKey);
+    } else {
+      newOpenMonths.add(monthKey);
+    }
+    setOpenMonths(newOpenMonths);
+  };
 
   const toggleCase = (caseId: string) => {
     const newOpenCases = new Set(openCases);
@@ -100,14 +155,14 @@ export const HandedOverDonationsByCase = () => {
   };
 
   // Calculate overall totals
-  const overallStats = casesWithHandedOverDonations?.reduce((acc, caseItem) => {
-    const caseStats = getHandedOverStats(caseItem.handedOverDonations);
+  const overallStats = monthlyData?.reduce((acc, month) => {
     return {
-      totalAmount: acc.totalAmount + caseStats.totalAmount,
-      totalDonations: acc.totalDonations + caseStats.totalDonations,
-      totalCases: acc.totalCases + 1,
+      totalAmount: acc.totalAmount + month.totalAmount,
+      totalDonations: acc.totalDonations + month.totalDonations,
+      totalCases: acc.totalCases + month.cases.length,
+      totalMonths: acc.totalMonths + 1,
     };
-  }, { totalAmount: 0, totalDonations: 0, totalCases: 0 }) || { totalAmount: 0, totalDonations: 0, totalCases: 0 };
+  }, { totalAmount: 0, totalDonations: 0, totalCases: 0, totalMonths: 0 }) || { totalAmount: 0, totalDonations: 0, totalCases: 0, totalMonths: 0 };
 
   if (isLoading) {
     return <div className="text-center py-8">جار التحميل...</div>;
@@ -117,152 +172,188 @@ export const HandedOverDonationsByCase = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold">التبرعات المسلمة حسب الحالة</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">التبرعات المسلمة شهرياً حسب الحالة</h2>
           <div className="mt-2 p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
             <div className="text-lg font-bold text-primary">
               إجمالي التبرعات المسلمة: {overallStats.totalAmount.toLocaleString()} جنيه
             </div>
             <div className="text-sm text-muted-foreground">
-              من {overallStats.totalDonations} تبرع مسلم في {overallStats.totalCases} حالة
+              من {overallStats.totalDonations} تبرع مسلم خلال {overallStats.totalMonths} شهر
             </div>
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
-          {casesWithHandedOverDonations?.length || 0} حالة لديها تبرعات مسلمة
+          {monthlyData?.length || 0} شهر يحتوي على تبرعات مسلمة
         </div>
       </div>
 
-      <div className="space-y-4">
-        {casesWithHandedOverDonations?.map((caseItem) => {
-          const stats = getHandedOverStats(caseItem.handedOverDonations);
-          const isOpen = openCases.has(caseItem.id);
+      <div className="space-y-6">
+        {monthlyData?.map((monthData) => {
+          const isMonthOpen = openMonths.has(monthData.month);
           
           return (
-            <Card key={caseItem.id} className="overflow-hidden">
+            <Card key={monthData.month} className="overflow-hidden">
               <Collapsible>
                 <CollapsibleTrigger 
                   className="w-full" 
-                  onClick={() => toggleCase(caseItem.id)}
+                  onClick={() => toggleMonth(monthData.month)}
                 >
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 bg-secondary/50">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 text-right">
-                        <CardTitle className="text-base sm:text-lg">
-                          {caseItem.title_ar}
+                        <CardTitle className="text-lg sm:text-xl text-primary">
+                          {monthData.displayMonth}
                         </CardTitle>
-                        <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-muted-foreground">
-                          <span>التكلفة الشهرية: {caseItem.monthly_cost?.toLocaleString()} ج.م</span>
-                          <span>•</span>
-                          <span>المؤمن: {caseItem.total_secured_money?.toLocaleString()} ج.م</span>
-                          <span>•</span>
-                          <span>الأشهر المغطاة: {caseItem.months_covered || 0}</span>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {monthData.cases.length} حالة • {monthData.totalDonations} تبرع مسلم
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="text-sm font-medium text-primary">
-                            {stats.totalAmount.toLocaleString()} ج.م مسلم
+                          <div className="text-lg font-bold text-primary">
+                            {monthData.totalAmount.toLocaleString()} ج.م
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {stats.totalDonations} تبرع مسلم
+                            إجمالي الشهر
                           </div>
                         </div>
                         <ChevronDown 
-                          className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+                          className={`w-5 h-5 transition-transform ${isMonthOpen ? 'rotate-180' : ''}`} 
                         />
                       </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                        <Package className="w-3 h-3 ml-1" />
-                        مسلم: {stats.totalDonations}
-                      </Badge>
-                      {stats.monthlyDonations > 0 && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700">
-                          شهري: {stats.monthlyDonations}
-                        </Badge>
-                      )}
-                      {stats.customDonations > 0 && (
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                          مخصص: {stats.customDonations}
-                        </Badge>
-                      )}
                     </div>
                   </CardHeader>
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-right">المتبرع</TableHead>
-                            <TableHead className="text-right">المبلغ</TableHead>
-                            <TableHead className="text-right">النوع</TableHead>
-                            <TableHead className="text-right">كود الدفع</TableHead>
-                            <TableHead className="text-right">تاريخ التبرع</TableHead>
-                            <TableHead className="text-right">تاريخ التأكيد</TableHead>
-                            <TableHead className="text-right">ملاحظات الإدارة</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {caseItem.handedOverDonations.map((donation) => (
-                            <TableRow key={donation.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <User className="w-4 h-4" />
-                                  <div>
-                                    <div className="font-medium">
-                                      {donation.donor_name || 'متبرع مجهول'}
+                  <CardContent className="pt-4 space-y-4">
+                    {monthData.cases.map((caseItem) => {
+                      const stats = getHandedOverStats(caseItem.handedOverDonations);
+                      const isCaseOpen = openCases.has(`${monthData.month}-${caseItem.id}`);
+                      
+                      return (
+                        <Card key={caseItem.id} className="border-l-4 border-l-primary/30">
+                          <Collapsible>
+                            <CollapsibleTrigger 
+                              className="w-full" 
+                              onClick={() => toggleCase(`${monthData.month}-${caseItem.id}`)}
+                            >
+                              <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1 text-right">
+                                    <CardTitle className="text-base">
+                                      {caseItem.title_ar}
+                                    </CardTitle>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                      <span>التكلفة الشهرية: {caseItem.monthly_cost?.toLocaleString()} ج.م</span>
+                                      <span>•</span>
+                                      <span>المؤمن: {caseItem.total_secured_money?.toLocaleString()} ج.م</span>
                                     </div>
-                                    {donation.donor_email && (
-                                      <div className="text-xs text-muted-foreground">
-                                        {donation.donor_email}
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                      <div className="text-sm font-medium text-primary">
+                                        {stats.totalAmount.toLocaleString()} ج.م مسلم
                                       </div>
-                                    )}
+                                      <div className="text-xs text-muted-foreground">
+                                        {stats.totalDonations} تبرع
+                                      </div>
+                                    </div>
+                                    <ChevronDown 
+                                      className={`w-4 h-4 transition-transform ${isCaseOpen ? 'rotate-180' : ''}`} 
+                                    />
                                   </div>
                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium text-primary">
-                                  {donation.amount.toLocaleString()} ج.م
+                                
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                                    <Package className="w-3 h-3 ml-1" />
+                                    مسلم: {stats.totalDonations}
+                                  </Badge>
+                                  {stats.monthlyDonations > 0 && (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                                      شهري: {stats.monthlyDonations}
+                                    </Badge>
+                                  )}
+                                  {stats.customDonations > 0 && (
+                                    <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                      مخصص: {stats.customDonations}
+                                    </Badge>
+                                  )}
                                 </div>
-                                {donation.donation_type === 'monthly' && (
-                                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {donation.months_pledged} شهر
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {donation.donation_type === 'monthly' ? 'شهري' : 'مخصص'}
-                              </TableCell>
-                              <TableCell>
-                                <span className="font-mono text-sm">
-                                  {donation.payment_code}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                {new Date(donation.created_at).toLocaleDateString('ar-SA')}
-                              </TableCell>
-                              <TableCell>
-                                {donation.confirmed_at 
-                                  ? new Date(donation.confirmed_at).toLocaleDateString('ar-SA')
-                                  : '-'
-                                }
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-xs text-muted-foreground max-w-32 truncate">
-                                  {donation.admin_notes || '-'}
+                              </CardHeader>
+                            </CollapsibleTrigger>
+
+                            <CollapsibleContent>
+                              <CardContent className="pt-0">
+                                <div className="overflow-x-auto">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead className="text-right">المتبرع</TableHead>
+                                        <TableHead className="text-right">المبلغ</TableHead>
+                                        <TableHead className="text-right">النوع</TableHead>
+                                        <TableHead className="text-right">كود الدفع</TableHead>
+                                        <TableHead className="text-right">تاريخ التبرع</TableHead>
+                                        <TableHead className="text-right">ملاحظات الإدارة</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {caseItem.handedOverDonations.map((donation) => (
+                                        <TableRow key={donation.id}>
+                                          <TableCell>
+                                            <div className="flex items-center gap-2">
+                                              <User className="w-4 h-4" />
+                                              <div>
+                                                <div className="font-medium">
+                                                  {donation.donor_name || 'متبرع مجهول'}
+                                                </div>
+                                                {donation.donor_email && (
+                                                  <div className="text-xs text-muted-foreground">
+                                                    {donation.donor_email}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>
+                                            <div className="font-medium text-primary">
+                                              {donation.amount.toLocaleString()} ج.م
+                                            </div>
+                                            {donation.donation_type === 'monthly' && (
+                                              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {donation.months_pledged} شهر
+                                              </div>
+                                            )}
+                                          </TableCell>
+                                          <TableCell>
+                                            {donation.donation_type === 'monthly' ? 'شهري' : 'مخصص'}
+                                          </TableCell>
+                                          <TableCell>
+                                            <span className="font-mono text-sm">
+                                              {donation.payment_code}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell>
+                                            {new Date(donation.created_at).toLocaleDateString('ar-SA')}
+                                          </TableCell>
+                                          <TableCell>
+                                            <div className="text-xs text-muted-foreground max-w-32 truncate">
+                                              {donation.admin_notes || '-'}
+                                            </div>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
                                 </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                              </CardContent>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </Card>
+                      );
+                    })}
                   </CardContent>
                 </CollapsibleContent>
               </Collapsible>
@@ -270,7 +361,7 @@ export const HandedOverDonationsByCase = () => {
           );
         })}
         
-        {(!casesWithHandedOverDonations || casesWithHandedOverDonations.length === 0) && (
+        {(!monthlyData || monthlyData.length === 0) && (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-muted-foreground">لا توجد تبرعات مسلمة بعد</p>
