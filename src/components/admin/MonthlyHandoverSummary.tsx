@@ -42,7 +42,9 @@ export const MonthlyHandoverSummary = () => {
       handovers.forEach(handover => {
         const date = new Date(handover.handover_date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const displayMonth = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+        const displayMonthAr = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+        const displayMonthEn = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        const displayMonth = `${displayMonthAr} | ${displayMonthEn}`;
         
         if (!monthlyGroups[monthKey]) {
           monthlyGroups[monthKey] = {
@@ -67,7 +69,9 @@ export const MonthlyHandoverSummary = () => {
       legacyDonations.forEach(donation => {
         const date = new Date(donation.confirmed_at);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const displayMonth = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+        const displayMonthAr = date.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+        const displayMonthEn = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        const displayMonth = `${displayMonthAr} | ${displayMonthEn}`;
         
         if (!monthlyGroups[monthKey]) {
           monthlyGroups[monthKey] = {
