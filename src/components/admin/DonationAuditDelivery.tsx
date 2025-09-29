@@ -1,0 +1,639 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Truck, 
+  Eye, 
+  Filter,
+  Download,
+  AlertCircle,
+  CreditCard,
+  Package,
+  History
+} from "lucide-react";
+
+interface Donation {
+  id: string;
+  case_id: string;
+  donor_name: string | null;
+  donor_email: string | null;
+  amount: number;
+  status: string;
+  donation_type: string;
+  months_pledged: number;
+  payment_reference: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  confirmed_at: string | null;
+  handover_status: string;
+  total_handed_over: number;
+  payment_code: string;
+  cases: {
+    id: string;
+    title: string;
+    title_ar: string;
+  };
+}
+
+interface HandoverRecord {
+  id: string;
+  donation_id: string;
+  case_id: string;
+  handover_amount: number;
+  handover_date: string;
+  handover_notes: string | null;
+  handed_over_by: string | null;
+  created_at: string;
+  cases: {
+    title: string;
+    title_ar: string;
+  };
+  donations: {
+    donor_name: string | null;
+    amount: number;
+    payment_code: string;
+  };
+}
+
+const DonationAuditDelivery = () => {
+  const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [handoverAmount, setHandoverAmount] = useState("");
+  const [handoverNotes, setHandoverNotes] = useState("");
+  const [selectedCaseId, setSelectedCaseId] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [showActionDialog, setShowActionDialog] = useState(false);
+  const [showHandoverDialog, setShowHandoverDialog] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch donations with case details
+  const { data: donations = [], isLoading } = useQuery({
+    queryKey: ["donation-audit"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donations")
+        .select(`
+          *,
+          cases!inner(id, title, title_ar)
+        `)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data as Donation[];
+    }
+  });
+
+  // Fetch cases for handover transfer
+  const { data: allCases = [] } = useQuery({
+    queryKey: ["cases-for-handover"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cases")
+        .select("id, title, title_ar")
+        .eq("status", "active");
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch handover history
+  const { data: handoverHistory = [] } = useQuery({
+    queryKey: ["handover-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donation_handovers")
+        .select(`
+          *,
+          cases(title, title_ar),
+          donations(donor_name, amount, payment_code)
+        `)
+        .order("handover_date", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data as HandoverRecord[];
+    }
+  });
+
+  // Confirm donation mutation
+  const confirmDonationMutation = useMutation({
+    mutationFn: async ({ donationId, paymentRef, notes }: { donationId: string; paymentRef: string; notes: string }) => {
+      const { error } = await supabase
+        .from("donations")
+        .update({
+          status: "confirmed",
+          payment_reference: paymentRef,
+          admin_notes: notes,
+          confirmed_at: new Date().toISOString(),
+          confirmed_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq("id", donationId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "تم تأكيد التبرع بنجاح" });
+      queryClient.invalidateQueries({ queryKey: ["donation-audit"] });
+      setShowActionDialog(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({ title: "حدث خطأ أثناء تأكيد التبرع", variant: "destructive" });
+    }
+  });
+
+  // Handover mutation
+  const handoverMutation = useMutation({
+    mutationFn: async ({ 
+      donationId, 
+      caseId, 
+      amount, 
+      notes 
+    }: { 
+      donationId: string; 
+      caseId: string; 
+      amount: number; 
+      notes: string; 
+    }) => {
+      const { error } = await supabase
+        .from("donation_handovers")
+        .insert({
+          donation_id: donationId,
+          case_id: caseId,
+          handover_amount: amount,
+          handover_notes: notes,
+          handed_over_by: (await supabase.auth.getUser()).data.user?.id
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "تم تسليم التبرع بنجاح" });
+      queryClient.invalidateQueries({ queryKey: ["donation-audit"] });
+      queryClient.invalidateQueries({ queryKey: ["handover-history"] });
+      setShowHandoverDialog(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({ title: "حدث خطأ أثناء تسليم التبرع", variant: "destructive" });
+    }
+  });
+
+  // Cancel donation mutation
+  const cancelDonationMutation = useMutation({
+    mutationFn: async (donationId: string) => {
+      const { error } = await supabase
+        .from("donations")
+        .update({ status: "cancelled" })
+        .eq("id", donationId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "تم إلغاء التبرع" });
+      queryClient.invalidateQueries({ queryKey: ["donation-audit"] });
+      setShowActionDialog(false);
+      resetForm();
+    },
+    onError: () => {
+      toast({ title: "حدث خطأ أثناء إلغاء التبرع", variant: "destructive" });
+    }
+  });
+
+  const resetForm = () => {
+    setSelectedDonation(null);
+    setPaymentReference("");
+    setAdminNotes("");
+    setHandoverAmount("");
+    setHandoverNotes("");
+    setSelectedCaseId("");
+  };
+
+  const openActionDialog = (donation: Donation) => {
+    setSelectedDonation(donation);
+    setPaymentReference(donation.payment_reference || "");
+    setAdminNotes(donation.admin_notes || "");
+    setShowActionDialog(true);
+  };
+
+  const openHandoverDialog = (donation: Donation) => {
+    setSelectedDonation(donation);
+    setSelectedCaseId(donation.case_id);
+    setHandoverAmount(String(donation.amount - (donation.total_handed_over || 0)));
+    setShowHandoverDialog(true);
+  };
+
+  const handleConfirm = () => {
+    if (!selectedDonation) return;
+    confirmDonationMutation.mutate({
+      donationId: selectedDonation.id,
+      paymentRef: paymentReference,
+      notes: adminNotes
+    });
+  };
+
+  const handleHandover = () => {
+    if (!selectedDonation || !handoverAmount) return;
+    
+    const targetCaseId = selectedCaseId === "original" ? selectedDonation.case_id : selectedCaseId;
+    
+    handoverMutation.mutate({
+      donationId: selectedDonation.id,
+      caseId: targetCaseId,
+      amount: Number(handoverAmount),
+      notes: handoverNotes
+    });
+  };
+
+  const handleCancel = () => {
+    if (!selectedDonation) return;
+    cancelDonationMutation.mutate(selectedDonation.id);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      pending: { variant: "secondary" as const, icon: Clock, text: "في الانتظار" },
+      confirmed: { variant: "default" as const, icon: CheckCircle, text: "مؤكد" },
+      cancelled: { variant: "destructive" as const, icon: XCircle, text: "ملغى" }
+    };
+    
+    const config = variants[status as keyof typeof variants] || variants.pending;
+    const Icon = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <Icon className="w-3 h-3" />
+        {config.text}
+      </Badge>
+    );
+  };
+
+  const getHandoverStatusBadge = (status: string, total: number, amount: number) => {
+    if (status === "none") {
+      return <Badge variant="outline">لم يسلم</Badge>;
+    } else if (status === "partial") {
+      return <Badge variant="secondary">مسلم جزئياً ({total} من {amount})</Badge>;
+    } else {
+      return <Badge variant="default">مسلم كاملاً</Badge>;
+    }
+  };
+
+  // Filter donations
+  const pendingDonations = donations.filter(d => d.status === "pending");
+  const readyForDelivery = donations.filter(d => 
+    d.status === "confirmed" && 
+    (d.handover_status === "none" || d.handover_status === "partial")
+  );
+  const filteredDonations = filterStatus === "all" ? donations : 
+    donations.filter(d => d.status === filterStatus);
+
+  if (isLoading) {
+    return <div className="text-center py-8">جار التحميل...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header with stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-yellow-500" />
+              في الانتظار
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingDonations.length}</div>
+            <p className="text-sm text-muted-foreground">
+              {pendingDonations.reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ج.م
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Package className="w-4 h-4 text-blue-500" />
+              جاهز للتسليم
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{readyForDelivery.length}</div>
+            <p className="text-sm text-muted-foreground">
+              {readyForDelivery.reduce((sum, d) => sum + (d.amount - (d.total_handed_over || 0)), 0).toLocaleString()} ج.م
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Truck className="w-4 h-4 text-green-500" />
+              مسلم هذا الشهر
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {handoverHistory.filter(h => 
+                new Date(h.handover_date).getMonth() === new Date().getMonth()
+              ).length}
+            </div>
+            <p className="text-sm text-muted-foreground">عملية تسليم</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-purple-500" />
+              إجمالي التبرعات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{donations.length}</div>
+            <p className="text-sm text-muted-foreground">
+              {donations.reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ج.م
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Donations Section */}
+      {pendingDonations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              التبرعات في الانتظار ({pendingDonations.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {pendingDonations.map((donation) => (
+                <div key={donation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium">{donation.donor_name || "متبرع مجهول"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {donation.cases.title_ar} - {donation.amount.toLocaleString()} ج.م
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          كود الدفع: {donation.payment_code}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(donation.status)}
+                    <Button 
+                      size="sm" 
+                      onClick={() => openActionDialog(donation)}
+                      className="flex items-center gap-1"
+                    >
+                      <Eye className="w-3 h-3" />
+                      مراجعة
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ready for Delivery Section */}
+      {readyForDelivery.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5 text-blue-500" />
+              جاهز للتسليم ({readyForDelivery.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {readyForDelivery.map((donation) => (
+                <div key={donation.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium">{donation.donor_name || "متبرع مجهول"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {donation.cases.title_ar} - {(donation.amount - (donation.total_handed_over || 0)).toLocaleString()} ج.م متبقي
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {getHandoverStatusBadge(donation.handover_status, donation.total_handed_over || 0, donation.amount)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => openHandoverDialog(donation)}
+                      className="flex items-center gap-1"
+                    >
+                      <Truck className="w-3 h-3" />
+                      تسليم
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delivery History Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="w-5 h-5 text-green-500" />
+            سجل التسليمات الأخيرة (50 عملية)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {handoverHistory.map((record) => (
+              <div key={record.id} className="flex items-center justify-between p-2 border-b last:border-b-0">
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {record.donations.donor_name || "متبرع مجهول"} - {record.handover_amount.toLocaleString()} ج.م
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    إلى: {record.cases.title_ar} • {new Date(record.handover_date).toLocaleDateString('ar-EG')}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  مسلم
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action Dialog */}
+      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>مراجعة التبرع</DialogTitle>
+          </DialogHeader>
+          {selectedDonation && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p><strong>المتبرع:</strong> {selectedDonation.donor_name || "مجهول"}</p>
+                <p><strong>المبلغ:</strong> {selectedDonation.amount.toLocaleString()} ج.م</p>
+                <p><strong>الحالة:</strong> {selectedDonation.cases.title_ar}</p>
+                <p><strong>كود الدفع:</strong> {selectedDonation.payment_code}</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="payment-ref">مرجع الدفع</Label>
+                  <Input
+                    id="payment-ref"
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    placeholder="أدخل مرجع الدفع"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="admin-notes">ملاحظات الإدارة</Label>
+                  <Textarea
+                    id="admin-notes"
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="ملاحظات إضافية"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={handleConfirm}
+                  disabled={confirmDonationMutation.isPending}
+                  className="flex-1"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  تأكيد
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleCancel}
+                  disabled={cancelDonationMutation.isPending}
+                  className="flex-1"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Handover Dialog */}
+      <Dialog open={showHandoverDialog} onOpenChange={setShowHandoverDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>تسليم التبرع</DialogTitle>
+          </DialogHeader>
+          {selectedDonation && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p><strong>المتبرع:</strong> {selectedDonation.donor_name || "مجهول"}</p>
+                <p><strong>المبلغ الأصلي:</strong> {selectedDonation.amount.toLocaleString()} ج.م</p>
+                <p><strong>المسلم سابقاً:</strong> {(selectedDonation.total_handed_over || 0).toLocaleString()} ج.م</p>
+                <p><strong>المتبقي:</strong> {(selectedDonation.amount - (selectedDonation.total_handed_over || 0)).toLocaleString()} ج.م</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="handover-amount">المبلغ المراد تسليمه</Label>
+                  <Input
+                    id="handover-amount"
+                    type="number"
+                    value={handoverAmount}
+                    onChange={(e) => setHandoverAmount(e.target.value)}
+                    max={selectedDonation.amount - (selectedDonation.total_handed_over || 0)}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="target-case">تسليم إلى الحالة</Label>
+                  <Select value={selectedCaseId} onValueChange={setSelectedCaseId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الحالة المستهدفة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="original">الحالة الأصلية</SelectItem>
+                      {allCases?.filter(c => c.id !== selectedDonation.case_id).map((caseItem) => (
+                        <SelectItem key={caseItem.id} value={caseItem.id}>
+                          {caseItem.title_ar} - {caseItem.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="handover-notes">ملاحظات التسليم</Label>
+                  <Textarea
+                    id="handover-notes"
+                    value={handoverNotes}
+                    onChange={(e) => setHandoverNotes(e.target.value)}
+                    placeholder="ملاحظات حول عملية التسليم"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={handleHandover}
+                  disabled={handoverMutation.isPending || !handoverAmount}
+                  className="flex-1"
+                >
+                  <Truck className="w-4 h-4 mr-2" />
+                  تسليم
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowHandoverDialog(false)}
+                  className="flex-1"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export { DonationAuditDelivery };

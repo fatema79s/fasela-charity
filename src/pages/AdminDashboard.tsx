@@ -13,9 +13,7 @@ import CaseForm from "@/components/admin/CaseForm";
 import CasesList from "@/components/admin/CasesList";
 import ReportForm from "@/components/admin/ReportForm";
 import ReportsList from "@/components/admin/ReportsList";
-import { DonationsManagement } from "@/components/admin/DonationsManagement";
-import { DonationsByCaseView } from "@/components/admin/DonationsByCaseView";
-import { HandedOverDonationsByCase } from "@/components/admin/HandedOverDonationsByCase";
+import { DonationAuditDelivery } from "@/components/admin/DonationAuditDelivery";
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -159,7 +157,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
-            <TabsList className="grid w-full min-w-[800px] sm:min-w-0 grid-cols-7 gap-1 h-auto p-1">
+            <TabsList className="grid w-full min-w-[600px] sm:min-w-0 grid-cols-5 gap-1 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <BarChart3 className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">نظرة عامة</span>
@@ -170,20 +168,10 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">إدارة الحالات</span>
                 <span className="sm:hidden text-[10px] leading-tight">الحالات</span>
               </TabsTrigger>
-              <TabsTrigger value="donations" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
+              <TabsTrigger value="donation-audit" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <CreditCard className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">التبرعات</span>
-                <span className="sm:hidden text-[10px] leading-tight">تبرعات</span>
-              </TabsTrigger>
-              <TabsTrigger value="donations-by-case" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
-                <CreditCard className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">تبرعات الحالات</span>
-                <span className="sm:hidden text-[10px] leading-tight">حالات</span>
-              </TabsTrigger>
-              <TabsTrigger value="handed-over" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
-                <Heart className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">المسلم للعائلات</span>
-                <span className="sm:hidden text-[10px] leading-tight">مسلم</span>
+                <span className="hidden sm:inline">مراجعة وتسليم التبرعات</span>
+                <span className="sm:hidden text-[10px] leading-tight">التبرعات</span>
               </TabsTrigger>
               <TabsTrigger value="reports" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <FileText className="w-4 h-4 flex-shrink-0" />
@@ -206,16 +194,8 @@ const AdminDashboard = () => {
             <CasesList />
           </TabsContent>
 
-          <TabsContent value="donations">
-            <DonationsManagement />
-          </TabsContent>
-
-          <TabsContent value="donations-by-case">
-            <DonationsByCaseView />
-          </TabsContent>
-
-          <TabsContent value="handed-over">
-            <HandedOverDonationsByCase />
+          <TabsContent value="donation-audit">
+            <DonationAuditDelivery />
           </TabsContent>
 
           <TabsContent value="reports">
