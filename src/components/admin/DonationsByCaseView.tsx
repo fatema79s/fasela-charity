@@ -818,7 +818,7 @@ export const DonationsByCaseView = () => {
                   <SelectValue placeholder="اختر حالة أخرى أو اتركها فارغة للتسليم للحالة الأصلية" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الحالة الأصلية</SelectItem>
+                  <SelectItem value="original">الحالة الأصلية</SelectItem>
                   {casesWithDonations?.filter(c => c.id !== selectedDonation?.case_id).map((caseItem) => (
                     <SelectItem key={caseItem.id} value={caseItem.id}>
                       {caseItem.title_ar} - {caseItem.title}
