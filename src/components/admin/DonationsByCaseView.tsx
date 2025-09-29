@@ -294,19 +294,32 @@ export const DonationsByCaseView = () => {
     if (!selectedDonation || !handoverAmount) return;
     
     const amount = parseFloat(handoverAmount);
-    const remainingAmount = selectedDonation.amount - (selectedDonation.total_handed_over || 0);
-    
-    if (amount <= 0 || amount > remainingAmount) {
-      toast({
-        title: "خطأ",
-        description: `المبلغ يجب أن يكون بين 1 و ${remainingAmount} جنيه`,
-        variant: "destructive"
-      });
-      return;
-    }
-
     const targetCaseId = selectedTargetCaseId || selectedDonation.case_id;
     
+    // If transferring to same case, check remaining amount
+    if (targetCaseId === selectedDonation.case_id) {
+      const remainingAmount = selectedDonation.amount - (selectedDonation.total_handed_over || 0);
+      
+      if (amount <= 0 || amount > remainingAmount) {
+        toast({
+          title: "خطأ",
+          description: `المبلغ يجب أن يكون بين 1 و ${remainingAmount} جنيه`,
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      // If transferring to different case, allow full donation amount
+      if (amount <= 0 || amount > selectedDonation.amount) {
+        toast({
+          title: "خطأ",
+          description: `المبلغ يجب أن يكون بين 1 و ${selectedDonation.amount} جنيه`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     handoverDonationMutation.mutate({
       donationId: selectedDonation.id,
       caseId: targetCaseId,
@@ -599,12 +612,11 @@ export const DonationsByCaseView = () => {
                                        <Button
                                          variant="outline"
                                          size="sm"
-                                         className="text-purple-600 hover:text-purple-700"
-                                         onClick={() => handleOpenHandoverDialog(donation)}
-                                         disabled={donation.handover_status === 'full'}
-                                       >
-                                         تسليم {donation.handover_status === 'partial' ? 'جزئي' : ''}
-                                       </Button>
+                                          className="text-purple-600 hover:text-purple-700"
+                                          onClick={() => handleOpenHandoverDialog(donation)}
+                                        >
+                                          تسليم {donation.handover_status === 'partial' ? 'إضافي' : 'للعائلة'}
+                                        </Button>
                                      </>
                                    )}
                                    {(donation.status === 'pending' || donation.status === 'confirmed') && (
@@ -785,12 +797,16 @@ export const DonationsByCaseView = () => {
                 value={handoverAmount}
                 onChange={(e) => setHandoverAmount(e.target.value)}
                 placeholder="أدخل المبلغ"
-                max={selectedDonation ? selectedDonation.amount - (selectedDonation.total_handed_over || 0) : 0}
+                max={selectedDonation ? selectedDonation.amount : 0}
                 min="1"
               />
               {selectedDonation && handoverAmount && (
                 <div className="text-xs text-muted-foreground">
-                  سيتبقى: {(selectedDonation.amount - (selectedDonation.total_handed_over || 0) - parseFloat(handoverAmount || '0')).toLocaleString()} ج.م
+                  {selectedTargetCaseId && selectedTargetCaseId !== selectedDonation.case_id ? (
+                    <span className="text-blue-600">سيتم تحويل {parseFloat(handoverAmount || '0').toLocaleString()} ج.م إلى حالة أخرى</span>
+                  ) : (
+                    <span>سيتبقى من التبرع: {(selectedDonation.amount - (selectedDonation.total_handed_over || 0) - parseFloat(handoverAmount || '0')).toLocaleString()} ج.م</span>
+                  )}
                 </div>
               )}
             </div>
@@ -829,6 +845,19 @@ export const DonationsByCaseView = () => {
           </div>
 
           <DialogFooter className="gap-2">
+            {selectedDonation && selectedTargetCaseId && selectedTargetCaseId !== selectedDonation.case_id && (
+              <Button
+                onClick={() => {
+                  const remainingAmount = selectedDonation.amount - (selectedDonation.total_handed_over || 0);
+                  setHandoverAmount(remainingAmount.toString());
+                }}
+                variant="secondary"
+                size="sm"
+                disabled={handoverDonationMutation.isPending}
+              >
+                تحويل المتبقي كاملاً
+              </Button>
+            )}
             <Button
               onClick={handleHandoverDonation}
               disabled={handoverDonationMutation.isPending || !handoverAmount || parseFloat(handoverAmount) <= 0}
