@@ -67,6 +67,7 @@ export const DonationsByCaseView = () => {
   const [handoverAmount, setHandoverAmount] = useState("");
   const [handoverNotes, setHandoverNotes] = useState("");
   const [showHandoverDialog, setShowHandoverDialog] = useState(false);
+  const [selectedTargetCaseId, setSelectedTargetCaseId] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -260,6 +261,7 @@ export const DonationsByCaseView = () => {
       setHandoverAmount("");
       setHandoverNotes("");
       setSelectedDonation(null);
+      setSelectedTargetCaseId("");
     },
     onError: () => {
       toast({
@@ -303,9 +305,11 @@ export const DonationsByCaseView = () => {
       return;
     }
 
+    const targetCaseId = selectedTargetCaseId || selectedDonation.case_id;
+    
     handoverDonationMutation.mutate({
       donationId: selectedDonation.id,
-      caseId: selectedDonation.case_id,
+      caseId: targetCaseId,
       amount: amount,
       notes: handoverNotes
     });
@@ -316,6 +320,7 @@ export const DonationsByCaseView = () => {
     setShowHandoverDialog(true);
     setHandoverAmount("");
     setHandoverNotes("");
+    setSelectedTargetCaseId("");
   };
 
   const handleCancelDonation = () => {
@@ -786,6 +791,28 @@ export const DonationsByCaseView = () => {
               {selectedDonation && handoverAmount && (
                 <div className="text-xs text-muted-foreground">
                   سيتبقى: {(selectedDonation.amount - (selectedDonation.total_handed_over || 0) - parseFloat(handoverAmount || '0')).toLocaleString()} ج.م
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">تسليم إلى حالة أخرى (اختياري)</label>
+              <Select value={selectedTargetCaseId} onValueChange={setSelectedTargetCaseId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر حالة أخرى أو اتركها فارغة للتسليم للحالة الأصلية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">الحالة الأصلية</SelectItem>
+                  {casesWithDonations?.filter(c => c.id !== selectedDonation?.case_id).map((caseItem) => (
+                    <SelectItem key={caseItem.id} value={caseItem.id}>
+                      {caseItem.title_ar} - {caseItem.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedTargetCaseId && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                  سيتم تسليم المبلغ إلى حالة أخرى غير الحالة الأصلية للتبرع
                 </div>
               )}
             </div>
