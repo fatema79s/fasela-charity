@@ -359,31 +359,49 @@ export type Database = {
         Row: {
           age: number
           case_id: string
+          certificates: Json | null
           created_at: string
+          current_grade: string | null
           description: string | null
+          education_progress: Json | null
           gender: string
+          health_state: string | null
           id: string
           name: string
+          ongoing_courses: Json | null
+          school_name: string | null
           updated_at: string
         }
         Insert: {
           age: number
           case_id: string
+          certificates?: Json | null
           created_at?: string
+          current_grade?: string | null
           description?: string | null
+          education_progress?: Json | null
           gender: string
+          health_state?: string | null
           id?: string
           name: string
+          ongoing_courses?: Json | null
+          school_name?: string | null
           updated_at?: string
         }
         Update: {
           age?: number
           case_id?: string
+          certificates?: Json | null
           created_at?: string
+          current_grade?: string | null
           description?: string | null
+          education_progress?: Json | null
           gender?: string
+          health_state?: string | null
           id?: string
           name?: string
+          ongoing_courses?: Json | null
+          school_name?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -459,20 +477,28 @@ export type Database = {
           description_ar: string
           description_images: Json | null
           deserve_zakkah: boolean | null
+          education_level: string | null
+          health_state: string | null
           id: string
           is_published: boolean
+          kids_number: number | null
           monthly_cost: number
           months_covered: number
           months_needed: number
+          parent_age: number | null
           payment_code: string | null
           photo_url: string | null
+          profile_notes: string | null
+          rent_amount: number | null
           short_description: string
           short_description_ar: string
+          skills: string[] | null
           status: string
           title: string
           title_ar: string
           total_secured_money: number | null
           updated_at: string | null
+          work_ability: string | null
         }
         Insert: {
           area?: string | null
@@ -482,20 +508,28 @@ export type Database = {
           description_ar: string
           description_images?: Json | null
           deserve_zakkah?: boolean | null
+          education_level?: string | null
+          health_state?: string | null
           id?: string
           is_published?: boolean
+          kids_number?: number | null
           monthly_cost: number
           months_covered?: number
           months_needed: number
+          parent_age?: number | null
           payment_code?: string | null
           photo_url?: string | null
+          profile_notes?: string | null
+          rent_amount?: number | null
           short_description: string
           short_description_ar: string
+          skills?: string[] | null
           status?: string
           title: string
           title_ar: string
           total_secured_money?: number | null
           updated_at?: string | null
+          work_ability?: string | null
         }
         Update: {
           area?: string | null
@@ -505,20 +539,28 @@ export type Database = {
           description_ar?: string
           description_images?: Json | null
           deserve_zakkah?: boolean | null
+          education_level?: string | null
+          health_state?: string | null
           id?: string
           is_published?: boolean
+          kids_number?: number | null
           monthly_cost?: number
           months_covered?: number
           months_needed?: number
+          parent_age?: number | null
           payment_code?: string | null
           photo_url?: string | null
+          profile_notes?: string | null
+          rent_amount?: number | null
           short_description?: string
           short_description_ar?: string
+          skills?: string[] | null
           status?: string
           title?: string
           title_ar?: string
           total_secured_money?: number | null
           updated_at?: string | null
+          work_ability?: string | null
         }
         Relationships: []
       }
@@ -832,6 +874,124 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      experiment_box_items: {
+        Row: {
+          box_id: string
+          created_at: string | null
+          experiment_id: string
+          id: string
+          sort_order: number | null
+        }
+        Insert: {
+          box_id: string
+          created_at?: string | null
+          experiment_id: string
+          id?: string
+          sort_order?: number | null
+        }
+        Update: {
+          box_id?: string
+          created_at?: string | null
+          experiment_id?: string
+          id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experiment_box_items_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiment_box_items_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiment_with_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiment_box_items_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experiment_boxes: {
+        Row: {
+          age_group: string
+          age_group_ar: string | null
+          created_at: string | null
+          description: string
+          description_ar: string | null
+          difficulty: string
+          features: Json | null
+          features_ar: Json | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          learning_outcomes: Json | null
+          learning_outcomes_ar: Json | null
+          price: number
+          show_on_homepage: boolean
+          sort_order: number | null
+          title: string
+          title_ar: string | null
+          total_duration: string
+          total_duration_ar: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          age_group: string
+          age_group_ar?: string | null
+          created_at?: string | null
+          description: string
+          description_ar?: string | null
+          difficulty: string
+          features?: Json | null
+          features_ar?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          learning_outcomes?: Json | null
+          learning_outcomes_ar?: Json | null
+          price?: number
+          show_on_homepage?: boolean
+          sort_order?: number | null
+          title: string
+          title_ar?: string | null
+          total_duration: string
+          total_duration_ar?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          age_group?: string
+          age_group_ar?: string | null
+          created_at?: string | null
+          description?: string
+          description_ar?: string | null
+          difficulty?: string
+          features?: Json | null
+          features_ar?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          learning_outcomes?: Json | null
+          learning_outcomes_ar?: Json | null
+          price?: number
+          show_on_homepage?: boolean
+          sort_order?: number | null
+          title?: string
+          title_ar?: string | null
+          total_duration?: string
+          total_duration_ar?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2209,6 +2369,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_experiment_submissions: {
+        Row: {
+          created_at: string
+          experiment_id: string
+          id: string
+          image_urls: Json | null
+          is_approved: boolean | null
+          submission_description: string | null
+          submission_title: string | null
+          updated_at: string
+          user_email: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          experiment_id: string
+          id?: string
+          image_urls?: Json | null
+          is_approved?: boolean | null
+          submission_description?: string | null
+          submission_title?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          experiment_id?: string
+          id?: string
+          image_urls?: Json | null
+          is_approved?: boolean | null
+          submission_description?: string | null
+          submission_title?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -2557,6 +2756,39 @@ export type Database = {
           total_price: number
           unit_price: number
           updated_at: string
+        }[]
+      }
+      get_box_with_experiments: {
+        Args: { box_id_param: string }
+        Returns: {
+          box_age_group: string
+          box_age_group_ar: string
+          box_created_at: string
+          box_description: string
+          box_description_ar: string
+          box_difficulty: string
+          box_features: Json
+          box_features_ar: Json
+          box_id: string
+          box_image_url: string
+          box_is_active: boolean
+          box_learning_outcomes: Json
+          box_learning_outcomes_ar: Json
+          box_price: number
+          box_sort_order: number
+          box_title: string
+          box_title_ar: string
+          box_total_duration: string
+          box_total_duration_ar: string
+          box_updated_at: string
+          experiment_category: string
+          experiment_difficulty: string
+          experiment_duration: string
+          experiment_id: string
+          experiment_image_url: string
+          experiment_title: string
+          experiment_title_ar: string
+          item_sort_order: number
         }[]
       }
       get_daily_signups: {

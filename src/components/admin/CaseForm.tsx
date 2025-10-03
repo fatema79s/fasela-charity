@@ -26,6 +26,15 @@ interface CaseFormData {
   city?: string;
   area?: string;
   deserve_zakkah: boolean;
+  // Parent profile fields
+  rent_amount?: number;
+  kids_number?: number;
+  health_state?: string;
+  parent_age?: number;
+  work_ability?: string;
+  skills?: string;
+  education_level?: string;
+  profile_notes?: string;
 }
 
 interface MonthlyNeed {
@@ -42,6 +51,25 @@ interface Kid {
   age: number;
   gender: 'male' | 'female';
   description: string;
+  // Kid profile fields
+  health_state?: string;
+  current_grade?: string;
+  school_name?: string;
+  education_progress?: Array<{
+    year: string;
+    grade: string;
+    achievements: string;
+  }>;
+  certificates?: Array<{
+    name: string;
+    date: string;
+    issuer: string;
+  }>;
+  ongoing_courses?: Array<{
+    name: string;
+    type: string;
+    status: string;
+  }>;
 }
 
 interface CaseFormProps {
@@ -120,6 +148,16 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
         
+        // Parent profile fields
+        setValue("rent_amount", caseData.rent_amount || 0);
+        setValue("kids_number", caseData.kids_number || 0);
+        setValue("health_state", caseData.health_state || "");
+        setValue("parent_age", caseData.parent_age || undefined);
+        setValue("work_ability", caseData.work_ability || "");
+        setValue("skills", Array.isArray(caseData.skills) ? caseData.skills.join(', ') : "");
+        setValue("education_level", caseData.education_level || "");
+        setValue("profile_notes", caseData.profile_notes || "");
+        
         // Set current image URL
         setCurrentImageUrl(caseData.photo_url || "");
         
@@ -150,7 +188,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           name: kid.name,
           age: kid.age,
           gender: kid.gender as 'male' | 'female',
-          description: kid.description || ""
+          description: kid.description || "",
+          health_state: kid.health_state || "",
+          current_grade: kid.current_grade || "",
+          school_name: kid.school_name || "",
+          education_progress: (kid.education_progress as any) || [],
+          certificates: (kid.certificates as any) || [],
+          ongoing_courses: (kid.ongoing_courses as any) || []
         })));
       }
 
@@ -333,7 +377,18 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   };
 
   const addKid = () => {
-    setKids([...kids, { name: "", age: 0, gender: 'male', description: "" }]);
+    setKids([...kids, { 
+      name: "", 
+      age: 0, 
+      gender: 'male', 
+      description: "",
+      health_state: "",
+      current_grade: "",
+      school_name: "",
+      education_progress: [],
+      certificates: [],
+      ongoing_courses: []
+    }]);
   };
 
   const removeKid = (index: number) => {
@@ -354,6 +409,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
     try {
       if (isEditMode && caseId) {
         // Update existing case
+        const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+        
         const { error: caseError } = await supabase
           .from("cases")
           .update({
@@ -371,6 +428,15 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
+            // Parent profile fields
+            rent_amount: data.rent_amount || 0,
+            kids_number: data.kids_number || 0,
+            health_state: data.health_state || null,
+            parent_age: data.parent_age || null,
+            work_ability: data.work_ability || null,
+            skills: skillsArray.length > 0 ? skillsArray : null,
+            education_level: data.education_level || null,
+            profile_notes: data.profile_notes || null,
             updated_at: new Date().toISOString()
           })
           .eq("id", caseId);
@@ -420,7 +486,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             name: kid.name,
             age: kid.age,
             gender: kid.gender,
-            description: kid.description
+            description: kid.description,
+            health_state: kid.health_state || null,
+            current_grade: kid.current_grade || null,
+            school_name: kid.school_name || null,
+            education_progress: kid.education_progress || [],
+            certificates: kid.certificates || [],
+            ongoing_courses: kid.ongoing_courses || []
           }));
 
           const { error: kidsError } = await supabase
@@ -440,6 +512,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
       } else {
         // Create new case
+        const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+        
         const { data: caseData, error: caseError } = await supabase
           .from("cases")
           .insert({
@@ -457,6 +531,15 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
+            // Parent profile fields
+            rent_amount: data.rent_amount || 0,
+            kids_number: data.kids_number || 0,
+            health_state: data.health_state || null,
+            parent_age: data.parent_age || null,
+            work_ability: data.work_ability || null,
+            skills: skillsArray.length > 0 ? skillsArray : null,
+            education_level: data.education_level || null,
+            profile_notes: data.profile_notes || null,
             months_covered: 0,
             total_secured_money: 0
           })
@@ -492,7 +575,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             name: kid.name,
             age: kid.age,
             gender: kid.gender,
-            description: kid.description
+            description: kid.description,
+            health_state: kid.health_state || null,
+            current_grade: kid.current_grade || null,
+            school_name: kid.school_name || null,
+            education_progress: kid.education_progress || [],
+            certificates: kid.certificates || [],
+            ongoing_courses: kid.ongoing_courses || []
           }));
 
           const { error: kidsError } = await supabase
@@ -512,7 +601,18 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setCurrentImageUrl("");
         setDescriptionImages([]);
         setMonthlyNeeds([{ category: "", amount: 0, description: "", icon: "💰", color: "bg-blue-500" }]);
-        setKids([{ name: "", age: 0, gender: 'male', description: "" }]);
+        setKids([{ 
+          name: "", 
+          age: 0, 
+          gender: 'male', 
+          description: "",
+          health_state: "",
+          current_grade: "",
+          school_name: "",
+          education_progress: [],
+          certificates: [],
+          ongoing_courses: []
+        }]);
         
         // Call onSuccess callback if provided
         onSuccess?.();
@@ -959,6 +1059,115 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         </CardContent>
       </Card>
 
+      {/* Parent Profile Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>بيانات ولي الأمر / مقدم الرعاية</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="parent_age">العمر</Label>
+              <Input
+                id="parent_age"
+                type="number"
+                {...register("parent_age")}
+                placeholder="45"
+                min="18"
+                max="100"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rent_amount">الإيجار الشهري (جنيه)</Label>
+              <Input
+                id="rent_amount"
+                type="number"
+                {...register("rent_amount")}
+                placeholder="1500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="kids_number">عدد الأطفال</Label>
+              <Input
+                id="kids_number"
+                type="number"
+                {...register("kids_number")}
+                placeholder="3"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="health_state">الحالة الصحية</Label>
+              <Textarea
+                id="health_state"
+                {...register("health_state")}
+                placeholder="وصف الحالة الصحية (إن وجدت مشاكل صحية)"
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="work_ability">القدرة على العمل</Label>
+              <Select onValueChange={(value) => setValue("work_ability", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر القدرة على العمل" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="غير قادر">غير قادر على العمل</SelectItem>
+                  <SelectItem value="قدرة محدودة">قدرة محدودة على العمل</SelectItem>
+                  <SelectItem value="قادر">قادر على العمل</SelectItem>
+                  <SelectItem value="يعمل">يعمل حالياً</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="education_level">المستوى التعليمي</Label>
+              <Select onValueChange={(value) => setValue("education_level", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر المستوى التعليمي" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="أمي">أمي (لا يقرأ ولا يكتب)</SelectItem>
+                  <SelectItem value="يقرأ ويكتب">يقرأ ويكتب</SelectItem>
+                  <SelectItem value="ابتدائية">ابتدائية</SelectItem>
+                  <SelectItem value="إعدادية">إعدادية</SelectItem>
+                  <SelectItem value="ثانوية">ثانوية أو مؤهل متوسط</SelectItem>
+                  <SelectItem value="جامعي">جامعي</SelectItem>
+                  <SelectItem value="دراسات عليا">دراسات عليا</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="skills">المهارات (مفصولة بفاصلة)</Label>
+              <Input
+                id="skills"
+                {...register("skills")}
+                placeholder="خياطة, طبخ, نجارة"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="profile_notes">ملاحظات إضافية</Label>
+            <Textarea
+              id="profile_notes"
+              {...register("profile_notes")}
+              placeholder="أي معلومات إضافية مهمة عن الأسرة أو الظروف الخاصة"
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -1022,14 +1231,48 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                 </div>
               </div>
 
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>الحالة الصحية</Label>
+                  <Input
+                    value={kid.health_state || ""}
+                    onChange={(e) => updateKid(index, "health_state", e.target.value)}
+                    placeholder="جيدة / لديه مشاكل صحية"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>الصف الدراسي</Label>
+                  <Input
+                    value={kid.current_grade || ""}
+                    onChange={(e) => updateKid(index, "current_grade", e.target.value)}
+                    placeholder="الصف الثالث الابتدائي"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>اسم المدرسة</Label>
+                  <Input
+                    value={kid.school_name || ""}
+                    onChange={(e) => updateKid(index, "school_name", e.target.value)}
+                    placeholder="مدرسة النصر الابتدائية"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>وصف إضافي</Label>
                 <Textarea
                   value={kid.description}
                   onChange={(e) => updateKid(index, "description", e.target.value)}
-                  placeholder="معلومات إضافية عن الطفل (الصف الدراسي، حالة صحية خاصة، إلخ)"
+                  placeholder="معلومات إضافية عن الطفل (اهتمامات، مواهب، احتياجات خاصة)"
                   rows={2}
                 />
+              </div>
+
+              <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
+                <p className="font-medium mb-1">📚 تتبع التقدم التعليمي</p>
+                <p>يمكن تتبع الشهادات والتقدم التعليمي السنوي والدورات الحالية من خلال واجهة إدارة الأطفال المنفصلة</p>
               </div>
             </div>
           ))}
