@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CasesList from "./pages/CasesList";
 import CaseDetails from "./pages/CaseDetails";
+import KidsList from "./pages/KidsList";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<CasesList />} />
           <Route path="/cases" element={<CasesList />} />
           <Route path="/case/:id" element={<CaseDetails />} />
+          <Route path="/kids" element={<KidsList />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
