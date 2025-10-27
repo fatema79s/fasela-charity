@@ -229,7 +229,7 @@ export default function AdminCaseProfile() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {tasksSummary?.pending || 0 + tasksSummary?.inProgress || 0}
+                {(tasksSummary?.pending || 0) + (tasksSummary?.inProgress || 0)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {tasksSummary?.urgent ? `${tasksSummary.urgent} عاجلة` : ""}
