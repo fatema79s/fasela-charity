@@ -91,12 +91,11 @@ export const DonationsByCaseView = () => {
   const { data: casesWithDonations, isLoading } = useQuery({
     queryKey: ["donations-by-case"],
     queryFn: async () => {
-      // First get all cases
+      // First get all cases (including unpublished and completed)
       const { data: cases, error: casesError } = await supabase
         .from("cases")
         .select("id, title, title_ar, monthly_cost, total_secured_money, months_covered, status")
-        .eq("is_published", true)
-        .order("updated_at", { ascending: false });
+        .order("title_ar", { ascending: true });
 
       if (casesError) throw casesError;
 
@@ -238,7 +237,8 @@ export const DonationsByCaseView = () => {
       amount: number; 
       notes: string 
     }) => {
-      const { error } = await supabase
+      // Insert handover record
+      const { error: handoverError } = await supabase
         .from("donation_handovers")
         .insert({
           donation_id: donationId,
@@ -248,7 +248,42 @@ export const DonationsByCaseView = () => {
           handed_over_by: (await supabase.auth.getUser()).data.user?.id
         });
 
-      if (error) throw error;
+      if (handoverError) throw handoverError;
+
+      // Get donation details for report
+      const { data: donationData, error: donationError } = await supabase
+        .from("donations")
+        .select("donor_name, amount, payment_code")
+        .eq("id", donationId)
+        .single();
+
+      if (donationError) throw donationError;
+
+      // Get case details for report
+      const { data: caseData, error: caseError } = await supabase
+        .from("cases")
+        .select("title, title_ar")
+        .eq("id", caseId)
+        .single();
+
+      if (caseError) throw caseError;
+
+      // Create automatic report
+      const reportTitle = `تسليم تبرع بقيمة ${amount.toLocaleString()} ج.م`;
+      const reportDescription = `تم تسليم مبلغ ${amount.toLocaleString()} ج.م من التبرع رقم ${donationData.payment_code}${donationData.donor_name ? ` من المتبرع ${donationData.donor_name}` : ''} إلى الحالة ${caseData.title_ar || caseData.title}.${notes ? `\n\nملاحظات التسليم:\n${notes}` : ''}`;
+
+      const { error: reportError } = await supabase
+        .from("monthly_reports")
+        .insert({
+          case_id: caseId,
+          title: reportTitle,
+          description: reportDescription,
+          report_date: new Date().toISOString().split('T')[0],
+          status: 'completed',
+          category: 'handover'
+        });
+
+      if (reportError) throw reportError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["donations-by-case"] });
@@ -822,6 +857,7 @@ export const DonationsByCaseView = () => {
                   {casesWithDonations?.filter(c => c.id !== selectedDonation?.case_id).map((caseItem) => (
                     <SelectItem key={caseItem.id} value={caseItem.id}>
                       {caseItem.title_ar} - {caseItem.title}
+                      {caseItem.status === "active" ? " (نشطة)" : " (مكتملة)"}
                     </SelectItem>
                   ))}
                 </SelectContent>
