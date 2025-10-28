@@ -214,7 +214,7 @@ const DonationAuditDelivery = () => {
           // Get donation details for report
           const { data: donationData, error: donationError } = await supabase
             .from("donations")
-            .select("donor_name, amount, payment_code")
+            .select("amount, payment_code")
             .eq("id", donationId)
             .single();
 
@@ -231,7 +231,7 @@ const DonationAuditDelivery = () => {
 
           // Create automatic report
           const reportTitle = `تسليم تبرع بقيمة ${amount.toLocaleString()} ج.م`;
-          const reportDescription = `تم تسليم مبلغ ${amount.toLocaleString()} ج.م من التبرع رقم ${donationData.payment_code}${donationData.donor_name ? ` من المتبرع ${donationData.donor_name}` : ''} إلى الحالة ${caseData.title_ar || caseData.title}.${notes ? `\n\nملاحظات التسليم:\n${notes}` : ''}`;
+          const reportDescription = `تم تسليم مبلغ ${amount.toLocaleString()} ج.م من التبرع رقم ${donationData.payment_code}''} إلى الحالة ${caseData.title_ar || caseData.title}.${notes ? `\n\nملاحظات التسليم:\n${notes}` : ''}`;
 
           const { error: reportError } = await supabase
             .from("monthly_reports")
