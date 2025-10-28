@@ -42,24 +42,40 @@ const followupTypeColors = {
 };
 
 export default function CaseFollowupsTimeline({ caseId }: CaseFollowupsTimelineProps) {
-  const { data: followups, isLoading } = useQuery({
+  const { data: followups, isLoading, error } = useQuery({
     queryKey: ["case-followups", caseId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("case_followups")
-        .select("*")
+        .select("id, followup_date, followup_type, notes, next_action, created_at, created_by")
         .eq("case_id", caseId)
-        .order("followup_date", { ascending: false });
+        .order("followup_date", { ascending: false })
+        .limit(50); // Limit to prevent performance issues
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching followups:", error);
+        throw new Error(error.message || "فشل في تحميل المتابعات");
+      }
       return data as Followup[];
     },
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
+    retry: 2, // Retry failed requests twice
   });
 
   if (isLoading) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         جاري تحميل المتابعات...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        <p>خطأ في تحميل المتابعات</p>
+        <p className="text-sm mt-2">{error.message}</p>
       </div>
     );
   }
@@ -81,7 +97,7 @@ export default function CaseFollowupsTimeline({ caseId }: CaseFollowupsTimelineP
 
         {followups.map((followup, index) => {
           const Icon = followupTypeIcons[followup.followup_type as keyof typeof followupTypeIcons] || FileText;
-          const colorClass = followupTypeColors[followup.followup_type as keyof typeof followupTypeColors];
+          const colorClass = followupTypeColors[followup.followup_type as keyof typeof followupTypeColors] || "bg-gray-500";
 
           return (
             <div key={followup.id} className="relative pr-12 pb-8 last:pb-0">

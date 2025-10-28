@@ -81,7 +81,10 @@ export default function CaseFollowupForm({
         next_action: values.next_action || null,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw new Error(error.message || "فشل في حفظ المتابعة");
+      }
 
       toast.success("تم إضافة المتابعة بنجاح");
       queryClient.invalidateQueries({ queryKey: ["case-followups", caseId] });
@@ -89,7 +92,7 @@ export default function CaseFollowupForm({
       onOpenChange(false);
     } catch (error: any) {
       console.error("Error creating followup:", error);
-      toast.error("فشل إضافة المتابعة: " + error.message);
+      toast.error("فشل إضافة المتابعة: " + (error.message || "خطأ غير معروف"));
     } finally {
       setIsSubmitting(false);
     }

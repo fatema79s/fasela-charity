@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle, 
@@ -75,6 +76,7 @@ const DonationAuditDelivery = () => {
   const [handoverAmount, setHandoverAmount] = useState("");
   const [handoverNotes, setHandoverNotes] = useState("");
   const [selectedCaseId, setSelectedCaseId] = useState("");
+  const [createReport, setCreateReport] = useState(true); // New state for checkbox
   const [filterStatus, setFilterStatus] = useState("all");
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [showHandoverDialog, setShowHandoverDialog] = useState(false);
@@ -165,12 +167,14 @@ const DonationAuditDelivery = () => {
       donationId, 
       caseId, 
       amount, 
-      notes 
+      notes,
+      shouldCreateReport
     }: { 
       donationId: string; 
       caseId: string; 
       amount: number; 
-      notes: string; 
+      notes: string;
+      shouldCreateReport: boolean;
     }) => {
       // Insert handover record
       const { error: handoverError } = await supabase
@@ -185,40 +189,53 @@ const DonationAuditDelivery = () => {
       
       if (handoverError) throw handoverError;
 
-      // Get donation details for report
-      const { data: donationData, error: donationError } = await supabase
+      // Update donation total_handed_over
+      const { error: updateError } = await supabase
         .from("donations")
-        .select("donor_name, amount, payment_code")
-        .eq("id", donationId)
-        .single();
+        .update({ 
+          total_handed_over: supabase.raw(`COALESCE(total_handed_over, 0) + ${amount}`)
+        })
+        .eq("id", donationId);
+      
+      if (updateError) throw updateError;
 
-      if (donationError) throw donationError;
+      // Only create report if checkbox is checked
+      if (shouldCreateReport) {
+        // Get donation details for report
+        const { data: donationData, error: donationError } = await supabase
+          .from("donations")
+          .select("donor_name, amount, payment_code")
+          .eq("id", donationId)
+          .single();
 
-      // Get case details for report
-      const { data: caseData, error: caseError } = await supabase
-        .from("cases")
-        .select("title, title_ar")
-        .eq("id", caseId)
-        .single();
+        if (donationError) throw donationError;
 
-      if (caseError) throw caseError;
+        // Get case details for report
+        const { data: caseData, error: caseError } = await supabase
+          .from("cases")
+          .select("title, title_ar")
+          .eq("id", caseId)
+          .single();
 
-      // Create automatic report
-      const reportTitle = `تسليم تبرع بقيمة ${amount.toLocaleString()} ج.م`;
-      const reportDescription = `تم تسليم مبلغ ${amount.toLocaleString()} ج.م من التبرع رقم ${donationData.payment_code}${donationData.donor_name ? ` من المتبرع ${donationData.donor_name}` : ''} إلى الحالة ${caseData.title_ar || caseData.title}.${notes ? `\n\nملاحظات التسليم:\n${notes}` : ''}`;
+        if (caseError) throw caseError;
 
-      const { error: reportError } = await supabase
-        .from("monthly_reports")
-        .insert({
-          case_id: caseId,
-          title: reportTitle,
-          description: reportDescription,
-          report_date: new Date().toISOString().split('T')[0],
-          status: 'completed',
-          category: 'handover'
-        });
+        // Create automatic report
+        const reportTitle = `تسليم تبرع بقيمة ${amount.toLocaleString()} ج.م`;
+        const reportDescription = `تم تسليم مبلغ ${amount.toLocaleString()} ج.م من التبرع رقم ${donationData.payment_code}${donationData.donor_name ? ` من المتبرع ${donationData.donor_name}` : ''} إلى الحالة ${caseData.title_ar || caseData.title}.${notes ? `\n\nملاحظات التسليم:\n${notes}` : ''}`;
 
-      if (reportError) throw reportError;
+        const { error: reportError } = await supabase
+          .from("monthly_reports")
+          .insert({
+            case_id: caseId,
+            title: reportTitle,
+            description: reportDescription,
+            report_date: new Date().toISOString().split('T')[0],
+            status: 'completed',
+            category: 'handover'
+          });
+
+        if (reportError) throw reportError;
+      }
     },
     onSuccess: () => {
       toast({ title: "تم تسليم التبرع بنجاح" });
@@ -260,6 +277,7 @@ const DonationAuditDelivery = () => {
     setHandoverAmount("");
     setHandoverNotes("");
     setSelectedCaseId("");
+    setCreateReport(true); // Reset checkbox to checked by default
   };
 
   const openActionDialog = (donation: Donation) => {
@@ -294,7 +312,8 @@ const DonationAuditDelivery = () => {
       donationId: selectedDonation.id,
       caseId: targetCaseId,
       amount: Number(handoverAmount),
-      notes: handoverNotes
+      notes: handoverNotes,
+      shouldCreateReport: createReport
     });
   };
 
@@ -645,6 +664,17 @@ const DonationAuditDelivery = () => {
                     onChange={(e) => setHandoverNotes(e.target.value)}
                     placeholder="ملاحظات حول عملية التسليم"
                   />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="create-report" 
+                    checked={createReport}
+                    onCheckedChange={(checked) => setCreateReport(checked as boolean)}
+                  />
+                  <Label htmlFor="create-report" className="text-sm">
+                    إنشاء تقرير تلقائي للحالة
+                  </Label>
                 </div>
               </div>
               
