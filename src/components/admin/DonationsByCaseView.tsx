@@ -254,24 +254,8 @@ export const DonationsByCaseView = () => {
 
         if (handoverError) throw handoverError;
 
-        // Update donation total_handed_over
-        // First get current total_handed_over
-        const { data: currentDonation, error: fetchError } = await supabase
-          .from("donations")
-          .select("total_handed_over")
-          .eq("id", donationId)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        const newTotal = (currentDonation.total_handed_over || 0) + amount;
-        
-        const { error: updateError } = await supabase
-          .from("donations")
-          .update({ total_handed_over: newTotal })
-          .eq("id", donationId);
-        
-        if (updateError) throw updateError;
+        // Note: total_handed_over is automatically updated by database trigger
+        // when donation_handovers record is inserted
 
         // Only create report if checkbox is checked
         if (shouldCreateReport) {
