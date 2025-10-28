@@ -21,46 +21,42 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  followup_date: z.string(),
-  followup_type: z.enum(["visit", "call", "meeting", "other"]),
-  notes: z.string().min(1, "يرجى إدخال ملاحظات المتابعة"),
-  next_action: z.string().optional(),
+  title: z.string().min(1, "يرجى إدخال عنوان المتابعة"),
+  description: z.string().optional(),
+  action_date: z.string().min(1, "يرجى اختيار تاريخ المتابعة"),
+  requires_case_action: z.boolean().default(false),
+  requires_volunteer_action: z.boolean().default(false),
 });
 
-interface CaseFollowupFormProps {
+interface FollowupActionFormProps {
   caseId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function CaseFollowupForm({
+export default function FollowupActionForm({
   caseId,
   open,
   onOpenChange,
-}: CaseFollowupFormProps) {
+}: FollowupActionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      followup_date: new Date().toISOString().split('T')[0],
-      followup_type: "meeting",
-      notes: "",
-      next_action: "",
+      title: "",
+      description: "",
+      action_date: new Date().toISOString().split('T')[0],
+      requires_case_action: false,
+      requires_volunteer_action: false,
     },
   });
 
@@ -72,13 +68,14 @@ export default function CaseFollowupForm({
         throw new Error("يجب تسجيل الدخول أولاً");
       }
 
-      const { error } = await supabase.from("case_followups").insert({
+      const { error } = await supabase.from("followup_actions").insert({
         case_id: caseId,
+        title: values.title,
+        description: values.description || null,
+        action_date: values.action_date,
+        requires_case_action: values.requires_case_action,
+        requires_volunteer_action: values.requires_volunteer_action,
         created_by: userData.user.id,
-        followup_date: new Date(values.followup_date).toISOString(),
-        followup_type: values.followup_type,
-        notes: values.notes,
-        next_action: values.next_action || null,
       });
 
       if (error) {
@@ -87,11 +84,12 @@ export default function CaseFollowupForm({
       }
 
       toast.success("تم إضافة المتابعة بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["case-followups", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["followup-actions", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["followup-actions-all"] });
       form.reset();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error creating followup:", error);
+      console.error("Error creating followup action:", error);
       toast.error("فشل إضافة المتابعة: " + (error.message || "خطأ غير معروف"));
     } finally {
       setIsSubmitting(false);
@@ -112,7 +110,21 @@ export default function CaseFollowupForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="followup_date"
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>عنوان المتابعة</FormLabel>
+                  <FormControl>
+                    <Input placeholder="مثال: متابعة الحالة الصحية" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="action_date"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>تاريخ المتابعة</FormLabel>
@@ -126,67 +138,65 @@ export default function CaseFollowupForm({
 
             <FormField
               control={form.control}
-              name="followup_type"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>نوع المتابعة</FormLabel>
-                  <Select
-                    dir="rtl"
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel>وصف المتابعة (اختياري)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="وصف تفصيلي للمتابعة..."
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-3">
+              <FormField
+                control={form.control}
+                name="requires_case_action"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر نوع المتابعة" />
-                      </SelectTrigger>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="visit">🏠 زيارة</SelectItem>
-                      <SelectItem value="call">📞 اتصال</SelectItem>
-                      <SelectItem value="meeting">🤝 اجتماع</SelectItem>
-                      <SelectItem value="other">📝 أخرى</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>يتطلب إجراء من الحالة</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        هذه المتابعة تحتاج إلى إجراء من جانب الحالة
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ملاحظات المتابعة</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="اكتب تفاصيل المتابعة..."
-                      className="min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="next_action"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>الإجراء التالي (اختياري)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="ما الذي يجب القيام به بعد ذلك؟"
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="requires_volunteer_action"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>يتطلب إجراء من المتطوع</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        هذه المتابعة تحتاج إلى إجراء من جانب المتطوع
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <DialogFooter>
               <Button
@@ -198,8 +208,8 @@ export default function CaseFollowupForm({
                 إلغاء
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                حفظ المتابعة
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                إضافة المتابعة
               </Button>
             </DialogFooter>
           </form>

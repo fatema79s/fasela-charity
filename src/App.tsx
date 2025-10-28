@@ -12,7 +12,7 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import CaseHandoverCalendar from "./pages/CaseHandoverCalendar";
 import AdminCaseProfile from "./pages/AdminCaseProfile";
-import AdminTasksFollowups from "./pages/AdminTasksFollowups";
+import AdminFollowupActions from "./pages/AdminFollowupActions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +33,7 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/calendar" element={<CaseHandoverCalendar />} />
           <Route path="/admin/case-profile/:id" element={<AdminCaseProfile />} />
-          <Route path="/admin/tasks" element={<AdminTasksFollowups />} />
+          <Route path="/admin/followups" element={<AdminFollowupActions />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

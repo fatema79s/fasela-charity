@@ -16,14 +16,11 @@ import {
   Calendar,
   Users,
   FileText,
-  ClipboardList,
-  Plus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import CaseFollowupForm from "@/components/admin/CaseFollowupForm";
-import CaseFollowupsTimeline from "@/components/admin/CaseFollowupsTimeline";
-import CaseTasksList from "@/components/admin/CaseTasksList";
+import FollowupActionForm from "@/components/admin/FollowupActionForm";
+import FollowupActionsList from "@/components/admin/FollowupActionsList";
 
 export default function AdminCaseProfile() {
   const { id } = useParams();
@@ -106,28 +103,6 @@ export default function AdminCaseProfile() {
         totalHandedOver,
         remaining,
         donationsCount,
-      };
-    },
-    enabled: !!id,
-  });
-  // ---------------------------------------------------------
-
-  const { data: tasksSummary } = useQuery({
-    queryKey: ["case-tasks-summary", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("case_tasks")
-        .select("status, priority")
-        .eq("case_id", id);
-
-      if (error) throw error;
-
-      return {
-        total: data.length,
-        pending: data.filter(t => t.status === "pending").length,
-        inProgress: data.filter(t => t.status === "in_progress").length,
-        completed: data.filter(t => t.status === "completed").length,
-        urgent: data.filter(t => t.priority === "urgent" && t.status !== "completed").length,
       };
     },
     enabled: !!id,
@@ -260,22 +235,6 @@ export default function AdminCaseProfile() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <ClipboardList className="h-4 w-4" />
-                المهام النشطة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {(tasksSummary?.pending || 0) + (tasksSummary?.inProgress || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {tasksSummary?.urgent ? `${tasksSummary.urgent} عاجلة` : ""}
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content Tabs */}
@@ -292,10 +251,6 @@ export default function AdminCaseProfile() {
             <TabsTrigger value="followups">
               <FileText className="h-4 w-4 ml-2" />
               المتابعات
-            </TabsTrigger>
-            <TabsTrigger value="tasks">
-              <ClipboardList className="h-4 w-4 ml-2" />
-              المهام ({tasksSummary?.total || 0})
             </TabsTrigger>
           </TabsList>
 
@@ -359,32 +314,20 @@ export default function AdminCaseProfile() {
 
           <TabsContent value="followups" className="space-y-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>سجل المتابعات</CardTitle>
-                <Button onClick={() => setFollowupFormOpen(true)} size="sm">
-                  <Plus className="h-4 w-4 ml-2" />
-                  إضافة متابعة
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <CaseFollowupsTimeline caseId={id!} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="tasks" className="space-y-4">
-            <Card>
               <CardHeader>
-                <CardTitle>إدارة المهام</CardTitle>
+                <CardTitle>متابعات الحالة</CardTitle>
               </CardHeader>
               <CardContent>
-                <CaseTasksList caseId={id!} />
+                <FollowupActionsList 
+                  caseId={id!} 
+                  onCreateNew={() => setFollowupFormOpen(true)} 
+                />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        <CaseFollowupForm
+        <FollowupActionForm
           caseId={id!}
           open={followupFormOpen}
           onOpenChange={setFollowupFormOpen}
