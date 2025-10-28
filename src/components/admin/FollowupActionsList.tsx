@@ -153,7 +153,10 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
       <div className="text-center py-12 text-muted-foreground">
         <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
         <p>لا توجد متابعات مسجلة لهذه الحالة</p>
-        <Button onClick={onCreateNew} className="mt-4">
+        <Button onClick={() => {
+          console.log("FollowupActionsList: Button clicked, calling onCreateNew");
+          onCreateNew();
+        }} className="mt-4">
           <Plus className="h-4 w-4 mr-2" />
           إضافة متابعة جديدة
         </Button>
@@ -165,7 +168,10 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">المتابعات ({actions.length})</h3>
-        <Button onClick={onCreateNew} size="sm">
+        <Button onClick={() => {
+          console.log("FollowupActionsList: Add followup button clicked, calling onCreateNew");
+          onCreateNew();
+        }} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           إضافة متابعة
         </Button>

@@ -46,6 +46,8 @@ export default function FollowupActionForm({
   open,
   onOpenChange,
 }: FollowupActionFormProps) {
+  console.log("FollowupActionForm: Props received:", { caseId, open, onOpenChange });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -61,13 +63,17 @@ export default function FollowupActionForm({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log("FollowupActionForm: Starting submission with values:", values);
     setIsSubmitting(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
+      console.log("FollowupActionForm: User data:", userData);
+      
       if (!userData.user) {
         throw new Error("يجب تسجيل الدخول أولاً");
       }
 
+      console.log("FollowupActionForm: Attempting to insert followup action...");
       const { error } = await supabase.from("followup_actions").insert({
         case_id: caseId,
         title: values.title,
@@ -79,17 +85,18 @@ export default function FollowupActionForm({
       });
 
       if (error) {
-        console.error("Supabase error:", error);
+        console.error("FollowupActionForm: Supabase error:", error);
         throw new Error(error.message || "فشل في حفظ المتابعة");
       }
 
+      console.log("FollowupActionForm: Successfully inserted followup action");
       toast.success("تم إضافة المتابعة بنجاح");
       queryClient.invalidateQueries({ queryKey: ["followup-actions", caseId] });
       queryClient.invalidateQueries({ queryKey: ["followup-actions-all"] });
       form.reset();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error creating followup action:", error);
+      console.error("FollowupActionForm: Error creating followup action:", error);
       toast.error("فشل إضافة المتابعة: " + (error.message || "خطأ غير معروف"));
     } finally {
       setIsSubmitting(false);

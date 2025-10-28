@@ -320,7 +320,10 @@ export default function AdminCaseProfile() {
               <CardContent>
                 <FollowupActionsList 
                   caseId={id!} 
-                  onCreateNew={() => setFollowupFormOpen(true)} 
+                  onCreateNew={() => {
+                    console.log("AdminCaseProfile: onCreateNew called, setting followupFormOpen to true");
+                    setFollowupFormOpen(true);
+                  }} 
                 />
               </CardContent>
             </Card>
