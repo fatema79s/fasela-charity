@@ -41,7 +41,7 @@ export default function TaskCompletionDialog({
       }
 
       const { error } = await supabase
-        .from("case_tasks")
+        .from("case_tasks" as any)
         .update({
           status: "completed",
           completed_at: new Date().toISOString(),

@@ -16,6 +16,7 @@ interface FollowupAction {
   title: string;
   description: string | null;
   action_date: string;
+  cost: number;
   requires_case_action: boolean;
   requires_volunteer_action: boolean;
   status: "pending" | "completed" | "cancelled";
@@ -195,6 +196,14 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
               <p className="text-sm text-muted-foreground mb-3 whitespace-pre-wrap">
                 {action.description}
               </p>
+            )}
+
+            {action.cost > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
+                <span className="text-sm font-semibold text-blue-900">
+                  التكلفة المتوقعة: {action.cost.toLocaleString()} جنيه
+                </span>
+              </div>
             )}
 
             <div className="flex items-center gap-4 mb-3">

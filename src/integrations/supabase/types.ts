@@ -355,50 +355,6 @@ export type Database = {
           },
         ]
       }
-      case_followups: {
-        Row: {
-          case_id: string
-          created_at: string
-          created_by: string | null
-          followup_date: string
-          followup_type: string
-          id: string
-          next_action: string | null
-          notes: string
-          updated_at: string
-        }
-        Insert: {
-          case_id: string
-          created_at?: string
-          created_by?: string | null
-          followup_date: string
-          followup_type: string
-          id?: string
-          next_action?: string | null
-          notes: string
-          updated_at?: string
-        }
-        Update: {
-          case_id?: string
-          created_at?: string
-          created_by?: string | null
-          followup_date?: string
-          followup_type?: string
-          id?: string
-          next_action?: string | null
-          notes?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_followups_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       case_kids: {
         Row: {
           age: number
@@ -448,7 +404,15 @@ export type Database = {
           school_name?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "case_kids_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       case_private_spending: {
         Row: {
@@ -508,78 +472,6 @@ export type Database = {
             columns: ["tag_id"]
             isOneToOne: false
             referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      case_tasks: {
-        Row: {
-          assigned_to: string
-          case_id: string
-          completed_at: string | null
-          completed_by: string | null
-          completion_notes: string | null
-          created_at: string
-          created_by: string
-          description: string | null
-          due_date: string | null
-          followup_id: string | null
-          id: string
-          priority: string
-          status: string
-          task_type: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          assigned_to: string
-          case_id: string
-          completed_at?: string | null
-          completed_by?: string | null
-          completion_notes?: string | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          due_date?: string | null
-          followup_id?: string | null
-          id?: string
-          priority?: string
-          status?: string
-          task_type: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          assigned_to?: string
-          case_id?: string
-          completed_at?: string | null
-          completed_by?: string | null
-          completion_notes?: string | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          due_date?: string | null
-          followup_id?: string | null
-          id?: string
-          priority?: string
-          status?: string
-          task_type?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "case_tasks_case_id_fkey"
-            columns: ["case_id"]
-            isOneToOne: false
-            referencedRelation: "cases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "case_tasks_followup_id_fkey"
-            columns: ["followup_id"]
-            isOneToOne: false
-            referencedRelation: "case_followups"
             referencedColumns: ["id"]
           },
         ]
@@ -1399,6 +1291,68 @@ export type Database = {
           rating?: number
         }
         Relationships: []
+      }
+      followup_actions: {
+        Row: {
+          action_date: string
+          case_id: string
+          completed_at: string | null
+          completed_by: string | null
+          completion_notes: string | null
+          cost: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          requires_case_action: boolean
+          requires_volunteer_action: boolean
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_date: string
+          case_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          requires_case_action?: boolean
+          requires_volunteer_action?: boolean
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_date?: string
+          case_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          requires_case_action?: boolean
+          requires_volunteer_action?: boolean
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_actions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investment_categories: {
         Row: {
@@ -3526,6 +3480,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_admin_or_volunteer: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       make_user_admin: { Args: { user_email: string }; Returns: boolean }
       save_basket_item: {

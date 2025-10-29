@@ -39,6 +39,7 @@ const formSchema = z.object({
   title: z.string().min(1, "يرجى إدخال عنوان المتابعة"),
   description: z.string().optional(),
   action_date: z.string().min(1, "يرجى اختيار تاريخ المتابعة"),
+  cost: z.number().min(0, "التكلفة يجب أن تكون صفر أو أكبر").default(0),
   requires_case_action: z.boolean().default(false),
   requires_volunteer_action: z.boolean().default(false),
 });
@@ -80,6 +81,7 @@ export default function FollowupActionForm({
       title: "",
       description: "",
       action_date: new Date().toISOString().split('T')[0],
+      cost: 0,
       requires_case_action: false,
       requires_volunteer_action: false,
     },
@@ -102,6 +104,7 @@ export default function FollowupActionForm({
         title: values.title,
         description: values.description || null,
         action_date: values.action_date,
+        cost: values.cost,
         requires_case_action: values.requires_case_action,
         requires_volunteer_action: values.requires_volunteer_action,
         created_by: userData.user.id,
@@ -188,6 +191,25 @@ export default function FollowupActionForm({
                   <FormLabel>تاريخ المتابعة</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>التكلفة المتوقعة (جنيه)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="0" 
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

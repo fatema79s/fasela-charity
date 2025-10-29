@@ -6,10 +6,13 @@ import { MonthlyNeeds } from "@/components/MonthlyNeeds";
 import { DonationSection } from "@/components/DonationSection";
 import { MonthlyUpdates } from "@/components/MonthlyUpdates";
 import { KidsInfo } from "@/components/KidsInfo";
-import { Heart, Shield, Eye, Users, ArrowLeft } from "lucide-react";
+import { Heart, Shield, Eye, Users, ArrowLeft, Clock, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const CaseDetails = () => {
   const { id } = useParams();
@@ -107,6 +110,25 @@ const CaseDetails = () => {
       
       if (error) throw error;
       return data;
+    },
+    enabled: !!id
+  });
+
+  // استعلام للحصول على المتابعات
+  const { data: followupActions } = useQuery({
+    queryKey: ["followup-actions", id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from("followup_actions" as any)
+        .select("*")
+        .eq("case_id", id)
+        .order("action_date", { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data as any[];
     },
     enabled: !!id
   });
@@ -236,6 +258,52 @@ const CaseDetails = () => {
             )}
             
             <MonthlyNeeds totalMonthlyNeed={totalMonthlyNeed} needs={monthlyNeeds} />
+            
+            {/* Follow-up Actions Section */}
+            {followupActions && followupActions.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">آخر المتابعات</h3>
+                  <div className="space-y-3">
+                    {followupActions.map((action: any) => (
+                      <div key={action.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            {action.status === "completed" ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Clock className="h-4 w-4 text-yellow-500" />
+                            )}
+                            <h4 className="font-semibold">{action.title}</h4>
+                            {action.status === "completed" ? (
+                              <Badge variant="default" className="bg-green-500">مكتملة</Badge>
+                            ) : (
+                              <Badge variant="secondary">معلقة</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {format(new Date(action.action_date), "dd MMM yyyy", { locale: ar })}
+                          </div>
+                        </div>
+                        {action.description && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {action.description}
+                          </p>
+                        )}
+                        {action.cost > 0 && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-2">
+                            <span className="text-sm font-semibold text-blue-900">
+                              التكلفة: {action.cost.toLocaleString()} جنيه
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             <MonthlyUpdates updates={monthlyUpdates} />
           </div>
 
