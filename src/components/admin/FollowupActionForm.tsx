@@ -74,7 +74,7 @@ export default function FollowupActionForm({
       }
 
       console.log("FollowupActionForm: Attempting to insert followup action...");
-      const { error } = await supabase.from("followup_actions").insert({
+      const { error } = await supabase.from("followup_actions" as any).insert({
         case_id: caseId,
         title: values.title,
         description: values.description || null,

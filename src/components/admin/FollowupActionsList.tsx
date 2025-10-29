@@ -41,13 +41,13 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
     queryKey: ["followup-actions", caseId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("followup_actions")
+        .from("followup_actions" as any)
         .select("*")
         .eq("case_id", caseId)
         .order("action_date", { ascending: false });
 
       if (error) throw error;
-      return data as FollowupAction[];
+      return data as any as FollowupAction[];
     },
     staleTime: 30000,
     refetchOnWindowFocus: false,
@@ -59,7 +59,7 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
       if (!userData.user) throw new Error("يجب تسجيل الدخول أولاً");
 
       const { error } = await supabase
-        .from("followup_actions")
+        .from("followup_actions" as any)
         .update({
           status: "completed",
           completed_at: new Date().toISOString(),
@@ -86,7 +86,7 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
   const cancelActionMutation = useMutation({
     mutationFn: async (actionId: string) => {
       const { error } = await supabase
-        .from("followup_actions")
+        .from("followup_actions" as any)
         .update({
           status: "cancelled",
           completed_at: new Date().toISOString(),

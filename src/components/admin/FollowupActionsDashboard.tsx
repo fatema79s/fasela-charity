@@ -11,7 +11,7 @@ export default function FollowupActionsDashboard() {
     queryKey: ["followup-actions-dashboard"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("followup_actions")
+        .from("followup_actions" as any)
         .select(`
           *,
           cases (
@@ -23,7 +23,7 @@ export default function FollowupActionsDashboard() {
         .limit(10);
 
       if (error) throw error;
-      return data;
+      return data as any[];
     },
     staleTime: 30000,
     refetchOnWindowFocus: false,
