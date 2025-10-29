@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { CheckCircle, Clock, XCircle, Plus, User, Users, Search, Filter, ArrowLeft } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Plus, User, Users, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 interface FollowupAction {
   id: string;
@@ -168,21 +169,13 @@ export default function FollowupActionsView() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" asChild>
-            <Link to="/admin">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              العودة للوحة التحكم
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold">جميع المتابعات</h1>
+    <AdminHeader title="جميع المتابعات">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            إجمالي المتابعات: {actions?.length || 0}
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          إجمالي المتابعات: {actions?.length || 0}
-        </div>
-      </div>
 
       {/* Filters */}
       <Card>
@@ -345,6 +338,7 @@ export default function FollowupActionsView() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AdminHeader>
   );
 }

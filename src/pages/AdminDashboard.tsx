@@ -15,6 +15,7 @@ import ReportsList from "@/components/admin/ReportsList";
 import { DonationAuditDelivery } from "@/components/admin/DonationAuditDelivery";
 import { MonthlyDonationsView } from "@/components/admin/MonthlyDonationsView";
 import FollowupActionsDashboard from "@/components/admin/FollowupActionsDashboard";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -115,53 +116,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col gap-4">
-            {/* Top row - Logo and brand */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img src="/lovable-uploads/1377342f-e772-4165-b1d5-8f6cbc909fa4.png" alt="الشعار" className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
-                <span className="text-lg sm:text-xl font-bold">فَسِيلَة خير</span>
-              </div>
-              <Button variant="outline" onClick={handleSignOut} size="sm" className="text-xs sm:text-sm">
-                <LogOut className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                <span className="hidden xs:inline">خروج</span>
-                <span className="xs:hidden">خروج</span>
-              </Button>
-            </div>
-            
-            {/* Second row - Navigation and user info */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <nav className="flex items-center gap-2 sm:gap-4">
-                <Button variant="outline" size="sm" asChild className="bg-primary text-primary-foreground border-primary hover:bg-primary/90">
-                  <Link to="/" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Home className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">الرئيسية</span>
-                    <span className="sm:hidden">الرئيسية</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/calendar" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">تقويم التسليم</span>
-                    <span className="sm:hidden">تقويم</span>
-                  </Link>
-                </Button>
-              </nav>
-              <div className="text-right">
-                <h1 className="text-base sm:text-lg font-semibold">لوحة تحكم المتطوعين</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none">{user.email}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
+    <AdminHeader title="لوحة التحكم">
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
@@ -250,8 +205,7 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+    </AdminHeader>
   );
 };
 

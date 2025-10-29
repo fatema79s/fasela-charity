@@ -6,10 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { CheckCircle, Clock, XCircle, Plus, User, Users } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Plus, User, Users, Edit, Save } from "lucide-react";
 
 interface FollowupAction {
   id: string;
@@ -36,6 +38,14 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
   const [selectedAction, setSelectedAction] = useState<FollowupAction | null>(null);
   const [completionNotes, setCompletionNotes] = useState("");
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    action_date: "",
+    requires_case_action: false,
+    requires_volunteer_action: false,
+  });
   const queryClient = useQueryClient();
 
   const { data: actions, isLoading } = useQuery({
@@ -106,6 +116,27 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
     },
   });
 
+  const updateActionMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      const { error } = await supabase
+        .from("followup_actions" as any)
+        .update(updatedData)
+        .eq("id", selectedAction?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("تم تحديث المتابعة بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["followup-actions", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["followup-actions-all"] });
+      setShowEditDialog(false);
+      setSelectedAction(null);
+    },
+    onError: (error: any) => {
+      toast.error("فشل تحديث المتابعة: " + error.message);
+    },
+  });
+
   const handleComplete = (action: FollowupAction) => {
     setSelectedAction(action);
     setShowCompletionDialog(true);
@@ -117,6 +148,23 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
       actionId: selectedAction.id,
       notes: completionNotes,
     });
+  };
+
+  const handleEdit = (action: FollowupAction) => {
+    setSelectedAction(action);
+    setEditForm({
+      title: action.title,
+      description: action.description || "",
+      action_date: action.action_date.split('T')[0], // Convert to YYYY-MM-DD format
+      requires_case_action: action.requires_case_action,
+      requires_volunteer_action: action.requires_volunteer_action,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!selectedAction) return;
+    updateActionMutation.mutate(editForm);
   };
 
   const getStatusIcon = (status: string) => {
@@ -233,27 +281,38 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
               </div>
             )}
 
-            {action.status === "pending" && (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleComplete(action)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  إكمال
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => cancelActionMutation.mutate(action.id)}
-                  disabled={cancelActionMutation.isPending}
-                >
-                  <XCircle className="h-3 w-3 mr-1" />
-                  إلغاء
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleEdit(action)}
+                className="flex items-center gap-1"
+              >
+                <Edit className="h-3 w-3" />
+                تعديل
+              </Button>
+              {action.status === "pending" && (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => handleComplete(action)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    إكمال
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => cancelActionMutation.mutate(action.id)}
+                    disabled={cancelActionMutation.isPending}
+                  >
+                    <XCircle className="h-3 w-3 mr-1" />
+                    إلغاء
+                  </Button>
+                </>
+              )}
+            </div>
           </Card>
         ))}
       </div>
@@ -293,6 +352,75 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>تعديل المتابعة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">العنوان</Label>
+              <Input
+                id="edit-title"
+                value={editForm.title}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="أدخل عنوان المتابعة"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">الوصف</Label>
+              <Textarea
+                id="edit-description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="أدخل وصف المتابعة"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-date">تاريخ المتابعة</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editForm.action_date}
+                onChange={(e) => setEditForm(prev => ({ ...prev, action_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-requires-case"
+                  checked={editForm.requires_case_action}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, requires_case_action: e.target.checked }))}
+                  className="rounded"
+                />
+                <Label htmlFor="edit-requires-case">يتطلب إجراء من الحالة</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-requires-volunteer"
+                  checked={editForm.requires_volunteer_action}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, requires_volunteer_action: e.target.checked }))}
+                  className="rounded"
+                />
+                <Label htmlFor="edit-requires-volunteer">يتطلب إجراء من المتطوع</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleEditSubmit} disabled={updateActionMutation.isPending}>
+              {updateActionMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -16,6 +16,7 @@ import {
   Package
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 const AdminCaseListView = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,20 +91,16 @@ const AdminCaseListView = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background" dir="rtl">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-8">جار التحميل...</div>
-        </div>
-      </div>
+      <AdminHeader title="إدارة الحالات">
+        <div className="text-center py-8">جار التحميل...</div>
+      </AdminHeader>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
+    <AdminHeader title="إدارة الحالات">
+      <div className="space-y-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">إدارة الحالات</h1>
           <p className="text-muted-foreground">
             عرض وإدارة جميع الحالات المسجلة في النظام
           </p>
@@ -249,7 +246,7 @@ const AdminCaseListView = () => {
           </Card>
         )}
       </div>
-    </div>
+    </AdminHeader>
   );
 };
 
