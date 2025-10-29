@@ -23,7 +23,9 @@ import {
   AlertCircle,
   CreditCard,
   Package,
-  History
+  History,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
 interface Donation {
@@ -82,6 +84,7 @@ const DonationAuditDelivery = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [showHandoverDialog, setShowHandoverDialog] = useState(false);
+  const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -285,6 +288,18 @@ const DonationAuditDelivery = () => {
     setHandoverNotes("");
     setSelectedCaseId("");
     setCreateReport(true); // Reset checkbox to checked by default
+  };
+
+  const toggleCaseExpansion = (caseId: string) => {
+    setExpandedCases(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(caseId)) {
+        newSet.delete(caseId);
+      } else {
+        newSet.add(caseId);
+      }
+      return newSet;
+    });
   };
 
   const openActionDialog = (donation: Donation) => {
@@ -519,15 +534,35 @@ const DonationAuditDelivery = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {Object.values(groupedReadyForDelivery).map((group) => (
-                <div key={group.case.id} className="space-y-3">
-                  <div className="border-b pb-2">
-                    <h3 className="font-semibold text-lg">{group.case.title_ar}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {group.donations.length} تبرع جاهز للتسليم
-                    </p>
-                  </div>
-                  <div className="space-y-3 pl-4">
+              {Object.values(groupedReadyForDelivery).map((group) => {
+                const isExpanded = expandedCases.has(group.case.id);
+                return (
+                  <div key={group.case.id} className="space-y-3">
+                    <div 
+                      className="border-b pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
+                      onClick={() => toggleCaseExpansion(group.case.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg">{group.case.title_ar}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {group.donations.length} تبرع جاهز للتسليم
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {isExpanded ? "إخفاء" : "عرض"}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="space-y-3 pl-4">
                     {group.donations.map((donation) => (
                       <div key={donation.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
@@ -572,10 +607,12 @@ const DonationAuditDelivery = () => {
                           </Button>
                         </div>
                       </div>
-                    ))}
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -592,15 +629,35 @@ const DonationAuditDelivery = () => {
         <CardContent>
           <div className="space-y-6 max-h-96 overflow-y-auto">
             {Object.keys(groupedHandoverHistory).length > 0 ? (
-              Object.values(groupedHandoverHistory).map((group) => (
-                <div key={group.caseId} className="space-y-3">
-                  <div className="border-b pb-2">
-                    <h3 className="font-semibold text-lg">{group.case.title_ar}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {group.records.length} عملية تسليم
-                    </p>
-                  </div>
-                  <div className="space-y-2 pl-4">
+              Object.values(groupedHandoverHistory).map((group) => {
+                const isExpanded = expandedCases.has(group.caseId);
+                return (
+                  <div key={group.caseId} className="space-y-3">
+                    <div 
+                      className="border-b pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
+                      onClick={() => toggleCaseExpansion(group.caseId)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg">{group.case.title_ar}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {group.records.length} عملية تسليم
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {isExpanded ? "إخفاء" : "عرض"}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="space-y-2 pl-4">
                     {group.records.map((record) => (
                       <div key={record.id} className="flex items-center justify-between p-2 border-b last:border-b-0">
                         <div className="flex-1">
@@ -639,10 +696,12 @@ const DonationAuditDelivery = () => {
                           مسلم
                         </Badge>
                       </div>
-                    ))}
+                      ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center text-muted-foreground py-4">
                 لا توجد تسليمات مسجلة
