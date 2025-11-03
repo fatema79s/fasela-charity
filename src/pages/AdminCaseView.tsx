@@ -148,9 +148,6 @@ export default function AdminCaseView() {
                 <Badge variant={caseData.is_published ? "default" : "secondary"}>
                   {caseData.is_published ? "منشورة" : "غير منشورة"}
                 </Badge>
-                <Badge variant={caseData.all_donations_handed_over ? "default" : "destructive"}>
-                  {caseData.all_donations_handed_over ? "تم تسليم جميع التبرعات" : "لم يتم تسليم جميع التبرعات"}
-                </Badge>
               </div>
             </div>
           </div>

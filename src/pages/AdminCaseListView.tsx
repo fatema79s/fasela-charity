@@ -193,9 +193,6 @@ const AdminCaseListView = () => {
                           <Badge variant={caseItem.is_published ? "default" : "secondary"}>
                             {caseItem.is_published ? "منشورة" : "غير منشورة"}
                           </Badge>
-                          <Badge variant={caseItem.all_donations_handed_over ? "default" : "destructive"}>
-                            {caseItem.all_donations_handed_over ? "تم التسليم" : "لم يتم التسليم"}
-                          </Badge>
                         </div>
                       </div>
                     </div>
