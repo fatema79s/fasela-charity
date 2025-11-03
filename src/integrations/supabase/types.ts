@@ -490,6 +490,7 @@ export type Database = {
           id: string
           is_published: boolean
           kids_number: number | null
+          lifecycle_status: string
           monthly_cost: number
           months_covered: number
           months_needed: number
@@ -521,6 +522,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kids_number?: number | null
+          lifecycle_status?: string
           monthly_cost: number
           months_covered?: number
           months_needed: number
@@ -552,6 +554,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           kids_number?: number | null
+          lifecycle_status?: string
           monthly_cost?: number
           months_covered?: number
           months_needed?: number
