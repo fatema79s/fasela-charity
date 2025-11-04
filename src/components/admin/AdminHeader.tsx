@@ -3,21 +3,17 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   LogOut, 
   FileText, 
   Users, 
-  BarChart3, 
   CreditCard, 
   Home, 
-  Heart, 
   Calendar, 
   CheckSquare,
-  ArrowLeft,
-  Plus
+  ArrowRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdminHeaderProps {
@@ -120,28 +116,29 @@ export default function AdminHeader({
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {showBackButton && (
-                <Button variant="outline" asChild>
+                <Button variant="outline" size="sm" asChild>
                   <Link to={backTo}>
-                    <ArrowLeft className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-4 w-4 ml-2" />
                     {backLabel}
                   </Link>
                 </Button>
               )}
-              <h1 className="text-2xl font-bold">{title}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h1>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden sm:block text-sm text-muted-foreground">
                 مرحباً، {user?.email}
               </div>
-              <Button variant="outline" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="w-4 h-4 ml-2" />
-                تسجيل الخروج
+                <span className="hidden sm:inline">تسجيل الخروج</span>
+                <span className="sm:hidden">خروج</span>
               </Button>
             </div>
           </div>
@@ -149,100 +146,94 @@ export default function AdminHeader({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b bg-card">
         <div className="container mx-auto px-4">
-          <Tabs value={location.pathname} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 lg:grid-cols-9 h-auto p-1 bg-gray-100">
-              <TabsTrigger 
-                value="/admin" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin") ? "bg-white shadow-sm" : ""
-                }`}
+          <div className="overflow-x-auto">
+            <div className="flex gap-1 min-w-max">
+              <Link
+                to="/admin"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin") && !isActiveTab("/admin/cases") && !isActiveTab("/admin/donation-audit") && !isActiveTab("/admin/monthly-donations") && !isActiveTab("/admin/followups") && !isActiveTab("/admin/reports")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin">
-                  <Home className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">الرئيسية</span>
-                  <span className="sm:hidden text-[10px] leading-tight">رئيسية</span>
-                </Link>
-              </TabsTrigger>
+                <Home className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">الرئيسية</span>
+              </Link>
               
-              <TabsTrigger 
-                value="/admin/cases" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin/cases") ? "bg-white shadow-sm" : ""
-                }`}
+              <Link
+                to="/admin/cases"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin/cases")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin/cases">
-                  <Users className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">الحالات</span>
-                  <span className="sm:hidden text-[10px] leading-tight">حالات</span>
-                </Link>
-              </TabsTrigger>
+                <Users className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">الحالات</span>
+              </Link>
               
-              <TabsTrigger 
-                value="/admin/donation-audit" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin/donation-audit") ? "bg-white shadow-sm" : ""
-                }`}
+              <Link
+                to="/admin/donation-audit"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin/donation-audit")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin/donation-audit">
-                  <CreditCard className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">مراجعة التبرعات</span>
-                  <span className="sm:hidden text-[10px] leading-tight">تبرعات</span>
-                </Link>
-              </TabsTrigger>
+                <CreditCard className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">مراجعة التبرعات</span>
+              </Link>
               
-              <TabsTrigger 
-                value="/admin/monthly-donations" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin/monthly-donations") ? "bg-white shadow-sm" : ""
-                }`}
+              <Link
+                to="/admin/monthly-donations"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin/monthly-donations")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin/monthly-donations">
-                  <Calendar className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">التبرعات الشهرية</span>
-                  <span className="sm:hidden text-[10px] leading-tight">شهرية</span>
-                </Link>
-              </TabsTrigger>
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">التبرعات الشهرية</span>
+              </Link>
               
-              <TabsTrigger 
-                value="/admin/followups" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin/followups") ? "bg-white shadow-sm" : ""
-                }`}
+              <Link
+                to="/admin/followups"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin/followups")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin/followups">
-                  <CheckSquare className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">المتابعات</span>
-                  <span className="sm:hidden text-[10px] leading-tight">متابعات</span>
-                </Link>
-              </TabsTrigger>
+                <CheckSquare className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">المتابعات</span>
+              </Link>
               
-              <TabsTrigger 
-                value="/admin/reports" 
-                asChild
-                className={`flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4 ${
-                  isActiveTab("/admin/reports") ? "bg-white shadow-sm" : ""
-                }`}
+              <Link
+                to="/admin/reports"
+                className={cn(
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all rounded-t-lg whitespace-nowrap",
+                  isActiveTab("/admin/reports")
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
               >
-                <Link to="/admin/reports">
-                  <FileText className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">التقارير</span>
-                  <span className="sm:hidden text-[10px] leading-tight">تقارير</span>
-                </Link>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+                <FileText className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">التقارير</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         {children}
       </div>
     </div>
