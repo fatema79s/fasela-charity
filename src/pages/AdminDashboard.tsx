@@ -6,7 +6,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, LogOut, FileText, Users, BarChart3, CreditCard, Home, Heart, Calendar, CheckSquare, ExternalLink, Copy } from "lucide-react";
+import { Plus, LogOut, FileText, Users, BarChart3, CreditCard, Home, Heart, Calendar, CheckSquare, ExternalLink, Copy, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CaseForm from "@/components/admin/CaseForm";
 import CasesList from "@/components/admin/CasesList";
@@ -117,6 +117,30 @@ const AdminDashboard = () => {
 
   return (
     <AdminHeader title="لوحة التحكم">
+        {/* Navigation Links */}
+        <div className="w-full overflow-x-auto bg-card border-b mb-4">
+          <div className="flex gap-1 min-w-max px-2 py-1">
+            <Button variant="ghost" size="sm" asChild className="gap-2">
+              <Link to="/admin/cases">
+                <Users className="w-4 h-4" />
+                <span>الحالات</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="gap-2">
+              <Link to="/admin/calendar">
+                <Calendar className="w-4 h-4" />
+                <span>التقويم</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="gap-2">
+              <Link to="/admin/followups">
+                <CheckSquare className="w-4 h-4" />
+                <span>المتابعات</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
