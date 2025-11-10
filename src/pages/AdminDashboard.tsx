@@ -6,12 +6,13 @@ import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, LogOut, FileText, Users, BarChart3, CreditCard, Home, Heart, Calendar, CheckSquare, ExternalLink, Copy, ArrowRight } from "lucide-react";
+import { Plus, LogOut, FileText, Users, BarChart3, CreditCard, Home, Heart, Calendar, CheckSquare, ExternalLink, Copy, ArrowRight, Baby } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CaseForm from "@/components/admin/CaseForm";
 import CasesList from "@/components/admin/CasesList";
 import ReportForm from "@/components/admin/ReportForm";
 import ReportsList from "@/components/admin/ReportsList";
+import KidsListAdmin from "@/components/admin/KidsListAdmin";
 import { DonationAuditDelivery } from "@/components/admin/DonationAuditDelivery";
 import { MonthlyDonationsView } from "@/components/admin/MonthlyDonationsView";
 import FollowupActionsDashboard from "@/components/admin/FollowupActionsDashboard";
@@ -144,7 +145,7 @@ const AdminDashboard = () => {
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">
-            <TabsList className="grid w-full min-w-[840px] sm:min-w-0 grid-cols-7 gap-1 h-auto p-1">
+            <TabsList className="grid w-full min-w-[960px] sm:min-w-0 grid-cols-8 gap-1 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <BarChart3 className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">نظرة عامة</span>
@@ -154,6 +155,11 @@ const AdminDashboard = () => {
                 <Users className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">إدارة الحالات</span>
                 <span className="sm:hidden text-[10px] leading-tight">الحالات</span>
+              </TabsTrigger>
+              <TabsTrigger value="kids" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
+                <Baby className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">الأطفال</span>
+                <span className="sm:hidden text-[10px] leading-tight">أطفال</span>
               </TabsTrigger>
               <TabsTrigger value="donation-audit" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4">
                 <CreditCard className="w-4 h-4 flex-shrink-0" />
@@ -198,6 +204,19 @@ const AdminDashboard = () => {
               </Button>
             </div>
             <CasesList />
+          </TabsContent>
+
+          <TabsContent value="kids" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">إدارة الأطفال</h2>
+              <Button asChild>
+                <Link to="/kids">
+                  <Baby className="w-4 h-4 ml-2" />
+                  عرض جميع الأطفال
+                </Link>
+              </Button>
+            </div>
+            <KidsListAdmin />
           </TabsContent>
 
           <TabsContent value="donation-audit">
@@ -268,10 +287,22 @@ const StatsOverview = () => {
     }
   });
 
+  const { data: kids } = useQuery({
+    queryKey: ["admin-kids"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("case_kids")
+        .select("*");
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const totalCases = cases?.length || 0;
   const activeCases = cases?.filter(c => c.status === 'active').length || 0;
   const totalDonations = donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
   const monthlyReports = reports?.length || 0;
+  const totalKids = kids?.length || 0;
   const { toast } = useToast();
 
   const handleCopyReportUrl = () => {
@@ -284,7 +315,7 @@ const StatsOverview = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs sm:text-sm font-medium">إجمالي الحالات</CardTitle>
@@ -304,6 +335,17 @@ const StatsOverview = () => {
         <CardContent>
           <div className="text-xl sm:text-2xl font-bold">{activeCases}</div>
           <p className="text-xs text-muted-foreground">{totalCases > 0 ? Math.round((activeCases / totalCases) * 100) : 0}% من إجمالي الحالات</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-xs sm:text-sm font-medium">إجمالي الأطفال</CardTitle>
+          <Baby className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-xl sm:text-2xl font-bold">{totalKids}</div>
+          <p className="text-xs text-muted-foreground">جميع الأطفال المسجلين</p>
         </CardContent>
       </Card>
       
