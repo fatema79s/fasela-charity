@@ -91,7 +91,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   const [kids, setKids] = useState<Kid[]>([
     { name: "", age: 0, gender: 'male', description: "" }
   ]);
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CaseFormData>();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CaseFormData>();
   const { toast } = useToast();
   const isEditMode = !!caseId;
 
@@ -938,7 +938,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
               <div className="flex items-center space-x-2 space-x-reverse">
                 <Switch
                   id="deserve_zakkah"
-                  {...register("deserve_zakkah")}
+                  checked={watch("deserve_zakkah")}
+                  onCheckedChange={(checked) => setValue("deserve_zakkah", checked)}
                 />
                 <Label htmlFor="deserve_zakkah" className="text-sm text-muted-foreground">
                   الحالة مستحقة للزكاة
@@ -950,7 +951,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           <div className="flex items-center space-x-2 space-x-reverse">
             <Switch
               id="is_published"
-              {...register("is_published")}
+              checked={watch("is_published")}
+              onCheckedChange={(checked) => setValue("is_published", checked)}
             />
             <Label htmlFor="is_published">نشر الحالة فوراً</Label>
           </div>
