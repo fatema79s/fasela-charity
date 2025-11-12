@@ -146,13 +146,24 @@ export default function AdminHeader({
           {/* Navigation Tabs */}
           <div className="flex gap-1 overflow-x-auto pb-2">
             <Button 
+              variant="ghost"
+              size="sm" 
+              asChild 
+              className="gap-2 whitespace-nowrap"
+            >
+              <Link to="/">
+                <Home className="w-4 h-4" />
+                <span>الصفحة الرئيسية</span>
+              </Link>
+            </Button>
+            <Button 
               variant={isActiveTab("/admin") && !isActiveTab("/admin/cases") && !isActiveTab("/admin/calendar") && !isActiveTab("/admin/followups") ? "default" : "ghost"} 
               size="sm" 
               asChild 
               className="gap-2 whitespace-nowrap"
             >
               <Link to="/admin">
-                <Home className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 <span>لوحة التحكم</span>
               </Link>
             </Button>
