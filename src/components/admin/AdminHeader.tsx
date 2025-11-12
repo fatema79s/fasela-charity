@@ -118,7 +118,7 @@ export default function AdminHeader({
       {/* Header */}
       <div className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               {showBackButton && (
                 <Button variant="outline" size="sm" asChild>
@@ -141,6 +141,54 @@ export default function AdminHeader({
                 <span className="sm:hidden">خروج</span>
               </Button>
             </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex gap-1 overflow-x-auto pb-2">
+            <Button 
+              variant={isActiveTab("/admin") && !isActiveTab("/admin/cases") && !isActiveTab("/admin/calendar") && !isActiveTab("/admin/followups") ? "default" : "ghost"} 
+              size="sm" 
+              asChild 
+              className="gap-2 whitespace-nowrap"
+            >
+              <Link to="/admin">
+                <Home className="w-4 h-4" />
+                <span>لوحة التحكم</span>
+              </Link>
+            </Button>
+            <Button 
+              variant={isActiveTab("/admin/cases") ? "default" : "ghost"} 
+              size="sm" 
+              asChild 
+              className="gap-2 whitespace-nowrap"
+            >
+              <Link to="/admin/cases">
+                <Users className="w-4 h-4" />
+                <span>الحالات</span>
+              </Link>
+            </Button>
+            <Button 
+              variant={isActiveTab("/admin/calendar") ? "default" : "ghost"} 
+              size="sm" 
+              asChild 
+              className="gap-2 whitespace-nowrap"
+            >
+              <Link to="/admin/calendar">
+                <Calendar className="w-4 h-4" />
+                <span>التقويم</span>
+              </Link>
+            </Button>
+            <Button 
+              variant={isActiveTab("/admin/followups") ? "default" : "ghost"} 
+              size="sm" 
+              asChild 
+              className="gap-2 whitespace-nowrap"
+            >
+              <Link to="/admin/followups">
+                <CheckSquare className="w-4 h-4" />
+                <span>المتابعات</span>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

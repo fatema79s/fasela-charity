@@ -118,30 +118,6 @@ const AdminDashboard = () => {
 
   return (
     <AdminHeader title="لوحة التحكم">
-        {/* Navigation Links */}
-        <div className="w-full overflow-x-auto bg-card border-b mb-4">
-          <div className="flex gap-1 min-w-max px-2 py-1">
-            <Button variant="ghost" size="sm" asChild className="gap-2">
-              <Link to="/admin/cases">
-                <Users className="w-4 h-4" />
-                <span>الحالات</span>
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="gap-2">
-              <Link to="/admin/calendar">
-                <Calendar className="w-4 h-4" />
-                <span>التقويم</span>
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="gap-2">
-              <Link to="/admin/followups">
-                <CheckSquare className="w-4 h-4" />
-                <span>المتابعات</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
-
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-x-auto">

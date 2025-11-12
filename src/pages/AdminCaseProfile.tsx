@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft,
   User,
   MapPin,
   Heart,
@@ -21,6 +19,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import FollowupActionForm from "@/components/admin/FollowupActionForm";
 import FollowupActionsList from "@/components/admin/FollowupActionsList";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 export default function AdminCaseProfile() {
   const { id } = useParams();
@@ -131,50 +130,37 @@ export default function AdminCaseProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/admin")}
-            className="mb-4"
-          >
-            <ArrowLeft className="ml-2 h-4 w-4" />
-            العودة للوحة الإدارة
-          </Button>
-
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {caseData.title_ar || caseData.title}
-              </h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  رقم الحالة: {caseData.payment_code}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {caseData.city} - {caseData.area}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  تاريخ الإضافة: {format(new Date(caseData.created_at), "dd MMM yyyy", { locale: ar })}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Badge variant={caseData.is_published ? "default" : "secondary"}>
-                {caseData.is_published ? "منشورة" : "غير منشورة"}
-              </Badge>
-              <Badge variant={caseData.status === "active" ? "default" : "outline"}>
-                {caseData.status === "active" ? "نشطة" : "غير نشطة"}
-              </Badge>
-            </div>
-          </div>
+    <AdminHeader 
+      title={caseData.title_ar || caseData.title} 
+      showBackButton 
+      backTo="/admin/cases"
+      backLabel="العودة للحالات"
+    >
+      <div className="mb-6">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <span className="flex items-center gap-1">
+            <User className="h-4 w-4" />
+            رقم الحالة: {caseData.payment_code}
+          </span>
+          <span className="flex items-center gap-1">
+            <MapPin className="h-4 w-4" />
+            {caseData.city} - {caseData.area}
+          </span>
+          <span className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            تاريخ الإضافة: {format(new Date(caseData.created_at), "dd MMM yyyy", { locale: ar })}
+          </span>
         </div>
+        
+        <div className="flex gap-2">
+          <Badge variant={caseData.is_published ? "default" : "secondary"}>
+            {caseData.is_published ? "منشورة" : "غير منشورة"}
+          </Badge>
+          <Badge variant={caseData.status === "active" ? "default" : "outline"}>
+            {caseData.status === "active" ? "نشطة" : "غير نشطة"}
+          </Badge>
+        </div>
+      </div>
 
         {/* Financial Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -330,12 +316,11 @@ export default function AdminCaseProfile() {
           </TabsContent>
         </Tabs>
 
-        <FollowupActionForm
-          caseId={id!}
-          open={followupFormOpen}
-          onOpenChange={setFollowupFormOpen}
-        />
-      </div>
-    </div>
+      <FollowupActionForm
+        caseId={id!}
+        open={followupFormOpen}
+        onOpenChange={setFollowupFormOpen}
+      />
+    </AdminHeader>
   );
 }
