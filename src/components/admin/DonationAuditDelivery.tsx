@@ -88,6 +88,9 @@ const DonationAuditDelivery = () => {
   const [expandedCases, setExpandedCases] = useState<Set<string>>(new Set());
   const [handoverPage, setHandoverPage] = useState(1);
   const HANDOVERS_PER_PAGE = 20;
+  const [searchName, setSearchName] = useState("");
+  const [searchAmount, setSearchAmount] = useState("");
+  const [sortByDate, setSortByDate] = useState<"desc" | "asc">("desc");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
