@@ -341,7 +341,10 @@ export const DonationsManagement = () => {
                           </span>
                         )}
                       </div>
-                      <div>تاريخ الطلب: {new Date(donation.created_at).toLocaleDateString('ar-SA')}</div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>تاريخ الطلب: {new Date(donation.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
