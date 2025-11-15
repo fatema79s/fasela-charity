@@ -2487,6 +2487,285 @@ export type Database = {
           },
         ]
       }
+      simple_lab_basket_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          kit_id: string | null
+          quantity: number
+          session_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          quantity?: number
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          quantity?: number
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simple_lab_basket_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "simple_lab_kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simple_lab_experiments: {
+        Row: {
+          age_group: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          difficulty: string | null
+          duration: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          title: string
+          title_ar: string | null
+          updated_at: string | null
+          youtube_url: string
+        }
+        Insert: {
+          age_group?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title: string
+          title_ar?: string | null
+          updated_at?: string | null
+          youtube_url: string
+        }
+        Update: {
+          age_group?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          title?: string
+          title_ar?: string | null
+          updated_at?: string | null
+          youtube_url?: string
+        }
+        Relationships: []
+      }
+      simple_lab_kit_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          image_url: string | null
+          kit_id: string | null
+          name: string
+          name_ar: string | null
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          image_url?: string | null
+          kit_id?: string | null
+          name: string
+          name_ar?: string | null
+          quantity?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          image_url?: string | null
+          kit_id?: string | null
+          name?: string
+          name_ar?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simple_lab_kit_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "simple_lab_kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simple_lab_kits: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          experiment_id: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          name_ar: string | null
+          price: number
+          stock_quantity: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          experiment_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          name_ar?: string | null
+          price?: number
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          experiment_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          name_ar?: string | null
+          price?: number
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simple_lab_kits_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "simple_lab_experiments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simple_lab_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          kit_id: string | null
+          kit_name: string
+          order_id: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          kit_name: string
+          order_id?: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kit_id?: string | null
+          kit_name?: string
+          order_id?: string | null
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simple_lab_order_items_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "simple_lab_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simple_lab_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "simple_lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simple_lab_orders: {
+        Row: {
+          created_at: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          order_number: string
+          order_status: string | null
+          payment_status: string | null
+          shipping_address: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          order_number: string
+          order_status?: string | null
+          payment_status?: string | null
+          shipping_address: string
+          total_amount: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          order_number?: string
+          order_status?: string | null
+          payment_status?: string | null
+          shipping_address?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       student_assignments: {
         Row: {
           assignment_id: string | null

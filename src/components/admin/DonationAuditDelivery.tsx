@@ -518,6 +518,9 @@ const DonationAuditDelivery = () => {
                               {donation.cases.title_ar} - {donation.amount.toLocaleString()} ج.م
                             </p>
                             <p className="text-xs text-muted-foreground">
+                              التاريخ: {new Date(donation.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
                               كود الدفع: {donation.payment_code}
                             </p>
                           </div>
