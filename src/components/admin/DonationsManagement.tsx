@@ -36,9 +36,11 @@ export const DonationsManagement = () => {
   const [selectedDonations, setSelectedDonations] = useState<Set<string>>(new Set());
   const [paymentReference, setPaymentReference] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
-  const [searchName, setSearchName] = useState("");
-  const [searchAmount, setSearchAmount] = useState("");
-  const [sortByDate, setSortByDate] = useState<"desc" | "asc">("desc");
+  // Separate filters for each tab
+  const [pendingSearch, setPendingSearch] = useState({ name: "", amount: "", sort: "desc" as "desc" | "asc" });
+  const [confirmedSearch, setConfirmedSearch] = useState({ name: "", amount: "", sort: "desc" as "desc" | "asc" });
+  const [redeemedSearch, setRedeemedSearch] = useState({ name: "", amount: "", sort: "desc" as "desc" | "asc" });
+  const [cancelledSearch, setCancelledSearch] = useState({ name: "", amount: "", sort: "desc" as "desc" | "asc" });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -240,10 +242,53 @@ export const DonationsManagement = () => {
     }
   };
 
-  const pendingDonations = donations?.filter(d => d.status === 'pending') || [];
-  const confirmedDonations = donations?.filter(d => d.status === 'confirmed') || [];
-  const redeemedDonations = donations?.filter(d => d.status === 'redeemed') || [];
-  const cancelledDonations = donations?.filter(d => d.status === 'cancelled') || [];
+  // Helper function to filter and sort donations
+  const filterAndSortDonations = (donations: Donation[], filters: { name: string; amount: string; sort: "desc" | "asc" }) => {
+    let filtered = [...donations];
+    
+    // Filter by name
+    if (filters.name.trim()) {
+      filtered = filtered.filter(d => 
+        d.donor_name?.toLowerCase().includes(filters.name.toLowerCase()) ||
+        d.cases?.title_ar?.toLowerCase().includes(filters.name.toLowerCase()) ||
+        d.cases?.title?.toLowerCase().includes(filters.name.toLowerCase())
+      );
+    }
+    
+    // Filter by amount
+    if (filters.amount.trim()) {
+      const searchAmount = parseFloat(filters.amount);
+      if (!isNaN(searchAmount)) {
+        filtered = filtered.filter(d => d.amount === searchAmount);
+      }
+    }
+    
+    // Sort by date
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return filters.sort === "desc" ? dateB - dateA : dateA - dateB;
+    });
+    
+    return filtered;
+  };
+
+  const pendingDonations = filterAndSortDonations(
+    donations?.filter(d => d.status === 'pending') || [],
+    pendingSearch
+  );
+  const confirmedDonations = filterAndSortDonations(
+    donations?.filter(d => d.status === 'confirmed') || [],
+    confirmedSearch
+  );
+  const redeemedDonations = filterAndSortDonations(
+    donations?.filter(d => d.status === 'redeemed') || [],
+    redeemedSearch
+  );
+  const cancelledDonations = filterAndSortDonations(
+    donations?.filter(d => d.status === 'cancelled') || [],
+    cancelledSearch
+  );
 
   // Calculate sums for each status
   const pendingSum = pendingDonations.reduce((sum, d) => sum + d.amount, 0);
@@ -314,6 +359,42 @@ export const DonationsManagement = () => {
         <h3 className="text-lg font-semibold mb-4 text-yellow-700">
           التبرعات في الانتظار ({pendingDonations.length}) - {pendingSum.toLocaleString()} جنيه
         </h3>
+        
+        {/* Search and Sort Controls */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+            <Input
+              placeholder="ابحث..."
+              value={pendingSearch.name}
+              onChange={(e) => setPendingSearch({ ...pendingSearch, name: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+            <Input
+              type="number"
+              placeholder="المبلغ..."
+              value={pendingSearch.amount}
+              onChange={(e) => setPendingSearch({ ...pendingSearch, amount: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">ترتيب</Label>
+            <Select value={pendingSearch.sort} onValueChange={(value: "desc" | "asc") => setPendingSearch({ ...pendingSearch, sort: value })}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                <SelectItem value="asc">الأقدم أولاً</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
         {pendingDonations.length === 0 ? (
           <p className="text-muted-foreground">لا توجد تبرعات في الانتظار</p>
         ) : (
@@ -390,6 +471,42 @@ export const DonationsManagement = () => {
             </Button>
           )}
         </div>
+        
+        {/* Search and Sort Controls */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+            <Input
+              placeholder="ابحث..."
+              value={confirmedSearch.name}
+              onChange={(e) => setConfirmedSearch({ ...confirmedSearch, name: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+            <Input
+              type="number"
+              placeholder="المبلغ..."
+              value={confirmedSearch.amount}
+              onChange={(e) => setConfirmedSearch({ ...confirmedSearch, amount: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">ترتيب</Label>
+            <Select value={confirmedSearch.sort} onValueChange={(value: "desc" | "asc") => setConfirmedSearch({ ...confirmedSearch, sort: value })}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                <SelectItem value="asc">الأقدم أولاً</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
         {confirmedDonations.length === 0 ? (
           <p className="text-muted-foreground">لا توجد تبرعات مؤكدة</p>
         ) : (
@@ -439,6 +556,42 @@ export const DonationsManagement = () => {
         <h3 className="text-lg font-semibold mb-4 text-blue-700">
           التبرعات المسلمة ({redeemedDonations.length}) - {redeemedSum.toLocaleString()} جنيه
         </h3>
+        
+        {/* Search and Sort Controls */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+            <Input
+              placeholder="ابحث..."
+              value={redeemedSearch.name}
+              onChange={(e) => setRedeemedSearch({ ...redeemedSearch, name: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+            <Input
+              type="number"
+              placeholder="المبلغ..."
+              value={redeemedSearch.amount}
+              onChange={(e) => setRedeemedSearch({ ...redeemedSearch, amount: e.target.value })}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1">ترتيب</Label>
+            <Select value={redeemedSearch.sort} onValueChange={(value: "desc" | "asc") => setRedeemedSearch({ ...redeemedSearch, sort: value })}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                <SelectItem value="asc">الأقدم أولاً</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
         {redeemedDonations.length === 0 ? (
           <p className="text-muted-foreground">لا توجد تبرعات مسلمة</p>
         ) : (

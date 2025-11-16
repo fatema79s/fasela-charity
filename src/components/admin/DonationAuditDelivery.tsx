@@ -395,12 +395,76 @@ const DonationAuditDelivery = () => {
     }
   };
 
+  // Helper function to filter and sort donations
+  const filterAndSortDonations = (donations: Donation[]) => {
+    let filtered = [...donations];
+    
+    // Filter by name
+    if (searchName.trim()) {
+      filtered = filtered.filter(d => 
+        d.donor_name?.toLowerCase().includes(searchName.toLowerCase()) ||
+        d.cases?.title_ar?.toLowerCase().includes(searchName.toLowerCase()) ||
+        d.cases?.title?.toLowerCase().includes(searchName.toLowerCase())
+      );
+    }
+    
+    // Filter by amount
+    if (searchAmount.trim()) {
+      const searchAmountNum = parseFloat(searchAmount);
+      if (!isNaN(searchAmountNum)) {
+        filtered = filtered.filter(d => d.amount === searchAmountNum);
+      }
+    }
+    
+    // Sort by date
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return sortByDate === "desc" ? dateB - dateA : dateA - dateB;
+    });
+    
+    return filtered;
+  };
+
+  // Helper function to filter handover history
+  const filterAndSortHandovers = (handovers: HandoverRecord[]) => {
+    let filtered = [...handovers];
+    
+    // Filter by name
+    if (searchName.trim()) {
+      filtered = filtered.filter(h => 
+        h.donations?.donor_name?.toLowerCase().includes(searchName.toLowerCase()) ||
+        h.cases?.title_ar?.toLowerCase().includes(searchName.toLowerCase()) ||
+        h.cases?.title?.toLowerCase().includes(searchName.toLowerCase())
+      );
+    }
+    
+    // Filter by amount
+    if (searchAmount.trim()) {
+      const searchAmountNum = parseFloat(searchAmount);
+      if (!isNaN(searchAmountNum)) {
+        filtered = filtered.filter(h => h.handover_amount === searchAmountNum);
+      }
+    }
+    
+    // Sort by date
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.handover_date).getTime();
+      const dateB = new Date(b.handover_date).getTime();
+      return sortByDate === "desc" ? dateB - dateA : dateA - dateB;
+    });
+    
+    return filtered;
+  };
+
   // Filter donations
-  const pendingDonations = donations.filter(d => d.status === "pending");
-  const readyForDelivery = donations.filter(d => 
+  const pendingDonations = filterAndSortDonations(donations.filter(d => d.status === "pending"));
+  const readyForDelivery = filterAndSortDonations(donations.filter(d => 
     d.status === "confirmed" && 
     (d.handover_status === "none" || d.handover_status === "partial")
-  );
+  ));
+  const filteredHandoverHistory = filterAndSortHandovers(handoverHistory);
+  
   const filteredDonations = filterStatus === "all" ? donations : 
     donations.filter(d => d.status === filterStatus);
 
@@ -418,7 +482,7 @@ const DonationAuditDelivery = () => {
   }, {} as Record<string, { case: { id: string; title: string; title_ar: string }; donations: Donation[] }>);
 
   // Group handover history by case
-  const groupedHandoverHistory = handoverHistory.reduce((acc, record) => {
+  const groupedHandoverHistory = filteredHandoverHistory.reduce((acc, record) => {
     const caseId = record.case_id;
     if (!acc[caseId]) {
       acc[caseId] = {
@@ -521,6 +585,43 @@ const DonationAuditDelivery = () => {
 
         {/* Pending Donations Tab */}
         <TabsContent value="pending" className="space-y-4">
+          {/* Search and Sort Controls */}
+          <Card className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+                <Input
+                  placeholder="ابحث..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+                <Input
+                  type="number"
+                  placeholder="المبلغ..."
+                  value={searchAmount}
+                  onChange={(e) => setSearchAmount(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">ترتيب</Label>
+                <Select value={sortByDate} onValueChange={(value: "desc" | "asc") => setSortByDate(value)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                    <SelectItem value="asc">الأقدم أولاً</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+          
           {pendingDonations.length > 0 ? (
             <Card>
               <CardHeader>
@@ -577,6 +678,43 @@ const DonationAuditDelivery = () => {
 
         {/* Ready for Delivery Tab */}
         <TabsContent value="ready" className="space-y-4">
+          {/* Search and Sort Controls */}
+          <Card className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+                <Input
+                  placeholder="ابحث..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+                <Input
+                  type="number"
+                  placeholder="المبلغ..."
+                  value={searchAmount}
+                  onChange={(e) => setSearchAmount(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">ترتيب</Label>
+                <Select value={sortByDate} onValueChange={(value: "desc" | "asc") => setSortByDate(value)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                    <SelectItem value="asc">الأقدم أولاً</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+          
           {readyForDelivery.length > 0 ? (
             <Card>
               <CardHeader>
@@ -686,6 +824,43 @@ const DonationAuditDelivery = () => {
 
         {/* Handed Over Donations Tab */}
         <TabsContent value="handed-over" className="space-y-4">
+          {/* Search and Sort Controls */}
+          <Card className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs mb-1">بحث بالاسم أو الحالة</Label>
+                <Input
+                  placeholder="ابحث..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">بحث بالمبلغ</Label>
+                <Input
+                  type="number"
+                  placeholder="المبلغ..."
+                  value={searchAmount}
+                  onChange={(e) => setSearchAmount(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1">ترتيب</Label>
+                <Select value={sortByDate} onValueChange={(value: "desc" | "asc") => setSortByDate(value)}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">الأحدث أولاً</SelectItem>
+                    <SelectItem value="asc">الأقدم أولاً</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
