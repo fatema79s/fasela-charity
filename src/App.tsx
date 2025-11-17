@@ -16,6 +16,7 @@ import AdminFollowupActions from "./pages/AdminFollowupActions";
 import AdminCaseView from "./pages/AdminCaseView";
 import AdminCaseListView from "./pages/AdminCaseListView";
 import PublicDonorReport from "./pages/PublicDonorReport";
+import MonthlyDonorReport from "./pages/MonthlyDonorReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/admin/cases" element={<AdminCaseListView />} />
           <Route path="/admin/case/:id" element={<AdminCaseView />} />
           <Route path="/donor-report" element={<PublicDonorReport />} />
+          <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
