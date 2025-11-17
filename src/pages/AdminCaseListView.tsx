@@ -202,7 +202,19 @@ const AdminCaseListView = () => {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl">💙</div>
+                      {caseItem.admin_profile_picture_url ? (
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 flex-shrink-0">
+                          <img 
+                            src={caseItem.admin_profile_picture_url} 
+                            alt={caseItem.title_ar || caseItem.title || "Case"}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <div className="text-2xl">💙</div>
+                        </div>
+                      )}
                       <div className="flex-1">
                         <CardTitle className="text-lg line-clamp-2">
                           {caseItem.title_ar || caseItem.title}

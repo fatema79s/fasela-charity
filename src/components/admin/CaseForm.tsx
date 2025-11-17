@@ -21,6 +21,7 @@ interface CaseFormData {
   monthly_cost: number;
   months_needed: number;
   photo_url?: string;
+  admin_profile_picture_url?: string;
   description_images?: string[];
   is_published: boolean;
   city?: string;
@@ -82,8 +83,11 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   const [loadingCase, setLoadingCase] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDescriptionImage, setUploadingDescriptionImage] = useState(false);
+  const [uploadingAdminProfilePicture, setUploadingAdminProfilePicture] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>("");
   const [imageUrlInput, setImageUrlInput] = useState<string>("");
+  const [adminProfilePictureUrl, setAdminProfilePictureUrl] = useState<string>("");
+  const [adminProfilePictureUrlInput, setAdminProfilePictureUrlInput] = useState<string>("");
   const [descriptionImages, setDescriptionImages] = useState<string[]>([]);
   const [monthlyNeeds, setMonthlyNeeds] = useState<MonthlyNeed[]>([
     { category: "", amount: 0, description: "", icon: "💰", color: "bg-blue-500" }
@@ -160,6 +164,10 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         
         // Set current image URL
         setCurrentImageUrl(caseData.photo_url || "");
+        
+        // Set admin profile picture URL
+        setAdminProfilePictureUrl(caseData.admin_profile_picture_url || "");
+        setValue("admin_profile_picture_url", caseData.admin_profile_picture_url || "");
         
         // Set description images
         const images = caseData.description_images;
@@ -285,6 +293,81 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
     if (imageUrlInput.trim()) {
       setCurrentImageUrl(imageUrlInput.trim());
       setImageUrlInput("");
+    }
+  };
+
+  const handleAdminProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار صورة صالحة (JPEG, PNG, WebP)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "خطأ",
+        description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingAdminProfilePicture(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `admin_${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('case-images')
+        .upload(fileName, file);
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('case-images')
+        .getPublicUrl(fileName);
+
+      setAdminProfilePictureUrl(publicUrl);
+      setValue('admin_profile_picture_url', publicUrl);
+
+      toast({
+        title: "تم رفع الصورة بنجاح",
+        description: "تم رفع صورة الملف الشخصي للإدارة بنجاح",
+      });
+    } catch (error) {
+      console.error("Error uploading admin profile picture:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء رفع الصورة",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAdminProfilePicture(false);
+    }
+  };
+
+  const removeAdminProfilePicture = () => {
+    setAdminProfilePictureUrl("");
+    setAdminProfilePictureUrlInput("");
+    setValue('admin_profile_picture_url', "");
+  };
+
+  const handleAdminProfilePictureFromUrl = () => {
+    if (adminProfilePictureUrlInput.trim()) {
+      setAdminProfilePictureUrl(adminProfilePictureUrlInput.trim());
+      setValue('admin_profile_picture_url', adminProfilePictureUrlInput.trim());
+      setAdminProfilePictureUrlInput("");
     }
   };
 
@@ -423,6 +506,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             monthly_cost: data.monthly_cost,
             months_needed: data.months_needed,
             photo_url: currentImageUrl || null,
+            admin_profile_picture_url: adminProfilePictureUrl || null,
             description_images: descriptionImages,
             is_published: data.is_published,
             city: data.city || null,
@@ -526,6 +610,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             monthly_cost: data.monthly_cost,
             months_needed: data.months_needed,
             photo_url: currentImageUrl || null,
+            admin_profile_picture_url: adminProfilePictureUrl || null,
             description_images: descriptionImages,
             is_published: data.is_published,
             city: data.city || null,
@@ -599,6 +684,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         // Reset form only for new cases
         reset();
         setCurrentImageUrl("");
+        setAdminProfilePictureUrl("");
         setDescriptionImages([]);
         setMonthlyNeeds([{ category: "", amount: 0, description: "", icon: "💰", color: "bg-blue-500" }]);
         setKids([{ 
@@ -880,6 +966,79 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>صورة الملف الشخصي للإدارة (للعرض في لوحة الإدارة فقط)</Label>
+              <div className="space-y-3">
+                {adminProfilePictureUrl && (
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    <img 
+                      src={adminProfilePictureUrl} 
+                      alt="صورة الملف الشخصي للإدارة" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 p-1 h-6 w-6"
+                      onClick={removeAdminProfilePicture}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAdminProfilePictureUpload}
+                      disabled={uploadingAdminProfilePicture}
+                      className="hidden"
+                      id="admin-profile-picture-upload"
+                    />
+                    <Label 
+                      htmlFor="admin-profile-picture-upload" 
+                      className="cursor-pointer"
+                    >
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        disabled={uploadingAdminProfilePicture}
+                        asChild
+                      >
+                        <span className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          {uploadingAdminProfilePicture ? "جاري الرفع..." : "رفع صورة الملف الشخصي"}
+                        </span>
+                      </Button>
+                    </Label>
+                  </div>
+                  <div className="text-sm text-muted-foreground text-center">أو</div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="url"
+                      placeholder="لصق رابط الصورة هنا"
+                      value={adminProfilePictureUrlInput}
+                      onChange={(e) => setAdminProfilePictureUrlInput(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAdminProfilePictureFromUrl}
+                      disabled={!adminProfilePictureUrlInput.trim()}
+                    >
+                      إضافة
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  هذه الصورة ستظهر فقط في لوحة الإدارة ولن تظهر للمستخدمين
+                </p>
               </div>
             </div>
           </div>
