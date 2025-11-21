@@ -284,12 +284,19 @@ const CasesList = () => {
                       </Badge>
                       <Badge 
                         variant="outline"
-                        className={caseItem.payment_type === 'one_time' 
-                          ? "bg-orange-500/90 text-white border-orange-600 text-sm"
-                          : "bg-blue-500/90 text-white border-blue-600 text-sm"
+                        className={
+                          caseItem.case_care_type === 'one_time_donation'
+                            ? "bg-orange-500/90 text-white border-orange-600 text-sm"
+                            : caseItem.case_care_type === 'cancelled'
+                            ? "bg-gray-500/90 text-white border-gray-600 text-sm"
+                            : "bg-blue-500/90 text-white border-blue-600 text-sm"
                         }
                       >
-                        {caseItem.payment_type === 'one_time' ? 'مساعدة لمرة واحدة' : 'التزام شهري'}
+                        {caseItem.case_care_type === 'one_time_donation' 
+                          ? 'مساعدة لمرة واحدة' 
+                          : caseItem.case_care_type === 'cancelled'
+                          ? 'ملغاة'
+                          : 'كفالة (التزام شهري)'}
                       </Badge>
                       {caseItem.deserve_zakkah && (
                         <Badge 
@@ -396,12 +403,19 @@ const CasesList = () => {
                       </Badge>
                       <Badge 
                         variant="outline"
-                        className={caseItem.payment_type === 'one_time' 
-                          ? "bg-orange-500/90 text-white border-orange-600 text-xs"
-                          : "bg-blue-500/90 text-white border-blue-600 text-xs"
+                        className={
+                          caseItem.case_care_type === 'one_time_donation'
+                            ? "bg-orange-500/90 text-white border-orange-600 text-xs"
+                            : caseItem.case_care_type === 'cancelled'
+                            ? "bg-gray-500/90 text-white border-gray-600 text-xs"
+                            : "bg-blue-500/90 text-white border-blue-600 text-xs"
                         }
                       >
-                        {caseItem.payment_type === 'one_time' ? 'مساعدة لمرة واحدة' : 'التزام شهري'}
+                        {caseItem.case_care_type === 'one_time_donation' 
+                          ? 'مساعدة لمرة واحدة' 
+                          : caseItem.case_care_type === 'cancelled'
+                          ? 'ملغاة'
+                          : 'كفالة (التزام شهري)'}
                       </Badge>
                       {caseItem.deserve_zakkah && (
                         <Badge 

@@ -19,7 +19,7 @@ interface CaseFormData {
   description_ar: string;
   description?: string;
   monthly_cost: number;
-  months_needed: number;
+  months_needed?: number;
   photo_url?: string;
   admin_profile_picture_url?: string;
   description_images?: string[];
@@ -27,7 +27,7 @@ interface CaseFormData {
   city?: string;
   area?: string;
   deserve_zakkah: boolean;
-  payment_type?: 'one_time' | 'monthly';
+  case_care_type?: 'cancelled' | 'sponsorship' | 'one_time_donation';
   // Parent profile fields
   rent_amount?: number;
   kids_number?: number;
@@ -207,7 +207,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("city", caseData.city || "");
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
-        setValue("payment_type", caseData.payment_type || 'monthly');
+        setValue("case_care_type", caseData.case_care_type || 'sponsorship');
         
         // Parent profile fields
         setValue("rent_amount", caseData.rent_amount || 0);
@@ -674,7 +674,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             description_ar: data.description_ar,
             description: data.description || "",
             monthly_cost: data.monthly_cost,
-            months_needed: data.months_needed,
+            months_needed: data.case_care_type === 'one_time_donation' ? 1 : data.months_needed,
             photo_url: currentImageUrl || null,
             admin_profile_picture_url: adminProfilePictureUrl || null,
             description_images: descriptionImages,
@@ -682,7 +682,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
-            payment_type: data.payment_type || 'monthly',
+            case_care_type: data.case_care_type || 'sponsorship',
             // Parent profile fields
             rent_amount: data.rent_amount || 0,
             kids_number: data.kids_number || 0,
@@ -802,7 +802,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             description_ar: data.description_ar,
             description: data.description || "",
             monthly_cost: data.monthly_cost,
-            months_needed: data.months_needed,
+            months_needed: data.case_care_type === 'one_time_donation' ? 1 : data.months_needed,
             photo_url: currentImageUrl || null,
             admin_profile_picture_url: adminProfilePictureUrl || null,
             description_images: descriptionImages,
@@ -810,7 +810,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
-            payment_type: data.payment_type || 'monthly',
+            case_care_type: data.case_care_type || 'sponsorship',
             // Parent profile fields
             rent_amount: data.rent_amount || 0,
             kids_number: data.kids_number || 0,
@@ -1077,38 +1077,49 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             </CardContent>
           </Card>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${watch("case_care_type") === 'one_time_donation' || watch("case_care_type") === 'cancelled' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
             <div className="space-y-2">
-              <Label htmlFor="monthly_cost">التكلفة الشهرية (جنيه)</Label>
+              <Label htmlFor="monthly_cost">
+                {watch("case_care_type") === 'one_time_donation' ? 'المبلغ المطلوب (جنيه)' : 'التكلفة الشهرية (جنيه)'}
+              </Label>
               <Input
                 id="monthly_cost"
                 type="number"
                 {...register("monthly_cost", { 
-                  required: "التكلفة الشهرية مطلوبة",
-                  min: { value: 1, message: "يجب أن تكون التكلفة أكبر من صفر" }
+                  required: watch("case_care_type") === 'one_time_donation' ? "المبلغ المطلوب مطلوب" : "التكلفة الشهرية مطلوبة",
+                  min: { value: 1, message: "يجب أن يكون المبلغ أكبر من صفر" }
                 })}
-                placeholder="2700"
+                placeholder={watch("case_care_type") === 'one_time_donation' ? "10000" : "2700"}
+                disabled={watch("case_care_type") === 'cancelled'}
               />
               {errors.monthly_cost && (
                 <p className="text-sm text-destructive">{errors.monthly_cost.message}</p>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="months_needed">عدد الأشهر المطلوبة</Label>
-              <Input
-                id="months_needed"
-                type="number"
-                {...register("months_needed", { 
-                  required: "عدد الأشهر مطلوب",
-                  min: { value: 1, message: "يجب أن يكون عدد الأشهر أكبر من صفر" }
-                })}
-                placeholder="12"
-              />
-              {errors.months_needed && (
-                <p className="text-sm text-destructive">{errors.months_needed.message}</p>
+              {watch("case_care_type") === 'one_time_donation' && (
+                <p className="text-xs text-muted-foreground">المبلغ الإجمالي المطلوب لمساعدة لمرة واحدة</p>
+              )}
+              {watch("case_care_type") === 'cancelled' && (
+                <p className="text-xs text-muted-foreground">الحالة ملغاة - لا يمكن تعديل المبلغ</p>
               )}
             </div>
+
+            {watch("case_care_type") === 'sponsorship' && (
+              <div className="space-y-2">
+                <Label htmlFor="months_needed">عدد الأشهر المطلوبة</Label>
+                <Input
+                  id="months_needed"
+                  type="number"
+                  {...register("months_needed", { 
+                    required: "عدد الأشهر مطلوب",
+                    min: { value: 1, message: "يجب أن يكون عدد الأشهر أكبر من صفر" }
+                  })}
+                  placeholder="12"
+                />
+                {errors.months_needed && (
+                  <p className="text-sm text-destructive">{errors.months_needed.message}</p>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>صورة الحالة</Label>
@@ -1318,23 +1329,26 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="payment_type">نوع الدفع</Label>
+              <Label htmlFor="case_care_type">نوع رعاية الحالة</Label>
               <Select 
-                value={watch("payment_type") || 'monthly'} 
-                onValueChange={(value) => setValue("payment_type", value as 'one_time' | 'monthly')}
+                value={watch("case_care_type") || 'sponsorship'} 
+                onValueChange={(value) => setValue("case_care_type", value as 'cancelled' | 'sponsorship' | 'one_time_donation')}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر نوع الدفع" />
+                  <SelectValue placeholder="اختر نوع رعاية الحالة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">التزام شهري</SelectItem>
-                  <SelectItem value="one_time">مساعدة لمرة واحدة</SelectItem>
+                  <SelectItem value="sponsorship">كفالة (التزام شهري)</SelectItem>
+                  <SelectItem value="one_time_donation">مساعدة لمرة واحدة</SelectItem>
+                  <SelectItem value="cancelled">ملغاة</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {watch("payment_type") === 'monthly' 
+                {watch("case_care_type") === 'sponsorship' 
                   ? "هذه الحالة تتطلب التزام شهري مستمر"
-                  : "هذه الحالة تحتاج مساعدة لمرة واحدة فقط"}
+                  : watch("case_care_type") === 'one_time_donation'
+                  ? "هذه الحالة تحتاج مساعدة لمرة واحدة فقط"
+                  : "هذه الحالة ملغاة ولا تقبل تبرعات"}
               </p>
             </div>
           </div>

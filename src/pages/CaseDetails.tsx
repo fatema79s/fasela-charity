@@ -314,46 +314,63 @@ const CaseDetails = () => {
               <div className="text-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">التقدم المالي للحالة</h3>
                 <p className="text-muted-foreground text-sm">
-                  المبلغ المجمع من إجمالي المطلوب
+                  {caseData.case_care_type === 'one_time_donation' 
+                    ? 'المبلغ المجمع من المبلغ المطلوب'
+                    : 'المبلغ المجمع من إجمالي المطلوب'
+                  }
                 </p>
               </div>
               
               <div className="space-y-4">
-                <div className="relative">
-                  <Progress 
-                    value={Math.min(((caseData.total_secured_money || 0) / (caseData.monthly_cost * caseData.months_needed)) * 100, 100)}
-                    className="h-6 bg-white/50"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary-foreground">
-                      {Math.round(((caseData.total_secured_money || 0) / (caseData.monthly_cost * caseData.months_needed)) * 100)}%
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center text-sm">
-                  <div className="text-center">
-                    <div className="font-bold text-primary text-base sm:text-lg">
-                      {(caseData.total_secured_money || 0).toLocaleString()}
-                    </div>
-                    <div className="text-muted-foreground text-xs sm:text-sm">المجمع</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-muted-foreground text-base sm:text-lg">
-                      {(caseData.monthly_cost * caseData.months_needed).toLocaleString()}
-                    </div>
-                    <div className="text-muted-foreground text-xs sm:text-sm">المطلوب</div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/30 p-3 rounded-lg">
-                  <div className="flex justify-between text-sm">
-                    <span>المتبقي:</span>
-                    <span className="font-bold">
-                      {Math.max(0, (caseData.monthly_cost * caseData.months_needed) - (caseData.total_secured_money || 0)).toLocaleString()} جنيه
-                    </span>
-                  </div>
-                </div>
+                {(() => {
+                  const isOneTime = caseData.case_care_type === 'one_time_donation';
+                  const totalNeeded = isOneTime 
+                    ? caseData.monthly_cost 
+                    : (caseData.monthly_cost * (caseData.months_needed || 1));
+                  const progressValue = totalNeeded > 0 
+                    ? Math.min(((caseData.total_secured_money || 0) / totalNeeded) * 100, 100)
+                    : 0;
+                  
+                  return (
+                    <>
+                      <div className="relative">
+                        <Progress 
+                          value={progressValue}
+                          className="h-6 bg-white/50"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-sm font-bold text-primary-foreground">
+                            {Math.round(progressValue)}%
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="text-center">
+                          <div className="font-bold text-primary text-base sm:text-lg">
+                            {(caseData.total_secured_money || 0).toLocaleString()}
+                          </div>
+                          <div className="text-muted-foreground text-xs sm:text-sm">المجمع</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-muted-foreground text-base sm:text-lg">
+                            {totalNeeded.toLocaleString()}
+                          </div>
+                          <div className="text-muted-foreground text-xs sm:text-sm">المطلوب</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white/30 p-3 rounded-lg">
+                        <div className="flex justify-between text-sm">
+                          <span>المتبقي:</span>
+                          <span className="font-bold">
+                            {Math.max(0, totalNeeded - (caseData.total_secured_money || 0)).toLocaleString()} جنيه
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </Card>
 
@@ -365,6 +382,8 @@ const CaseDetails = () => {
               paymentCode={caseData.payment_code}
               caseTitle={caseData.title_ar || caseData.title}
               caseId={caseData.id}
+              caseCareType={caseData.case_care_type as 'cancelled' | 'sponsorship' | 'one_time_donation' | undefined}
+              totalSecured={caseData.total_secured_money || 0}
             />
             
             {/* معلومات إضافية */}

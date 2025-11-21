@@ -17,12 +17,16 @@ interface DonationSectionProps {
   paymentCode?: string;
   caseTitle?: string;
   caseId?: string;
+  caseCareType?: 'cancelled' | 'sponsorship' | 'one_time_donation';
+  totalSecured?: number;
 }
 
-export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle, caseId }: DonationSectionProps) => {
+export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, monthsNeeded = 1, paymentCode, caseTitle, caseId, caseCareType = 'sponsorship', totalSecured = 0 }: DonationSectionProps) => {
   const [selectedMonths, setSelectedMonths] = useState([1]);
   const [customAmount, setCustomAmount] = useState("");
-  const [donationType, setDonationType] = useState<'monthly' | 'custom'>(monthsNeeded === 1 ? 'custom' : 'monthly');
+  const isOneTime = caseCareType === 'one_time_donation';
+  const isCancelled = caseCareType === 'cancelled';
+  const [donationType, setDonationType] = useState<'monthly' | 'custom'>(isOneTime ? 'custom' : (monthsNeeded === 1 ? 'custom' : 'monthly'));
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
 
@@ -31,8 +35,10 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
   
   // Check if case is closed or fully funded
   const isCaseClosed = caseStatus !== 'active';
-  const isFullyFunded = monthsCovered >= monthsNeeded;
-  const isDonationDisabled = isCaseClosed || isFullyFunded;
+  const isFullyFunded = isOneTime 
+    ? (totalSecured >= monthlyNeed) 
+    : (monthsCovered >= monthsNeeded);
+  const isDonationDisabled = isCaseClosed || isFullyFunded || isCancelled;
 
   // Calculate remaining months needed
   const remainingMonths = Math.max(0, monthsNeeded - monthsCovered);
@@ -61,7 +67,7 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
           donor_name: donorName,
           donor_email: donorEmail || null,
           amount: totalAmount, // Use the amount already calculated in the main page
-          months_pledged: donationType === 'monthly' ? months : Math.ceil(totalAmount / monthlyNeed),
+          months_pledged: isOneTime ? 1 : (donationType === 'monthly' ? months : Math.ceil(totalAmount / monthlyNeed)),
           payment_code: paymentCode,
           donation_type: donationType,
           status: 'pending'
@@ -97,9 +103,14 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
   return (
     <Card className="p-4 sm:p-6 lg:p-8 shadow-soft">
       <div className="text-center mb-6 sm:mb-8">
-        <h3 className="text-xl sm:text-2xl font-bold mb-2">ساهم في كفالة هذه العائلة</h3>
+        <h3 className="text-xl sm:text-2xl font-bold mb-2">
+          {isOneTime ? 'ساهم في مساعدة هذه العائلة' : 'ساهم في كفالة هذه العائلة'}
+        </h3>
         <p className="text-muted-foreground text-sm sm:text-base">
-          اختر المدة التي تريد كفالة العائلة فيها أو تبرع بمبلغ مخصص
+          {isOneTime 
+            ? 'تبرع بمبلغ مخصص لمساعدة لمرة واحدة'
+            : 'اختر المدة التي تريد كفالة العائلة فيها أو تبرع بمبلغ مخصص'
+          }
         </p>
       </div>
 
@@ -108,13 +119,15 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
         {isDonationDisabled && (
           <div className="bg-muted/50 p-4 rounded-lg text-center">
             <p className="text-muted-foreground">
-              {isFullyFunded ? "تم جمع المبلغ المطلوب بالكامل للحالة" : "الحالة مُغلقة حالياً"}
+              {isCancelled ? "هذه الحالة ملغاة ولا تقبل تبرعات" 
+               : isFullyFunded ? "تم جمع المبلغ المطلوب بالكامل للحالة" 
+               : "الحالة مُغلقة حالياً"}
             </p>
           </div>
         )}
 
         {/* نوع التبرع */}
-        {!isDonationDisabled && monthsNeeded !== 1 && (
+        {!isDonationDisabled && !isOneTime && monthsNeeded !== 1 && (
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button
               variant={donationType === 'monthly' ? 'default' : 'outline'}
@@ -264,13 +277,16 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
         >
           <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
           {isDonationDisabled 
-            ? (isFullyFunded ? 'تم اكتمال التمويل' : 'الحالة مغلقة')
+            ? (isCancelled ? 'الحالة ملغاة' : isFullyFunded ? 'تم اكتمال التمويل' : 'الحالة مغلقة')
             : `تبرع الآن - ${totalAmount.toLocaleString()} جنيه`
           }
         </Button>
 
         <p className="text-xs text-muted-foreground text-center">
-          سيتم إرسال تقارير شهرية عن استخدام التبرع وأحوال العائلة
+          {isOneTime 
+            ? 'سيتم إرسال تقرير عن استخدام التبرع وأحوال العائلة'
+            : 'سيتم إرسال تقارير شهرية عن استخدام التبرع وأحوال العائلة'
+          }
         </p>
       </div>
 
