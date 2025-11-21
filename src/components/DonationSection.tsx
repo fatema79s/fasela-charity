@@ -51,7 +51,48 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
   ].filter(option => option.months <= remainingMonths);
 
   const handleDonateClick = () => {
-    if (!paymentCode || !caseTitle) return;
+    if (!paymentCode || !caseTitle) {
+      toast({
+        title: "خطأ",
+        description: "معلومات الدفع غير متوفرة",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate amount based on donation type
+    if (donationType === 'monthly') {
+      if (months <= 0 || monthlyNeed <= 0) {
+        toast({
+          title: "خطأ",
+          description: "يرجى اختيار عدد الأشهر والمبلغ الشهري",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      // Custom donation
+      const amount = Number(customAmount);
+      if (!customAmount || amount < 100) {
+        toast({
+          title: "خطأ",
+          description: "يرجى إدخال مبلغ التبرع (الحد الأدنى 100 جنيه)",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate total amount
+    if (totalAmount <= 0) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال مبلغ التبرع",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setShowPaymentDialog(true);
   };
 
