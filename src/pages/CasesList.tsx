@@ -282,6 +282,15 @@ const CasesList = () => {
                       >
                         {caseItem.status === 'active' ? 'نشطة' : 'مكتملة'}
                       </Badge>
+                      <Badge 
+                        variant="outline"
+                        className={caseItem.payment_type === 'one_time' 
+                          ? "bg-orange-500/90 text-white border-orange-600 text-sm"
+                          : "bg-blue-500/90 text-white border-blue-600 text-sm"
+                        }
+                      >
+                        {caseItem.payment_type === 'one_time' ? 'مساعدة لمرة واحدة' : 'التزام شهري'}
+                      </Badge>
                       {caseItem.deserve_zakkah && (
                         <Badge 
                           variant="outline"
@@ -385,6 +394,15 @@ const CasesList = () => {
                       >
                         {caseItem.status === 'active' ? 'نشطة' : 'مكتملة'}
                       </Badge>
+                      <Badge 
+                        variant="outline"
+                        className={caseItem.payment_type === 'one_time' 
+                          ? "bg-orange-500/90 text-white border-orange-600 text-xs"
+                          : "bg-blue-500/90 text-white border-blue-600 text-xs"
+                        }
+                      >
+                        {caseItem.payment_type === 'one_time' ? 'مساعدة لمرة واحدة' : 'التزام شهري'}
+                      </Badge>
                       {caseItem.deserve_zakkah && (
                         <Badge 
                           variant="outline"
@@ -395,7 +413,7 @@ const CasesList = () => {
                       )}
                       <Badge 
                         variant="outline"
-                        className="bg-blue-500/90 text-white border-blue-600 text-xs flex items-center gap-1"
+                        className="bg-purple-500/90 text-white border-purple-600 text-xs flex items-center gap-1"
                       >
                         <FileText className="w-3 h-3" />
                         {caseItem.reports_count || 0} تقرير

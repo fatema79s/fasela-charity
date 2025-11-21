@@ -20,6 +20,7 @@ import {
   Save,
   X,
   Info,
+  Building2,
 } from "lucide-react";
 import FollowupActionForm from "@/components/admin/FollowupActionForm";
 import FollowupActionsList from "@/components/admin/FollowupActionsList";
@@ -56,12 +57,23 @@ export default function AdminCaseView() {
       if (caseError) throw caseError;
 
       // Fetch all related data
-      const [kidsData, donationsData, reportsData, followupsData, handoversData] = await Promise.all([
+      const [kidsData, donationsData, reportsData, followupsData, handoversData, charitiesData] = await Promise.all([
         supabase.from("case_kids").select("*").eq("case_id", id),
         supabase.from("donations").select("*").eq("case_id", id),
         supabase.from("monthly_reports").select("*").eq("case_id", id),
         supabase.from("followup_actions").select("*").eq("case_id", id),
         supabase.from("donation_handovers").select("*").eq("case_id", id),
+        supabase
+          .from("case_charities")
+          .select(`
+            *,
+            charities (
+              id,
+              name,
+              name_ar
+            )
+          `)
+          .eq("case_id", id),
       ]);
 
       const confirmedDonations = donationsData.data?.filter(d => d.status === "confirmed") || [];
@@ -69,9 +81,18 @@ export default function AdminCaseView() {
       const pendingFollowups = followupsData.data?.filter(f => f.status === "pending") || [];
       const completedFollowups = followupsData.data?.filter(f => f.status === "completed") || [];
 
+      const caseCharities = (charitiesData.data || []).map((cc: any) => ({
+        id: cc.id,
+        charity_id: cc.charity_id,
+        charity_name: cc.charities?.name || "",
+        charity_name_ar: cc.charities?.name_ar || "",
+        monthly_amount: Number(cc.monthly_amount) || 0,
+      }));
+
       return {
         ...caseInfo,
         case_kids: kidsData.data || [],
+        case_charities: caseCharities,
         stats: {
           totalDonations: confirmedDonations.reduce((sum, d) => sum + Number(d.amount), 0),
           pendingDonations: pendingDonations.length,
@@ -81,6 +102,7 @@ export default function AdminCaseView() {
           totalFollowups: followupsData.data?.length || 0,
           pendingFollowups: pendingFollowups.length,
           completedFollowups: completedFollowups.length,
+          totalCharityMonthlyAmount: caseCharities.reduce((sum, cc) => sum + cc.monthly_amount, 0),
         }
       };
     },
@@ -220,6 +242,52 @@ export default function AdminCaseView() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Charities Section */}
+        {caseData.case_charities && caseData.case_charities.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Building2 className="h-6 w-6 text-primary" />
+                <CardTitle>الجمعيات الخيرية الأخرى المسجلة فيها الحالة</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {caseData.case_charities.map((charity: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <p className="font-medium text-lg">{charity.charity_name_ar}</p>
+                          {charity.charity_name && charity.charity_name !== charity.charity_name_ar && (
+                            <p className="text-sm text-muted-foreground">{charity.charity_name}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">المبلغ الشهري:</span>
+                          <span className="font-semibold text-primary">
+                            {charity.monthly_amount.toLocaleString()} جنيه
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">إجمالي المبلغ الشهري من الجمعيات الخيرية:</span>
+                    <span className="font-bold text-lg text-primary">
+                      {caseData.stats.totalCharityMonthlyAmount.toLocaleString()} جنيه
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Case Info Card */}
         <Card>

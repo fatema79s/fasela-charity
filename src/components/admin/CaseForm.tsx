@@ -27,6 +27,7 @@ interface CaseFormData {
   city?: string;
   area?: string;
   deserve_zakkah: boolean;
+  payment_type?: 'one_time' | 'monthly';
   // Parent profile fields
   rent_amount?: number;
   kids_number?: number;
@@ -73,6 +74,20 @@ interface Kid {
   }>;
 }
 
+interface Charity {
+  id: string;
+  name: string;
+  name_ar: string;
+}
+
+interface CaseCharity {
+  id?: string;
+  charity_id: string;
+  charity_name: string;
+  charity_name_ar: string;
+  monthly_amount: number;
+}
+
 interface CaseFormProps {
   caseId?: string;
   onSuccess?: () => void;
@@ -95,9 +110,21 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   const [kids, setKids] = useState<Kid[]>([
     { name: "", age: 0, gender: 'male', description: "" }
   ]);
+  const [charities, setCharities] = useState<Charity[]>([]);
+  const [caseCharities, setCaseCharities] = useState<CaseCharity[]>([]);
+  const [selectedCharityId, setSelectedCharityId] = useState<string>("");
+  const [newCharityName, setNewCharityName] = useState<string>("");
+  const [newCharityNameAr, setNewCharityNameAr] = useState<string>("");
+  const [newCharityMonthlyAmount, setNewCharityMonthlyAmount] = useState<number>(0);
+  const [showNewCharityForm, setShowNewCharityForm] = useState(false);
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<CaseFormData>();
   const { toast } = useToast();
   const isEditMode = !!caseId;
+
+  // Load charities list
+  useEffect(() => {
+    loadCharities();
+  }, []);
 
   // Load case data when in edit mode
   useEffect(() => {
@@ -105,6 +132,20 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
       loadCaseData();
     }
   }, [caseId, isEditMode]);
+
+  const loadCharities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("charities")
+        .select("*")
+        .order("name_ar", { ascending: true });
+
+      if (error) throw error;
+      setCharities(data || []);
+    } catch (error) {
+      console.error("Error loading charities:", error);
+    }
+  };
 
   const loadCaseData = async () => {
     if (!caseId) return;
@@ -136,6 +177,21 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
       if (kidsError) throw kidsError;
 
+      // Load case charities
+      const { data: caseCharitiesData, error: caseCharitiesError } = await supabase
+        .from("case_charities")
+        .select(`
+          *,
+          charities (
+            id,
+            name,
+            name_ar
+          )
+        `)
+        .eq("case_id", caseId);
+
+      if (caseCharitiesError) throw caseCharitiesError;
+
       // Populate form fields
       if (caseData) {
         setValue("title_ar", caseData.title_ar);
@@ -151,6 +207,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("city", caseData.city || "");
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
+        setValue("payment_type", caseData.payment_type || 'monthly');
         
         // Parent profile fields
         setValue("rent_amount", caseData.rent_amount || 0);
@@ -203,6 +260,17 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           education_progress: (kid.education_progress as any) || [],
           certificates: (kid.certificates as any) || [],
           ongoing_courses: (kid.ongoing_courses as any) || []
+        })));
+      }
+
+      // Populate case charities
+      if (caseCharitiesData && caseCharitiesData.length > 0) {
+        setCaseCharities(caseCharitiesData.map((cc: any) => ({
+          id: cc.id,
+          charity_id: cc.charity_id,
+          charity_name: cc.charities?.name || "",
+          charity_name_ar: cc.charities?.name_ar || "",
+          monthly_amount: Number(cc.monthly_amount) || 0
         })));
       }
 
@@ -486,6 +554,108 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
     setKids(updated);
   };
 
+  const addCharity = async () => {
+    if (!selectedCharityId && !showNewCharityForm) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار جمعية خيرية أو إضافة جمعية جديدة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (showNewCharityForm) {
+      // Create new charity first
+      if (!newCharityNameAr.trim()) {
+        toast({
+          title: "خطأ",
+          description: "اسم الجمعية بالعربية مطلوب",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        const { data: newCharity, error: charityError } = await supabase
+          .from("charities")
+          .insert({
+            name: newCharityName || newCharityNameAr,
+            name_ar: newCharityNameAr,
+          })
+          .select()
+          .single();
+
+        if (charityError) throw charityError;
+
+        // Add to charities list
+        setCharities([...charities, newCharity]);
+
+        // Add to case charities
+        const newCaseCharity: CaseCharity = {
+          charity_id: newCharity.id,
+          charity_name: newCharity.name,
+          charity_name_ar: newCharity.name_ar,
+          monthly_amount: newCharityMonthlyAmount || 0,
+        };
+        setCaseCharities([...caseCharities, newCaseCharity]);
+
+        // Reset form
+        setNewCharityName("");
+        setNewCharityNameAr("");
+        setNewCharityMonthlyAmount(0);
+        setShowNewCharityForm(false);
+
+        toast({
+          title: "تم بنجاح",
+          description: "تم إضافة الجمعية الخيرية بنجاح",
+        });
+      } catch (error) {
+        console.error("Error creating charity:", error);
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء إضافة الجمعية الخيرية",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Add existing charity
+      if (!selectedCharityId) return;
+
+      const selectedCharity = charities.find(c => c.id === selectedCharityId);
+      if (!selectedCharity) return;
+
+      // Check if already added
+      if (caseCharities.some(cc => cc.charity_id === selectedCharityId)) {
+        toast({
+          title: "تنبيه",
+          description: "هذه الجمعية الخيرية موجودة بالفعل",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const newCaseCharity: CaseCharity = {
+        charity_id: selectedCharity.id,
+        charity_name: selectedCharity.name,
+        charity_name_ar: selectedCharity.name_ar,
+        monthly_amount: 0,
+      };
+      setCaseCharities([...caseCharities, newCaseCharity]);
+      setSelectedCharityId("");
+    }
+  };
+
+  const removeCharity = (index: number) => {
+    const updated = caseCharities.filter((_, i) => i !== index);
+    setCaseCharities(updated);
+  };
+
+  const updateCharityMonthlyAmount = (index: number, amount: number) => {
+    const updated = [...caseCharities];
+    updated[index] = { ...updated[index], monthly_amount: amount };
+    setCaseCharities(updated);
+  };
+
   const onSubmit = async (data: CaseFormData) => {
     setLoading(true);
     
@@ -512,6 +682,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
+            payment_type: data.payment_type || 'monthly',
             // Parent profile fields
             rent_amount: data.rent_amount || 0,
             kids_number: data.kids_number || 0,
@@ -586,6 +757,29 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           if (kidsError) throw kidsError;
         }
 
+        // Delete existing case charities and insert new ones
+        const { error: deleteCharitiesError } = await supabase
+          .from("case_charities")
+          .delete()
+          .eq("case_id", caseId);
+
+        if (deleteCharitiesError) throw deleteCharitiesError;
+
+        // Insert updated case charities
+        if (caseCharities.length > 0) {
+          const charitiesToInsert = caseCharities.map(cc => ({
+            case_id: caseId,
+            charity_id: cc.charity_id,
+            monthly_amount: cc.monthly_amount || 0
+          }));
+
+          const { error: charitiesError } = await supabase
+            .from("case_charities")
+            .insert(charitiesToInsert);
+
+          if (charitiesError) throw charitiesError;
+        }
+
         toast({
           title: "تم بنجاح",
           description: "تم تحديث الحالة والاحتياجات الشهرية وبيانات الأطفال بنجاح",
@@ -616,6 +810,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             city: data.city || null,
             area: data.area || null,
             deserve_zakkah: data.deserve_zakkah || false,
+            payment_type: data.payment_type || 'monthly',
             // Parent profile fields
             rent_amount: data.rent_amount || 0,
             kids_number: data.kids_number || 0,
@@ -676,6 +871,21 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           if (kidsError) throw kidsError;
         }
 
+        // Insert case charities
+        if (caseData && caseCharities.length > 0) {
+          const charitiesToInsert = caseCharities.map(cc => ({
+            case_id: caseData.id,
+            charity_id: cc.charity_id,
+            monthly_amount: cc.monthly_amount || 0
+          }));
+
+          const { error: charitiesError } = await supabase
+            .from("case_charities")
+            .insert(charitiesToInsert);
+
+          if (charitiesError) throw charitiesError;
+        }
+
         toast({
           title: "تم بنجاح",
           description: "تم إضافة الحالة والاحتياجات الشهرية وبيانات الأطفال بنجاح",
@@ -699,6 +909,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           certificates: [],
           ongoing_courses: []
         }]);
+        setCaseCharities([]);
         
         // Call onSuccess callback if provided
         onSuccess?.();
@@ -1105,6 +1316,27 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                 </Label>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment_type">نوع الدفع</Label>
+              <Select 
+                value={watch("payment_type") || 'monthly'} 
+                onValueChange={(value) => setValue("payment_type", value as 'one_time' | 'monthly')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر نوع الدفع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">التزام شهري</SelectItem>
+                  <SelectItem value="one_time">مساعدة لمرة واحدة</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {watch("payment_type") === 'monthly' 
+                  ? "هذه الحالة تتطلب التزام شهري مستمر"
+                  : "هذه الحالة تحتاج مساعدة لمرة واحدة فقط"}
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2 space-x-reverse">
@@ -1437,6 +1669,162 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
               </div>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>الجمعيات الخيرية الأخرى المسجلة فيها الحالة</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Add Charity Section */}
+          <div className="p-4 border rounded-lg space-y-4 bg-muted/30">
+            <h4 className="font-medium">إضافة جمعية خيرية</h4>
+            
+            {!showNewCharityForm ? (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>اختر جمعية خيرية</Label>
+                    <Select value={selectedCharityId} onValueChange={setSelectedCharityId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر جمعية خيرية موجودة" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {charities
+                          .filter(c => !caseCharities.some(cc => cc.charity_id === c.id))
+                          .map((charity) => (
+                            <SelectItem key={charity.id} value={charity.id}>
+                              {charity.name_ar} {charity.name !== charity.name_ar ? `(${charity.name})` : ""}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowNewCharityForm(true);
+                        setSelectedCharityId("");
+                      }}
+                      className="flex-1"
+                    >
+                      إضافة جمعية جديدة
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={addCharity}
+                      disabled={!selectedCharityId}
+                    >
+                      <Plus className="w-4 h-4 ml-1" />
+                      إضافة
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>اسم الجمعية (عربي) *</Label>
+                    <Input
+                      value={newCharityNameAr}
+                      onChange={(e) => setNewCharityNameAr(e.target.value)}
+                      placeholder="اسم الجمعية بالعربية"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>اسم الجمعية (إنجليزي) - اختياري</Label>
+                    <Input
+                      value={newCharityName}
+                      onChange={(e) => setNewCharityName(e.target.value)}
+                      placeholder="Charity Name (English)"
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>المبلغ الشهري (جنيه)</Label>
+                    <Input
+                      type="number"
+                      value={newCharityMonthlyAmount}
+                      onChange={(e) => setNewCharityMonthlyAmount(Number(e.target.value))}
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowNewCharityForm(false);
+                        setNewCharityName("");
+                        setNewCharityNameAr("");
+                        setNewCharityMonthlyAmount(0);
+                      }}
+                      className="flex-1"
+                    >
+                      إلغاء
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={addCharity}
+                      disabled={!newCharityNameAr.trim()}
+                    >
+                      <Plus className="w-4 h-4 ml-1" />
+                      إضافة
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* List of Case Charities */}
+          {caseCharities.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-medium">الجمعيات الخيرية المسجلة</h4>
+              {caseCharities.map((caseCharity, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium">{caseCharity.charity_name_ar}</p>
+                      {caseCharity.charity_name && caseCharity.charity_name !== caseCharity.charity_name_ar && (
+                        <p className="text-sm text-muted-foreground">{caseCharity.charity_name}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeCharity(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>المبلغ الشهري (جنيه)</Label>
+                    <Input
+                      type="number"
+                      value={caseCharity.monthly_amount}
+                      onChange={(e) => updateCharityMonthlyAmount(index, Number(e.target.value))}
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {caseCharities.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>لا توجد جمعيات خيرية مسجلة لهذه الحالة</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
