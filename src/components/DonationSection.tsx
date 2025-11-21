@@ -262,11 +262,11 @@ export const DonationSection = ({ monthlyNeed, caseStatus, monthsCovered = 0, mo
                 placeholder="أدخل المبلغ"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
-                min="100"
+                min="1"
                 className="text-lg text-center"
               />
               <p className="text-xs text-muted-foreground text-center">
-                الحد الأدنى للتبرع: 100 جنيه
+                الحد الأدنى للتبرع: 1 جنيه
               </p>
             </div>
           </div>
