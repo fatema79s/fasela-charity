@@ -135,7 +135,8 @@ export const FeaturedCasesCarousel = () => {
           setApi={setApi}
           opts={{
             align: "start",
-            loop: true,
+            loop: featuredCases.length > 1,
+            slidesToScroll: 1,
           }}
           className="w-full"
         >
@@ -150,7 +151,7 @@ export const FeaturedCasesCarousel = () => {
                 : 0;
 
               return (
-                <CarouselItem key={caseItem.id}>
+                <CarouselItem key={caseItem.id} className="md:basis-1/2 lg:basis-1/3">
                   <Link to={`/case/${caseItem.id}`} className="block">
                     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20 group">
                       <div className="grid md:grid-cols-2 gap-0">
