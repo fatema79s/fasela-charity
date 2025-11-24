@@ -136,7 +136,6 @@ export const FeaturedCasesCarousel = () => {
           opts={{
             align: "start",
             loop: featuredCases.length > 1,
-            slidesToScroll: 1,
           }}
           className="w-full"
         >
@@ -151,8 +150,9 @@ export const FeaturedCasesCarousel = () => {
                 : 0;
 
               return (
-                <CarouselItem key={caseItem.id} className="md:basis-1/2 lg:basis-1/3">
-                  <Link to={`/case/${caseItem.id}`} className="block">
+                <CarouselItem key={caseItem.id}>
+                  <div className="p-1">
+                    <Link to={`/case/${caseItem.id}`} className="block">
                     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20 group">
                       <div className="grid md:grid-cols-2 gap-0">
                         {/* Image Section */}
@@ -274,13 +274,18 @@ export const FeaturedCasesCarousel = () => {
                         </div>
                       </div>
                     </Card>
-                  </Link>
+                    </Link>
+                  </div>
                 </CarouselItem>
               );
             })}
           </CarouselContent>
-          <CarouselPrevious className="left-2 md:left-4" />
-          <CarouselNext className="right-2 md:right-4" />
+          {featuredCases.length > 1 && (
+            <>
+              <CarouselPrevious className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10" />
+              <CarouselNext className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10" />
+            </>
+          )}
         </Carousel>
 
         {/* Dots Indicator */}
