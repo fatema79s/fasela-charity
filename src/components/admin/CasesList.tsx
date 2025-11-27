@@ -22,49 +22,49 @@ const CasesList = () => {
         .from("cases")
         .select("*")
         .order("created_at", { ascending: false });
-      
+
       if (casesError) throw casesError;
-      
+
       // Get confirmed donations for each case
       const { data: confirmedDonations, error: confirmedError } = await supabase
         .from("donations")
         .select("case_id, amount")
         .eq("status", "confirmed");
-      
+
       if (confirmedError) throw confirmedError;
-      
+
       // Get legacy redeemed donations for each case
       const { data: redeemedDonations, error: redeemedError } = await supabase
         .from("donations")
         .select("case_id, amount")
         .eq("status", "redeemed");
-      
+
       if (redeemedError) throw redeemedError;
-      
+
       // Get new handover amounts from donation_handovers table
       const { data: handovers, error: handoversError } = await supabase
         .from("donation_handovers")
         .select("case_id, handover_amount");
-      
+
       if (handoversError) throw handoversError;
-      
+
       // Calculate totals for each case
       const casesWithFinancials = casesData.map(caseItem => {
         const confirmedAmount = confirmedDonations
           .filter(donation => donation.case_id === caseItem.id)
           .reduce((sum, donation) => sum + donation.amount, 0);
-          
+
         const redeemedAmount = redeemedDonations
           .filter(donation => donation.case_id === caseItem.id)
           .reduce((sum, donation) => sum + donation.amount, 0);
-          
+
         const handoverAmount = handovers
           .filter(handover => handover.case_id === caseItem.id)
           .reduce((sum, handover) => sum + handover.handover_amount, 0);
-        
+
         const totalHandedOver = redeemedAmount + handoverAmount;
         const remainingAmount = confirmedAmount - totalHandedOver;
-        
+
         return {
           ...caseItem,
           confirmed_amount: confirmedAmount,
@@ -72,7 +72,7 @@ const CasesList = () => {
           remaining_amount: remainingAmount
         };
       });
-      
+
       return casesWithFinancials;
     }
   });
@@ -116,7 +116,7 @@ const CasesList = () => {
       await supabase.from("monthly_needs").delete().eq("case_id", caseId);
       await supabase.from("monthly_reports").delete().eq("case_id", caseId);
       await supabase.from("pledges").delete().eq("case_id", caseId);
-      
+
       // Then delete the case
       const { error } = await supabase
         .from("cases")
@@ -161,13 +161,28 @@ const CasesList = () => {
           <Card key={caseItem.id}>
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">
-                    {caseItem.title_ar || caseItem.title}
-                  </CardTitle>
-                  <p className="text-muted-foreground mt-1">
-                    {caseItem.short_description_ar || caseItem.short_description}
-                  </p>
+                <div className="flex items-center gap-3 flex-1">
+                  {caseItem.admin_profile_picture_url ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/20 flex-shrink-0">
+                      <img
+                        src={caseItem.admin_profile_picture_url}
+                        alt={caseItem.title_ar || caseItem.title || "Case"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="text-2xl">💙</div>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">
+                      {caseItem.title_ar || caseItem.title}
+                    </CardTitle>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      {caseItem.short_description_ar || caseItem.short_description}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={caseItem.is_published ? "default" : "secondary"}>
@@ -179,7 +194,7 @@ const CasesList = () => {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <div className="grid md:grid-cols-5 gap-4 mb-4">
                 <div className="text-sm">
@@ -209,9 +224,8 @@ const CasesList = () => {
                 <div className="text-sm">
                   <span className="font-medium">المتبقي للتسليم:</span>
                   <br />
-                  <span className={`font-semibold ${
-                    (caseItem.remaining_amount || 0) > 0 ? 'text-orange-600' : 'text-gray-500'
-                  }`}>
+                  <span className={`font-semibold ${(caseItem.remaining_amount || 0) > 0 ? 'text-orange-600' : 'text-gray-500'
+                    }`}>
                     {caseItem.remaining_amount?.toLocaleString() || 0} جنيه
                   </span>
                 </div>
@@ -243,18 +257,18 @@ const CasesList = () => {
                     <DialogHeader>
                       <DialogTitle>تعديل الحالة</DialogTitle>
                     </DialogHeader>
-                    <CaseForm 
-                      caseId={caseItem.id} 
+                    <CaseForm
+                      caseId={caseItem.id}
                       onSuccess={() => {
                         setEditingCase(null);
                         refetch();
-                      }} 
+                      }}
                     />
                   </DialogContent>
                 </Dialog>
-                
-                <Button 
-                  size="sm" 
+
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => togglePublished(caseItem.id, caseItem.is_published)}
                   disabled={loading === caseItem.id}
@@ -267,8 +281,8 @@ const CasesList = () => {
                   {caseItem.is_published ? "إخفاء" : "نشر"}
                 </Button>
 
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="destructive"
                   onClick={() => deleteCase(caseItem.id)}
                   disabled={loading === caseItem.id}
