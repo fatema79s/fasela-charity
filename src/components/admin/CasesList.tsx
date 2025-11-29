@@ -233,7 +233,7 @@ const CasesList = () => {
 
               <div className="flex items-center gap-2">
                 <Button size="sm" asChild>
-                  <Link to={`/admin/case-profile/${caseItem.id}`}>
+                  <Link to={`/admin/case/${caseItem.id}`}>
                     <Eye className="w-4 h-4 ml-1" />
                     عرض الملف الكامل
                   </Link>
