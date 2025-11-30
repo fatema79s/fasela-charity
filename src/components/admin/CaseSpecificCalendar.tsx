@@ -17,6 +17,7 @@ interface HandoverData {
   amount: number;
   date: string;
   notes?: string;
+  donation_id?: string;
 }
 
 interface Donation {
@@ -71,7 +72,7 @@ export default function CaseSpecificCalendar({
 
       const { data: handovers, error: handoversError } = await supabase
         .from("donation_handovers")
-        .select("id, case_id, handover_amount, handover_date, handover_notes")
+        .select("id, case_id, handover_amount, handover_date, handover_notes, donation_id")
         .eq("case_id", caseId)
         .gte("handover_date", startDate.toISOString())
         .lte("handover_date", endDate.toISOString());
@@ -93,6 +94,7 @@ export default function CaseSpecificCalendar({
           amount: handover.handover_amount,
           date: handover.handover_date,
           notes: handover.handover_notes || undefined,
+          donation_id: handover.donation_id,
         });
       });
 
@@ -107,7 +109,7 @@ export default function CaseSpecificCalendar({
   });
 
   // Fetch available donations when dialog opens
-  const fetchAvailableDonations = async () => {
+  const fetchAvailableDonations = async (includeDonationId?: string) => {
     const { data, error } = await supabase
       .from("donations")
       .select("id, donor_name, amount, total_handed_over, cases(title_ar)")
@@ -130,7 +132,7 @@ export default function CaseSpecificCalendar({
       total_handed_over: Number(d.total_handed_over || 0),
       remaining: Number(d.amount) - Number(d.total_handed_over || 0),
       case_title: d.cases?.title_ar || "حالة غير معروفة",
-    })).filter((d: any) => d.remaining > 0);
+    })).filter((d: any) => d.remaining > 0 || d.id === includeDonationId);
   };
 
   const saveMutation = useMutation({
@@ -190,7 +192,7 @@ export default function CaseSpecificCalendar({
   });
 
   const handleEdit = async (month: number, year: number, existingHandover?: HandoverData) => {
-    const donations = await fetchAvailableDonations();
+    const donations = await fetchAvailableDonations(existingHandover?.donation_id);
     setAvailableDonations(donations);
 
     setEditDialog({
@@ -205,7 +207,7 @@ export default function CaseSpecificCalendar({
         amount: existingHandover.amount.toString(),
         notes: existingHandover.notes || "",
         date: existingHandover.date.split('T')[0],
-        selectedDonationId: "",
+        selectedDonationId: existingHandover.donation_id || "",
       });
     } else {
       // Default to 15th of the selected month/year
