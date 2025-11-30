@@ -25,6 +25,7 @@ interface Donation {
   amount: number;
   total_handed_over: number;
   remaining: number;
+  case_title: string;
 }
 
 interface CaseSpecificCalendarProps {
@@ -109,8 +110,7 @@ export default function CaseSpecificCalendar({
   const fetchAvailableDonations = async () => {
     const { data, error } = await supabase
       .from("donations")
-      .select("id, donor_name, amount, total_handed_over")
-      .eq("case_id", caseId)
+      .select("id, donor_name, amount, total_handed_over, cases(title_ar)")
       .eq("status", "confirmed")
       .order("created_at", { ascending: false });
 
@@ -123,13 +123,14 @@ export default function CaseSpecificCalendar({
       return [];
     }
 
-    return (data || []).map(d => ({
+    return (data || []).map((d: any) => ({
       id: d.id,
       donor_name: d.donor_name || "متبرع مجهول",
       amount: Number(d.amount),
       total_handed_over: Number(d.total_handed_over || 0),
       remaining: Number(d.amount) - Number(d.total_handed_over || 0),
-    })).filter(d => d.remaining > 0);
+      case_title: d.cases?.title_ar || "حالة غير معروفة",
+    })).filter((d: any) => d.remaining > 0);
   };
 
   const saveMutation = useMutation({
@@ -223,7 +224,9 @@ export default function CaseSpecificCalendar({
   };
 
   const handleSave = () => {
-    if (!editForm.amount || !editForm.selectedDonationId) {
+    const isEditing = !!editDialog?.existingHandover;
+
+    if (!editForm.amount || (!isEditing && !editForm.selectedDonationId) || !editForm.date) {
       toast({
         title: "خطأ",
         description: "يرجى ملء جميع الحقول المطلوبة",
@@ -361,7 +364,7 @@ export default function CaseSpecificCalendar({
                 <SelectContent>
                   {availableDonations.map((donation) => (
                     <SelectItem key={donation.id} value={donation.id}>
-                      {donation.donor_name} - {donation.remaining.toLocaleString()} ج.م متبقي
+                      [{donation.case_title}] {donation.donor_name} - {donation.remaining.toLocaleString()} ج.م متبقي
                     </SelectItem>
                   ))}
                 </SelectContent>
