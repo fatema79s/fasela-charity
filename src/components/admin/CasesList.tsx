@@ -239,6 +239,24 @@ const CasesList = () => {
                   </Link>
                 </Button>
 
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="outline" asChild title="التقويم">
+                    <Link to={`/admin/case/${caseItem.id}?tab=handovers`}>
+                      <Calendar className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                  <Button size="sm" variant="outline" asChild title="المتابعات">
+                    <Link to={`/admin/case/${caseItem.id}?tab=followups`}>
+                      <FileText className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                  <Button size="sm" variant="outline" asChild title="الأطفال">
+                    <Link to={`/admin/case/${caseItem.id}?tab=kids`}>
+                      <Users className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                </div>
+
                 <Dialog open={editingCase === caseItem.id} onOpenChange={(open) => setEditingCase(open ? caseItem.id : null)}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="outline">

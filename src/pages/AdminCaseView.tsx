@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminCaseView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [followupFormOpen, setFollowupFormOpen] = useState(false);
@@ -183,8 +184,8 @@ export default function AdminCaseView() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-center">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg">
-                  <img 
-                    src={caseData.admin_profile_picture_url} 
+                  <img
+                    src={caseData.admin_profile_picture_url}
                     alt={caseData.title_ar || caseData.title || "Case"}
                     className="w-full h-full object-cover"
                   />
@@ -193,7 +194,7 @@ export default function AdminCaseView() {
             </CardContent>
           </Card>
         )}
-        
+
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-l-4 border-l-primary">
@@ -329,7 +330,7 @@ export default function AdminCaseView() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="followups" className="w-full">
+      <Tabs defaultValue={searchParams.get("tab") || "followups"} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="followups" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
@@ -350,133 +351,133 @@ export default function AdminCaseView() {
         <TabsContent value="followups" className="space-y-4">
           <Card>
             <CardHeader>
-                <CardTitle>متابعات الحالة</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FollowupActionsList 
-                  caseId={id!} 
-                  onCreateNew={() => setFollowupFormOpen(true)} 
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <CardTitle>متابعات الحالة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FollowupActionsList
+                caseId={id!}
+                onCreateNew={() => setFollowupFormOpen(true)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {/* Monthly Handovers Tab */}
-          <TabsContent value="handovers" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>التقويم الشهري للتسليمات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CaseSpecificCalendar
-                  caseId={id!}
-                  caseTitle={caseData.title || ""}
-                  caseTitleAr={caseData.title_ar || caseData.title || ""}
-                  monthlyCost={caseData.monthly_cost || 0}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Monthly Handovers Tab */}
+        <TabsContent value="handovers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>التقويم الشهري للتسليمات</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CaseSpecificCalendar
+                caseId={id!}
+                caseTitle={caseData.title || ""}
+                caseTitleAr={caseData.title_ar || caseData.title || ""}
+                monthlyCost={caseData.monthly_cost || 0}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {/* Kids Tab */}
-          <TabsContent value="kids" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>معلومات الأبناء</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {caseData.case_kids && Array.isArray(caseData.case_kids) && caseData.case_kids.length > 0 ? (
-                  <KidsInfo kids={caseData.case_kids.map((kid: any) => ({
-                    id: kid.id,
-                    name: kid.name,
-                    age: kid.age,
-                    gender: kid.gender as 'male' | 'female',
-                    description: kid.description || ""
-                  }))} />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>لا توجد بيانات عن الأبناء</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Kids Tab */}
+        <TabsContent value="kids" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>معلومات الأبناء</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {caseData.case_kids && Array.isArray(caseData.case_kids) && caseData.case_kids.length > 0 ? (
+                <KidsInfo kids={caseData.case_kids.map((kid: any) => ({
+                  id: kid.id,
+                  name: kid.name,
+                  age: kid.age,
+                  gender: kid.gender as 'male' | 'female',
+                  description: kid.description || ""
+                }))} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>لا توجد بيانات عن الأبناء</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        {/* Follow-up Form Dialog */}
-        <FollowupActionForm
-          caseId={id!}
-          open={followupFormOpen}
-          onOpenChange={setFollowupFormOpen}
-        />
+      {/* Follow-up Form Dialog */}
+      <FollowupActionForm
+        caseId={id!}
+        open={followupFormOpen}
+        onOpenChange={setFollowupFormOpen}
+      />
 
-        {/* Edit Case Dialog */}
-        <Dialog open={editCaseOpen} onOpenChange={setEditCaseOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>تعديل بيانات الحالة</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title_ar">العنوان (عربي)</Label>
-                <Input
-                  id="title_ar"
-                  value={editForm.title_ar}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, title_ar: e.target.value }))}
-                  placeholder="أدخل العنوان بالعربية"
-                />
-              </div>
-              <div>
-                <Label htmlFor="title">العنوان (إنجليزي)</Label>
-                <Input
-                  id="title"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="أدخل العنوان بالإنجليزية"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">الوصف</Label>
-                <Textarea
-                  id="description"
-                  value={editForm.description}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="أدخل وصف الحالة"
-                  rows={4}
-                />
-              </div>
-              <div>
-                <Label htmlFor="monthly_cost">التكلفة الشهرية</Label>
-                <Input
-                  id="monthly_cost"
-                  type="number"
-                  value={editForm.monthly_cost}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, monthly_cost: Number(e.target.value) }))}
-                  placeholder="أدخل التكلفة الشهرية"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_published"
-                  checked={editForm.is_published}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, is_published: e.target.checked }))}
-                  className="rounded"
-                />
-                <Label htmlFor="is_published">منشورة</Label>
-              </div>
+      {/* Edit Case Dialog */}
+      <Dialog open={editCaseOpen} onOpenChange={setEditCaseOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات الحالة</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title_ar">العنوان (عربي)</Label>
+              <Input
+                id="title_ar"
+                value={editForm.title_ar}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title_ar: e.target.value }))}
+                placeholder="أدخل العنوان بالعربية"
+              />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditCaseOpen(false)}>
-                إلغاء
-              </Button>
-              <Button onClick={handleSaveCase} disabled={updateCaseMutation.isPending}>
-                {updateCaseMutation.isPending ? "جاري الحفظ..." : "حفظ"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </AdminHeader>
-    );
-  }
+            <div>
+              <Label htmlFor="title">العنوان (إنجليزي)</Label>
+              <Input
+                id="title"
+                value={editForm.title}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="أدخل العنوان بالإنجليزية"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">الوصف</Label>
+              <Textarea
+                id="description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="أدخل وصف الحالة"
+                rows={4}
+              />
+            </div>
+            <div>
+              <Label htmlFor="monthly_cost">التكلفة الشهرية</Label>
+              <Input
+                id="monthly_cost"
+                type="number"
+                value={editForm.monthly_cost}
+                onChange={(e) => setEditForm(prev => ({ ...prev, monthly_cost: Number(e.target.value) }))}
+                placeholder="أدخل التكلفة الشهرية"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="is_published"
+                checked={editForm.is_published}
+                onChange={(e) => setEditForm(prev => ({ ...prev, is_published: e.target.checked }))}
+                className="rounded"
+              />
+              <Label htmlFor="is_published">منشورة</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCaseOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={handleSaveCase} disabled={updateCaseMutation.isPending}>
+              {updateCaseMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminHeader>
+  );
+}
