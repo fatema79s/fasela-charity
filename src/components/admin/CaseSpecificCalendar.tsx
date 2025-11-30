@@ -34,11 +34,11 @@ interface CaseSpecificCalendarProps {
   monthlyCost: number;
 }
 
-export default function CaseSpecificCalendar({ 
-  caseId, 
-  caseTitle, 
-  caseTitleAr, 
-  monthlyCost 
+export default function CaseSpecificCalendar({
+  caseId,
+  caseTitle,
+  caseTitleAr,
+  monthlyCost
 }: CaseSpecificCalendarProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -49,10 +49,11 @@ export default function CaseSpecificCalendar({
     year: number;
     existingHandover?: HandoverData;
   } | null>(null);
-  const [editForm, setEditForm] = useState({ 
-    amount: "", 
-    notes: "", 
-    selectedDonationId: "" 
+  const [editForm, setEditForm] = useState({
+    amount: "",
+    notes: "",
+    date: "",
+    selectedDonationId: ""
   });
   const [availableDonations, setAvailableDonations] = useState<Donation[]>([]);
 
@@ -81,7 +82,7 @@ export default function CaseSpecificCalendar({
       handovers.forEach(handover => {
         const date = new Date(handover.handover_date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
+
         if (!handoversByMonth[monthKey]) {
           handoversByMonth[monthKey] = [];
         }
@@ -138,9 +139,9 @@ export default function CaseSpecificCalendar({
       year: number;
       amount: number;
       notes?: string;
+      date: string;
       handoverId?: string;
     }) => {
-      const handoverDate = new Date(data.year, data.month, 15);
       const preciseAmount = Number(Number(data.amount).toFixed(2));
 
       if (data.handoverId) {
@@ -149,6 +150,7 @@ export default function CaseSpecificCalendar({
           .update({
             handover_amount: preciseAmount,
             handover_notes: data.notes || null,
+            handover_date: data.date,
           })
           .eq("id", data.handoverId);
 
@@ -160,7 +162,7 @@ export default function CaseSpecificCalendar({
             case_id: caseId,
             donation_id: data.donationId,
             handover_amount: preciseAmount,
-            handover_date: handoverDate.toISOString(),
+            handover_date: data.date,
             handover_notes: data.notes || null,
           });
 
@@ -171,7 +173,7 @@ export default function CaseSpecificCalendar({
       queryClient.invalidateQueries({ queryKey: ["case-specific-calendar", caseId] });
       queryClient.invalidateQueries({ queryKey: ["donation-audit"] });
       setEditDialog(null);
-      setEditForm({ amount: "", notes: "", selectedDonationId: "" });
+      setEditForm({ amount: "", notes: "", date: "", selectedDonationId: "" });
       toast({
         title: "تم الحفظ",
         description: "تم حفظ التسليم بنجاح",
@@ -189,24 +191,32 @@ export default function CaseSpecificCalendar({
   const handleEdit = async (month: number, year: number, existingHandover?: HandoverData) => {
     const donations = await fetchAvailableDonations();
     setAvailableDonations(donations);
-    
+
     setEditDialog({
       open: true,
       month,
       year,
       existingHandover,
     });
-    
+
     if (existingHandover) {
       setEditForm({
         amount: existingHandover.amount.toString(),
         notes: existingHandover.notes || "",
+        date: existingHandover.date.split('T')[0],
         selectedDonationId: "",
       });
     } else {
+      // Default to 15th of the selected month/year
+      const defaultDate = new Date(year, month, 15);
+      // Adjust for timezone offset to ensure we get YYYY-MM-DD correctly
+      const offset = defaultDate.getTimezoneOffset();
+      const localDate = new Date(defaultDate.getTime() - (offset * 60 * 1000));
+
       setEditForm({
         amount: "",
         notes: "",
+        date: localDate.toISOString().split('T')[0],
         selectedDonationId: donations[0]?.id || "",
       });
     }
@@ -228,6 +238,7 @@ export default function CaseSpecificCalendar({
       year: editDialog!.year,
       amount: Number(editForm.amount),
       notes: editForm.notes,
+      date: editForm.date,
       handoverId: editDialog!.existingHandover?.id,
     });
   };
@@ -300,7 +311,7 @@ export default function CaseSpecificCalendar({
                   <div className="text-sm text-muted-foreground">
                     {monthHandovers.length} تسليم
                   </div>
-                  
+
                   {monthHandovers.length > 0 && (
                     <div className="space-y-1">
                       {monthHandovers.map((handover, index) => (
@@ -336,7 +347,7 @@ export default function CaseSpecificCalendar({
               {editDialog && `${months[editDialog.month]} ${editDialog.year}`}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="donation">التبرع</Label>
@@ -365,6 +376,16 @@ export default function CaseSpecificCalendar({
                 value={editForm.amount}
                 onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
                 placeholder="أدخل المبلغ"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="date">تاريخ التسليم</Label>
+              <Input
+                id="date"
+                type="date"
+                value={editForm.date}
+                onChange={(e) => setEditForm(prev => ({ ...prev, date: e.target.value }))}
               />
             </div>
 
