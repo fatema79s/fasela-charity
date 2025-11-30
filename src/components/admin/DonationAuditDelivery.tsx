@@ -13,12 +13,12 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Truck, 
-  Eye, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  Truck,
+  Eye,
   Filter,
   Download,
   AlertCircle,
@@ -80,6 +80,7 @@ const DonationAuditDelivery = () => {
   const [adminNotes, setAdminNotes] = useState("");
   const [handoverAmount, setHandoverAmount] = useState("");
   const [handoverNotes, setHandoverNotes] = useState("");
+  const [handoverDate, setHandoverDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCaseId, setSelectedCaseId] = useState("");
   const [createReport, setCreateReport] = useState(true); // New state for checkbox
   const [filterStatus, setFilterStatus] = useState("all");
@@ -91,7 +92,7 @@ const DonationAuditDelivery = () => {
   const [searchName, setSearchName] = useState("");
   const [searchAmount, setSearchAmount] = useState("");
   const [sortByDate, setSortByDate] = useState<"desc" | "asc">("desc");
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -106,7 +107,7 @@ const DonationAuditDelivery = () => {
           cases!inner(id, title, title_ar)
         `)
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       return data as Donation[];
     }
@@ -120,7 +121,7 @@ const DonationAuditDelivery = () => {
         .from("cases")
         .select("id, title_ar, status")
         .order("title_ar", { ascending: true });
-      
+
       if (error) throw error;
       return data;
     }
@@ -132,7 +133,7 @@ const DonationAuditDelivery = () => {
     queryFn: async () => {
       const from = 0;
       const to = handoverPage * HANDOVERS_PER_PAGE - 1;
-      
+
       const { data, error } = await supabase
         .from("donation_handovers")
         .select(`
@@ -142,12 +143,12 @@ const DonationAuditDelivery = () => {
         `)
         .order("handover_date", { ascending: false })
         .range(from, to);
-      
+
       if (error) throw error;
       return data as HandoverRecord[];
     }
   });
-  
+
   // Check if there are more handovers to load
   const { data: totalHandovers } = useQuery({
     queryKey: ["handover-count"],
@@ -155,7 +156,7 @@ const DonationAuditDelivery = () => {
       const { count, error } = await supabase
         .from("donation_handovers")
         .select("*", { count: 'exact', head: true });
-      
+
       if (error) throw error;
       return count || 0;
     }
@@ -174,7 +175,7 @@ const DonationAuditDelivery = () => {
           confirmed_by: (await supabase.auth.getUser()).data.user?.id
         })
         .eq("id", donationId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -190,17 +191,19 @@ const DonationAuditDelivery = () => {
 
   // Handover mutation
   const handoverMutation = useMutation({
-    mutationFn: async ({ 
-      donationId, 
-      caseId, 
-      amount, 
+    mutationFn: async ({
+      donationId,
+      caseId,
+      amount,
       notes,
+      date,
       shouldCreateReport
-    }: { 
-      donationId: string; 
-      caseId: string; 
-      amount: number; 
+    }: {
+      donationId: string;
+      caseId: string;
+      amount: number;
       notes: string;
+      date: string;
       shouldCreateReport: boolean;
     }) => {
       try {
@@ -212,9 +215,10 @@ const DonationAuditDelivery = () => {
             case_id: caseId,
             handover_amount: amount,
             handover_notes: notes,
+            handover_date: date,
             handed_over_by: (await supabase.auth.getUser()).data.user?.id
           });
-        
+
         if (handoverError) throw handoverError;
 
         // Note: total_handed_over is automatically updated by database trigger
@@ -250,14 +254,14 @@ const DonationAuditDelivery = () => {
               case_id: caseId,
               title: reportTitle,
               description: reportDescription,
-              report_date: new Date().toISOString().split('T')[0],
+              report_date: date,
               status: 'completed',
               category: 'handover'
             });
 
           if (reportError) throw reportError;
         }
-        
+
         return { success: true };
       } catch (error) {
         console.error("Handover mutation error:", error);
@@ -274,10 +278,10 @@ const DonationAuditDelivery = () => {
     },
     onError: (error: any) => {
       console.error("Handover error:", error);
-      toast({ 
-        title: "حدث خطأ أثناء تسليم التبرع", 
+      toast({
+        title: "حدث خطأ أثناء تسليم التبرع",
         description: error.message || "خطأ غير معروف",
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -289,7 +293,7 @@ const DonationAuditDelivery = () => {
         .from("donations")
         .update({ status: "cancelled" })
         .eq("id", donationId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -309,6 +313,7 @@ const DonationAuditDelivery = () => {
     setAdminNotes("");
     setHandoverAmount("");
     setHandoverNotes("");
+    setHandoverDate(new Date().toISOString().split('T')[0]);
     setSelectedCaseId("");
     setCreateReport(true); // Reset checkbox to checked by default
   };
@@ -350,14 +355,15 @@ const DonationAuditDelivery = () => {
 
   const handleHandover = () => {
     if (!selectedDonation || !handoverAmount) return;
-    
+
     const targetCaseId = selectedCaseId === "original" ? selectedDonation.case_id : selectedCaseId;
-    
+
     handoverMutation.mutate({
       donationId: selectedDonation.id,
       caseId: targetCaseId,
       amount: Number(handoverAmount),
       notes: handoverNotes,
+      date: handoverDate,
       shouldCreateReport: createReport
     });
   };
@@ -373,10 +379,10 @@ const DonationAuditDelivery = () => {
       confirmed: { variant: "default" as const, icon: CheckCircle, text: "مؤكد" },
       cancelled: { variant: "destructive" as const, icon: XCircle, text: "ملغى" }
     };
-    
+
     const config = variants[status as keyof typeof variants] || variants.pending;
     const Icon = config.icon;
-    
+
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="w-3 h-3" />
@@ -398,16 +404,16 @@ const DonationAuditDelivery = () => {
   // Helper function to filter and sort donations
   const filterAndSortDonations = (donations: Donation[]) => {
     let filtered = [...donations];
-    
+
     // Filter by name
     if (searchName.trim()) {
-      filtered = filtered.filter(d => 
+      filtered = filtered.filter(d =>
         d.donor_name?.toLowerCase().includes(searchName.toLowerCase()) ||
         d.cases?.title_ar?.toLowerCase().includes(searchName.toLowerCase()) ||
         d.cases?.title?.toLowerCase().includes(searchName.toLowerCase())
       );
     }
-    
+
     // Filter by amount
     if (searchAmount.trim()) {
       const searchAmountNum = parseFloat(searchAmount);
@@ -415,30 +421,30 @@ const DonationAuditDelivery = () => {
         filtered = filtered.filter(d => d.amount === searchAmountNum);
       }
     }
-    
+
     // Sort by date
     filtered.sort((a, b) => {
       const dateA = new Date(a.created_at).getTime();
       const dateB = new Date(b.created_at).getTime();
       return sortByDate === "desc" ? dateB - dateA : dateA - dateB;
     });
-    
+
     return filtered;
   };
 
   // Helper function to filter handover history
   const filterAndSortHandovers = (handovers: HandoverRecord[]) => {
     let filtered = [...handovers];
-    
+
     // Filter by name
     if (searchName.trim()) {
-      filtered = filtered.filter(h => 
+      filtered = filtered.filter(h =>
         h.donations?.donor_name?.toLowerCase().includes(searchName.toLowerCase()) ||
         h.cases?.title_ar?.toLowerCase().includes(searchName.toLowerCase()) ||
         h.cases?.title?.toLowerCase().includes(searchName.toLowerCase())
       );
     }
-    
+
     // Filter by amount
     if (searchAmount.trim()) {
       const searchAmountNum = parseFloat(searchAmount);
@@ -446,26 +452,26 @@ const DonationAuditDelivery = () => {
         filtered = filtered.filter(h => h.handover_amount === searchAmountNum);
       }
     }
-    
+
     // Sort by date
     filtered.sort((a, b) => {
       const dateA = new Date(a.handover_date).getTime();
       const dateB = new Date(b.handover_date).getTime();
       return sortByDate === "desc" ? dateB - dateA : dateA - dateB;
     });
-    
+
     return filtered;
   };
 
   // Filter donations
   const pendingDonations = filterAndSortDonations(donations.filter(d => d.status === "pending"));
-  const readyForDelivery = filterAndSortDonations(donations.filter(d => 
-    d.status === "confirmed" && 
+  const readyForDelivery = filterAndSortDonations(donations.filter(d =>
+    d.status === "confirmed" &&
     (d.handover_status === "none" || d.handover_status === "partial")
   ));
   const filteredHandoverHistory = filterAndSortHandovers(handoverHistory);
-  
-  const filteredDonations = filterStatus === "all" ? donations : 
+
+  const filteredDonations = filterStatus === "all" ? donations :
     donations.filter(d => d.status === filterStatus);
 
   // Group ready for delivery donations by case
@@ -542,7 +548,7 @@ const DonationAuditDelivery = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {handoverHistory.filter(h => 
+              {handoverHistory.filter(h =>
                 new Date(h.handover_date).getMonth() === new Date().getMonth()
               ).length}
             </div>
@@ -621,7 +627,7 @@ const DonationAuditDelivery = () => {
               </div>
             </div>
           </Card>
-          
+
           {pendingDonations.length > 0 ? (
             <Card>
               <CardHeader>
@@ -652,8 +658,8 @@ const DonationAuditDelivery = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(donation.status)}
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           onClick={() => openActionDialog(donation)}
                           className="flex items-center gap-1"
                         >
@@ -714,7 +720,7 @@ const DonationAuditDelivery = () => {
               </div>
             </div>
           </Card>
-          
+
           {readyForDelivery.length > 0 ? (
             <Card>
               <CardHeader>
@@ -729,7 +735,7 @@ const DonationAuditDelivery = () => {
                     const isExpanded = expandedCases.has(group.case.id);
                     return (
                       <div key={group.case.id} className="space-y-3">
-                        <div 
+                        <div
                           className="border-b pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
                           onClick={() => toggleCaseExpansion(group.case.id)}
                         >
@@ -793,8 +799,8 @@ const DonationAuditDelivery = () => {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Button 
-                                    size="sm" 
+                                  <Button
+                                    size="sm"
                                     onClick={() => openHandoverDialog(donation)}
                                     className="flex items-center gap-1"
                                   >
@@ -860,7 +866,7 @@ const DonationAuditDelivery = () => {
               </div>
             </div>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -875,7 +881,7 @@ const DonationAuditDelivery = () => {
                     const isExpanded = expandedCases.has(group.caseId);
                     return (
                       <div key={group.caseId} className="space-y-3">
-                        <div 
+                        <div
                           className="border-b pb-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
                           onClick={() => toggleCaseExpansion(group.caseId)}
                         >
@@ -955,7 +961,7 @@ const DonationAuditDelivery = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Load More Button */}
               {totalHandovers && handoverHistory.length < totalHandovers && (
                 <div className="flex justify-center pt-4">
@@ -987,9 +993,9 @@ const DonationAuditDelivery = () => {
                 <p><strong>الحالة:</strong> {selectedDonation.cases.title_ar}</p>
                 <p><strong>كود الدفع:</strong> {selectedDonation.payment_code}</p>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="payment-ref">مرجع الدفع</Label>
@@ -1000,7 +1006,7 @@ const DonationAuditDelivery = () => {
                     placeholder="أدخل مرجع الدفع"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="admin-notes">ملاحظات الإدارة</Label>
                   <Textarea
@@ -1011,9 +1017,9 @@ const DonationAuditDelivery = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-2 pt-4">
-                <Button 
+                <Button
                   onClick={handleConfirm}
                   disabled={confirmDonationMutation.isPending}
                   className="flex-1"
@@ -1021,7 +1027,7 @@ const DonationAuditDelivery = () => {
                   <CheckCircle className="w-4 h-4 mr-2" />
                   تأكيد
                 </Button>
-                <Button 
+                <Button
                   variant="destructive"
                   onClick={handleCancel}
                   disabled={cancelDonationMutation.isPending}
@@ -1050,9 +1056,9 @@ const DonationAuditDelivery = () => {
                 <p><strong>المسلم سابقاً:</strong> {(selectedDonation.total_handed_over || 0).toLocaleString()} ج.م</p>
                 <p><strong>المتبقي:</strong> {(selectedDonation.amount - (selectedDonation.total_handed_over || 0)).toLocaleString()} ج.م</p>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="handover-amount">المبلغ المراد تسليمه</Label>
@@ -1064,7 +1070,7 @@ const DonationAuditDelivery = () => {
                     max={selectedDonation.amount - (selectedDonation.total_handed_over || 0)}
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="target-case">تسليم إلى الحالة</Label>
                   <Select value={selectedCaseId} onValueChange={setSelectedCaseId}>
@@ -1082,7 +1088,7 @@ const DonationAuditDelivery = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="handover-notes">ملاحظات التسليم</Label>
                   <Textarea
@@ -1093,9 +1099,19 @@ const DonationAuditDelivery = () => {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="handover-date">تاريخ التسليم</Label>
+                  <Input
+                    id="handover-date"
+                    type="date"
+                    value={handoverDate}
+                    onChange={(e) => setHandoverDate(e.target.value)}
+                  />
+                </div>
+
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="create-report" 
+                  <Checkbox
+                    id="create-report"
                     checked={createReport}
                     onCheckedChange={(checked) => setCreateReport(checked as boolean)}
                   />
@@ -1104,9 +1120,9 @@ const DonationAuditDelivery = () => {
                   </Label>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 pt-4">
-                <Button 
+                <Button
                   onClick={handleHandover}
                   disabled={handoverMutation.isPending || !handoverAmount}
                   className="flex-1"
@@ -1114,7 +1130,7 @@ const DonationAuditDelivery = () => {
                   <Truck className="w-4 h-4 mr-2" />
                   تسليم
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setShowHandoverDialog(false)}
                   className="flex-1"
