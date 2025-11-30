@@ -117,7 +117,8 @@ const MonthlyDonorReport = () => {
         if (months[updatedMonthKey]) {
           if (caseItem.lifecycle_status === 'removed' ||
             caseItem.lifecycle_status === 'parked' ||
-            caseItem.lifecycle_status === 'under_more_investigation') {
+            caseItem.lifecycle_status === 'under_more_investigation' ||
+            caseItem.lifecycle_status === 'cancelled') {
             months[updatedMonthKey].droppedCases++;
             const reason = caseItem.lifecycle_status;
             months[updatedMonthKey].droppedByReason[reason] =
@@ -181,6 +182,7 @@ const MonthlyDonorReport = () => {
       'removed': 'تم الإزالة',
       'parked': 'مؤجلة',
       'under_more_investigation': 'تحت المزيد من التحقيق',
+      'cancelled': 'ملغاة',
       'completed': 'مكتملة'
     };
     return labels[reason] || reason;
@@ -249,6 +251,7 @@ const MonthlyDonorReport = () => {
       'تم الإزالة': '#ef4444',
       'مؤجلة': '#f59e0b',
       'تحت المزيد من التحقيق': '#3b82f6',
+      'ملغاة': '#64748b',
       'مكتملة': '#10b981'
     };
     return colors[reason] || '#6b7280';
