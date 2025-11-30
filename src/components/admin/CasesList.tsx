@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Eye, Edit, Trash2, ToggleLeft, ToggleRight, FileText } from "lucide-react";
+import { Eye, Edit, Trash2, ToggleLeft, ToggleRight, FileText, Calendar, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import CaseForm from "./CaseForm";
