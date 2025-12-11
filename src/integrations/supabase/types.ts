@@ -317,6 +317,48 @@ export type Database = {
         }
         Relationships: []
       }
+      case_charities: {
+        Row: {
+          case_id: string
+          charity_id: string
+          created_at: string
+          id: string
+          monthly_amount: number
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          charity_id: string
+          created_at?: string
+          id?: string
+          monthly_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          charity_id?: string
+          created_at?: string
+          id?: string
+          monthly_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_charities_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_charities_charity_id_fkey"
+            columns: ["charity_id"]
+            isOneToOne: false
+            referencedRelation: "charities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_confidential_info: {
         Row: {
           ahmed_spending: number
@@ -480,6 +522,7 @@ export type Database = {
         Row: {
           admin_profile_picture_url: string | null
           area: string | null
+          case_care_type: string
           city: string | null
           created_at: string
           description: string
@@ -489,6 +532,7 @@ export type Database = {
           education_level: string | null
           health_state: string | null
           id: string
+          is_featured: boolean
           is_published: boolean
           kids_number: number | null
           lifecycle_status: string
@@ -513,6 +557,7 @@ export type Database = {
         Insert: {
           admin_profile_picture_url?: string | null
           area?: string | null
+          case_care_type?: string
           city?: string | null
           created_at?: string
           description: string
@@ -522,6 +567,7 @@ export type Database = {
           education_level?: string | null
           health_state?: string | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           kids_number?: number | null
           lifecycle_status?: string
@@ -546,6 +592,7 @@ export type Database = {
         Update: {
           admin_profile_picture_url?: string | null
           area?: string | null
+          case_care_type?: string
           city?: string | null
           created_at?: string
           description?: string
@@ -555,6 +602,7 @@ export type Database = {
           education_level?: string | null
           health_state?: string | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           kids_number?: number | null
           lifecycle_status?: string
@@ -575,6 +623,36 @@ export type Database = {
           total_secured_money?: number | null
           updated_at?: string | null
           work_ability?: string | null
+        }
+        Relationships: []
+      }
+      charities: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          id: string
+          name: string
+          name_ar: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          name: string
+          name_ar: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          name?: string
+          name_ar?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2766,6 +2844,30 @@ export type Database = {
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      static_content: {
+        Row: {
+          content_ar: string | null
+          created_at: string | null
+          key: string
+          title_ar: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_ar?: string | null
+          created_at?: string | null
+          key: string
+          title_ar: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_ar?: string | null
+          created_at?: string | null
+          key?: string
+          title_ar?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
