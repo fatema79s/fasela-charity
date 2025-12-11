@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Settings, Users, Home } from "lucide-react";
+import { Heart, Settings, Users, Home, Route } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
@@ -71,6 +71,16 @@ const Navigation = () => {
       >
         <img src="/lovable-uploads/1377342f-e772-4165-b1d5-8f6cbc909fa4.png" alt="الشعار" className="w-6 h-6" />
         <span className="hidden sm:inline">الرئيسية</span>
+      </Link>
+      
+      <Link 
+        to="/case-pipeline" 
+        className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
+          isActive('/case-pipeline') ? 'text-white font-medium' : ''
+        }`}
+      >
+        <Route className="w-4 h-4" />
+        <span className="hidden sm:inline">رحلة الكفالة</span>
       </Link>
       
       <Link 

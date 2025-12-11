@@ -140,7 +140,6 @@ const Index = () => {
         <div className="mt-12 lg:mt-16">
           <FeaturedCasesCarousel />
         </div>
-        </div>
       </div>
     </div>
   );

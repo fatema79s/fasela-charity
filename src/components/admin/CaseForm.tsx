@@ -209,7 +209,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("city", caseData.city || "");
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
-        setValue("case_care_type", caseData.case_care_type || 'sponsorship');
+        setValue("case_care_type", (caseData.case_care_type as "cancelled" | "one_time_donation" | "sponsorship") || 'sponsorship');
         
         // Parent profile fields
         setValue("rent_amount", caseData.rent_amount || 0);
