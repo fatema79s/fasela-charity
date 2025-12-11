@@ -23,6 +23,9 @@ import AdminCaseView from "./pages/AdminCaseView";
 import PublicDonorReport from "./pages/PublicDonorReport";
 import MonthlyDonorReport from "./pages/MonthlyDonorReport";
 import MonthlyReport from "./pages/MonthlyReport";
+import AdminStaticPages from "./pages/admin/AdminStaticPages";
+import SelectionCriteria from "./pages/SelectionCriteria";
+import FundingChannels from "./pages/FundingChannels";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +52,7 @@ const App = () => (
           <Route path="/admin/donations" element={<AdminLayout><AdminDonationsPage /></AdminLayout>} />
           <Route path="/admin/tasks" element={<AdminLayout><AdminTasksPage /></AdminLayout>} />
           <Route path="/admin/reports" element={<AdminLayout><AdminReportsPage /></AdminLayout>} />
+          <Route path="/admin/static-pages" element={<AdminLayout><AdminStaticPages /></AdminLayout>} />
 
           {/* Admin Detail Views - Wrapped in Layout for consistency */}
           <Route path="/admin/case-profile/:id" element={<AdminLayout><AdminCaseProfile /></AdminLayout>} />
@@ -58,6 +62,8 @@ const App = () => (
           <Route path="/donor-report" element={<PublicDonorReport />} />
           <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
           <Route path="/monthly-report" element={<MonthlyReport />} />
+          <Route path="/selection-criteria" element={<SelectionCriteria />} />
+          <Route path="/funding-channels" element={<FundingChannels />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

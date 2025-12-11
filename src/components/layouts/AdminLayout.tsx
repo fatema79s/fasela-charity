@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
-import { Home, Users, Baby, Calendar, CreditCard, CheckSquare, FileText, LogOut } from "lucide-react";
+import { Home, Users, Baby, Calendar, CreditCard, CheckSquare, FileText, LogOut, Settings } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -108,6 +108,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: "التقارير",
       url: "/admin/reports",
       icon: FileText,
+    },
+    {
+      title: "الصفحات الثابتة",
+      url: "/admin/static-pages",
+      icon: Settings,
     },
   ];
 
