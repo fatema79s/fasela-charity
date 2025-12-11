@@ -76,7 +76,7 @@ const Index = () => {
       images: ["https://images.unsplash.com/photo-1593113598332-cd288d649433?w=200&h=200&fit=crop"]
     },
     {
-      id: "2", 
+      id: "2",
       date: "1 ديسمبر 2024",
       title: "دفع إيجار الشهر وفواتير المرافق",
       description: "تم دفع إيجار شهر ديسمبر وجميع فواتير المرافق في الوقت المناسب، مما وفر الاستقرار للعائلة.",
@@ -85,7 +85,7 @@ const Index = () => {
     },
     {
       id: "3",
-      date: "20 نوفمبر 2024", 
+      date: "20 نوفمبر 2024",
       title: "شراء الملابس الشتوية للأطفال",
       description: "تم شراء ملابس شتوية مناسبة لجميع الأطفال استعداداً لفصل الشتاء.",
       status: "completed" as const,
@@ -104,13 +104,23 @@ const Index = () => {
           <p className="text-lg sm:text-xl md:text-2xl opacity-90 max-w-2xl mx-auto mb-8">
             ساهم في تغيير حياة عائلة محتاجة من خلال نظام شفاف للكفالة والمتابعة الشهرية
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto flex-wrap">
             <Button asChild size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto">
               <Link to="/cases">
                 تصفح جميع الحالات
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 text-white border-white hover:bg-white hover:text-primary w-full sm:w-auto">
+              <Link to="/selection-criteria">
+                كيف نختار الحالات؟
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 text-white border-white hover:bg-white hover:text-primary w-full sm:w-auto">
+              <Link to="/funding-channels">
+                قنوات التبرع
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="ghost" className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 text-white/80 hover:bg-white/10 hover:text-white w-full sm:w-auto">
               <Link to="/auth">
                 لوحة التحكم
               </Link>
@@ -122,7 +132,7 @@ const Index = () => {
       {/* المحتوى الرئيسي */}
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-          
+
           {/* العمود الأيسر - معلومات العائلة */}
           <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             <FamilyProfile {...familyData} />
@@ -142,6 +152,7 @@ const Index = () => {
         </div>
       </div>
     </div>
+    </div >
   );
 };
 
