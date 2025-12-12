@@ -10,7 +10,7 @@ const Navigation = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Navigation = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           setTimeout(() => {
             checkUserRole(session.user.id);
@@ -34,7 +34,7 @@ const Navigation = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         checkUserRole(session.user.id);
       }
@@ -60,57 +60,51 @@ const Navigation = () => {
       setIsAdmin(false);
     }
   };
-  
+
   return (
-    <nav className="flex items-center gap-3 sm:gap-6">
-      <Link 
-        to="/" 
-        className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-          isActive('/') ? 'text-white font-medium' : ''
-        }`}
+    <nav className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 rounded-full border border-white/20 shadow-lg">
+      <Link
+        to="/"
+        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/')
+            ? 'bg-white text-primary font-bold shadow-sm scale-105'
+            : 'text-white/90 hover:bg-white/10 hover:text-white'
+          }`}
       >
-        <img src="/lovable-uploads/1377342f-e772-4165-b1d5-8f6cbc909fa4.png" alt="الشعار" className="w-6 h-6" />
+        <Home className="w-4 h-4" />
         <span className="hidden sm:inline">الرئيسية</span>
       </Link>
-      
-      <Link 
-        to="/case-pipeline" 
-        className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-          isActive('/case-pipeline') ? 'text-white font-medium' : ''
-        }`}
+
+      <Link
+        to="/case-pipeline"
+        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/case-pipeline')
+            ? 'bg-white text-primary font-bold shadow-sm scale-105'
+            : 'text-white/90 hover:bg-white/10 hover:text-white'
+          }`}
       >
         <Route className="w-4 h-4" />
         <span className="hidden sm:inline">رحلة الكفالة</span>
       </Link>
-      
-      <Link 
-        to="/monthly-report" 
-        className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-          isActive('/monthly-report') ? 'text-white font-medium' : ''
-        }`}
-      >
-        <Heart className="w-4 h-4" />
-        <span className="hidden sm:inline">التقرير الشهري</span>
-      </Link>
-      
+
       {!user && (
-        <Link 
-          to="/auth" 
-          className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-            isActive('/auth') ? 'text-white font-medium' : ''
-          }`}
+        <Link
+          to="/auth"
+          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/auth')
+              ? 'bg-white text-primary font-bold shadow-sm scale-105'
+              : 'text-white/90 hover:bg-white/10 hover:text-white'
+            }`}
         >
-          <Heart className="w-4 h-4" />
+          <Users className="w-4 h-4" />
           <span className="hidden sm:inline">تسجيل الدخول</span>
         </Link>
       )}
-      
+
       {user && isAdmin && (
-        <Link 
-          to="/admin" 
-          className={`flex items-center gap-2 text-white/80 hover:text-white transition-colors ${
-            isActive('/admin') ? 'text-white font-medium' : ''
-          }`}
+        <Link
+          to="/admin"
+          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/admin')
+              ? 'bg-white text-primary font-bold shadow-sm scale-105'
+              : 'text-white/90 hover:bg-white/10 hover:text-white'
+            }`}
         >
           <Settings className="w-4 h-4" />
           <span className="hidden sm:inline">لوحة التحكم</span>
