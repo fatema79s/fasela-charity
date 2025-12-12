@@ -15,14 +15,14 @@ import {
 } from "lucide-react";
 
 // Hobbies List with Icons
+// Hobbies List with Icons
 const HOBBIES = [
+    { id: "quran", label: "القرآن الكريم", icon: BookOpen, color: "bg-emerald-100 text-emerald-600" },
     { id: "art", label: "الرسم", icon: Palette, color: "bg-purple-100 text-purple-600" },
     { id: "sports", label: "الرياضة", icon: Dumbbell, color: "bg-blue-100 text-blue-600" },
     { id: "reading", label: "القراءة", icon: BookOpen, color: "bg-yellow-100 text-yellow-600" },
-    { id: "gaming", label: "الألعاب", icon: Gamepad2, color: "bg-red-100 text-red-600" },
-    { id: "music", label: "الموسيقى", icon: Music, color: "bg-pink-100 text-pink-600" },
-    { id: "cycling", label: "الدراجة", icon: Bike, color: "bg-green-100 text-green-600" },
-    { id: "nature", label: "الزراعة", icon: Flower2, color: "bg-emerald-100 text-emerald-600" },
+    { id: "programming", label: "البرمجة", icon: Code, color: "bg-indigo-100 text-indigo-600" },
+    { id: "nature", label: "الزراعة", icon: Flower2, color: "bg-green-100 text-green-600" },
     { id: "crafts", label: "الأشغال", icon: PenTool, color: "bg-orange-100 text-orange-600" },
     { id: "cooking", label: "الطبخ", icon: Utensils, color: "bg-rose-100 text-rose-600" },
 ];
@@ -30,12 +30,14 @@ const HOBBIES = [
 export default function MomSurvey() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const [step, setStep] = useState<"phone" | "kids" | "hobbies" | "success">("phone");
+    const [step, setStep] = useState<"phone" | "kids" | "hobbies" | "levels" | "notes" | "success">("phone");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [caseId, setCaseId] = useState<string | null>(null);
     const [selectedKidId, setSelectedKidId] = useState<string | null>(null);
     const [selectedKidName, setSelectedKidName] = useState("");
     const [kidHobbies, setKidHobbies] = useState<string[]>([]);
+    const [hobbyLevels, setHobbyLevels] = useState<Record<string, string>>({});
+    const [notes, setNotes] = useState("");
 
     // 1. Check Phone Number
     const checkPhoneMutation = useMutation({
@@ -70,7 +72,7 @@ export default function MomSurvey() {
             if (!caseId) return [];
             const { data, error } = await supabase
                 .from("case_kids")
-                .select("id, name, gender, age, hobbies")
+                .select("id, name, gender, age, hobbies, description")
                 .eq("case_id", caseId);
             if (error) throw error;
             return data;
@@ -78,13 +80,24 @@ export default function MomSurvey() {
         enabled: !!caseId,
     });
 
-    // 3. Save Hobbies
+    // 3. Save Hobbies with Levels and Notes
     const saveHobbiesMutation = useMutation({
         mutationFn: async () => {
             if (!selectedKidId) return;
+
+            // Format hobbies with levels: "Programming - Beginner"
+            const formattedHobbies = kidHobbies.map(hobbyId => {
+                const hobbyLabel = HOBBIES.find(h => h.id === hobbyId)?.label || hobbyId;
+                const level = hobbyLevels[hobbyId] || "غير محدد";
+                return `${hobbyLabel} (${level})`;
+            });
+
             const { error } = await supabase
                 .from("case_kids")
-                .update({ hobbies: kidHobbies })
+                .update({
+                    hobbies: formattedHobbies,
+                    description: notes // Save notes to description field
+                })
                 .eq("id", selectedKidId);
             if (error) throw error;
         },
@@ -96,6 +109,8 @@ export default function MomSurvey() {
                 setStep("kids");
                 setSelectedKidId(null);
                 setKidHobbies([]);
+                setHobbyLevels({});
+                setNotes("");
             }, 3000);
         },
         onError: () => {
@@ -106,7 +121,12 @@ export default function MomSurvey() {
     const handleKidSelect = (kid: any) => {
         setSelectedKidId(kid.id);
         setSelectedKidName(kid.name);
-        setKidHobbies(kid.hobbies || []); // Pre-fill existing
+        // Reset hobbies/levels for fresh entry to avoid confusion, 
+        // or parse existing one (complex if format changed). 
+        // Let's reset for now to ensure clean data entry.
+        setKidHobbies([]);
+        setHobbyLevels({});
+        setNotes(kid.description || "");
         setStep("hobbies");
     };
 
@@ -243,11 +263,117 @@ export default function MomSurvey() {
 
                             <Button
                                 size="lg"
+                                className="w-full h-16 text-xl rounded-2xl bg-purple-600 hover:bg-purple-700 mt-auto shadow-lg shadow-purple-200"
+                                onClick={() => setStep("levels")}
+                                disabled={kidHobbies.length === 0}
+                            >
+                                التــالي
+                            </Button>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 4: LEVELS */}
+                    {step === "levels" && (
+                        <motion.div
+                            key="levels"
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            className="p-6 h-full flex flex-col"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <Button variant="ghost" size="icon" onClick={() => setStep("hobbies")}><ArrowRight /></Button>
+                                <div className="text-center">
+                                    <h2 className="text-2xl font-bold text-slate-800">مستوى {selectedKidName}</h2>
+                                    <p className="text-purple-600 font-medium">كيف مستواه في كل هواية؟</p>
+                                </div>
+                                <div className="w-10" />
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto space-y-6 p-2">
+                                {kidHobbies.map(hobbyId => {
+                                    const hobby = HOBBIES.find(h => h.id === hobbyId);
+                                    if (!hobby) return null;
+                                    return (
+                                        <div key={hobbyId} className="bg-white border rounded-2xl p-4 space-y-3">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <hobby.icon className="w-6 h-6 text-purple-600" />
+                                                <h3 className="font-bold text-lg">{hobby.label}</h3>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {["مبتدئ", "متوسط", "متقدم"].map((level) => (
+                                                    <button
+                                                        key={level}
+                                                        onClick={() => setHobbyLevels(prev => ({ ...prev, [hobbyId]: level }))}
+                                                        className={`p-2 rounded-xl text-sm font-medium transition-all ${hobbyLevels[hobbyId] === level
+                                                                ? "bg-purple-600 text-white shadow-md"
+                                                                : "bg-slate-100 text-slate-600 hover:bg-purple-50"
+                                                            }`}
+                                                    >
+                                                        {level}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <Button
+                                size="lg"
+                                className="w-full h-16 text-xl rounded-2xl bg-purple-600 hover:bg-purple-700 mt-4"
+                                onClick={() => setStep("notes")}
+                                disabled={Object.keys(hobbyLevels).length < kidHobbies.length}
+                            >
+                                التــالي
+                            </Button>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 5: NOTES */}
+                    {step === "notes" && (
+                        <motion.div
+                            key="notes"
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            className="p-6 h-full flex flex-col"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <Button variant="ghost" size="icon" onClick={() => setStep("levels")}><ArrowRight /></Button>
+                                <div className="text-center">
+                                    <h2 className="text-2xl font-bold text-slate-800">معلومات إضافية</h2>
+                                    <p className="text-purple-600 font-medium">عندك شيء ثاني تحبي تقوليه؟</p>
+                                </div>
+                                <div className="w-10" />
+                            </div>
+
+                            <div className="flex-1 flex flex-col justify-center space-y-6">
+                                <div className="bg-purple-50 p-6 rounded-3xl text-center space-y-4">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+                                        <PenTool className="w-8 h-8 text-purple-500" />
+                                    </div>
+                                    <p className="text-slate-600 text-lg leading-relaxed">
+                                        هذا المكان لك يا أم {selectedKidName}.. <br />
+                                        اكتبي أي ملاحظات أو تفاصيل عن هوايات طفلك أو أي شيء تحسي إنه مهم نعرفه.
+                                    </p>
+                                </div>
+
+                                <textarea
+                                    className="w-full flex-1 min-h-[150px] p-4 rounded-2xl border-2 border-slate-200 focus:border-purple-500 focus:outline-none resize-none text-lg"
+                                    placeholder="اكتبي هنا..."
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                />
+                            </div>
+
+                            <Button
+                                size="lg"
                                 className="w-full h-16 text-xl rounded-2xl bg-green-600 hover:bg-green-700 mt-auto shadow-lg shadow-green-200"
                                 onClick={() => saveHobbiesMutation.mutate()}
                                 disabled={saveHobbiesMutation.isPending}
                             >
-                                {saveHobbiesMutation.isPending ? <Loader2 className="animate-spin" /> : "حفــظ واستمـرار"}
+                                {saveHobbiesMutation.isPending ? <Loader2 className="animate-spin" /> : "حفــظ وإرســال"}
                             </Button>
                         </motion.div>
                     )}

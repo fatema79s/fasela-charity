@@ -48,6 +48,21 @@ const CasesList = () => {
 
       if (handoversError) throw handoversError;
 
+      // Get kids count for each case
+      const { data: kids, error: kidsError } = await supabase
+        .from("case_kids")
+        .select("case_id");
+
+      if (kidsError) throw kidsError;
+
+      // Get pending followups for each case
+      const { data: followups, error: followupsError } = await supabase
+        .from("followup_actions")
+        .select("case_id, status")
+        .neq("status", "completed");
+
+      if (followupsError) throw followupsError;
+
       // Calculate totals for each case
       const casesWithFinancials = casesData.map(caseItem => {
         const confirmedAmount = confirmedDonations
@@ -62,6 +77,9 @@ const CasesList = () => {
           .filter(handover => handover.case_id === caseItem.id)
           .reduce((sum, handover) => sum + handover.handover_amount, 0);
 
+        const kidsCount = kids.filter(k => k.case_id === caseItem.id).length;
+        const pendingFollowupsCount = followups.filter(f => f.case_id === caseItem.id).length;
+
         const totalHandedOver = redeemedAmount + handoverAmount;
         const remainingAmount = confirmedAmount - totalHandedOver;
 
@@ -69,7 +87,9 @@ const CasesList = () => {
           ...caseItem,
           confirmed_amount: confirmedAmount,
           handed_over_amount: totalHandedOver,
-          remaining_amount: remainingAmount
+          remaining_amount: remainingAmount,
+          kids_count: kidsCount,
+          pending_followups_count: pendingFollowupsCount
         };
       });
 
@@ -158,7 +178,10 @@ const CasesList = () => {
 
       <div className="grid gap-4">
         {cases.map((caseItem) => (
-          <Card key={caseItem.id}>
+          <Card
+            key={caseItem.id}
+            className={`transition-all ${caseItem.pending_followups_count > 0 ? 'border-2 border-yellow-400 bg-yellow-50/30' : ''}`}
+          >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 flex-1">
@@ -176,12 +199,36 @@ const CasesList = () => {
                     </div>
                   )}
                   <div className="flex-1">
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-lg flex items-center gap-2">
                       {caseItem.title_ar || caseItem.title}
+                      {caseItem.pending_followups_count > 0 && (
+                        <Badge variant="destructive" className="mr-2 animate-pulse bg-yellow-500 hover:bg-yellow-600 text-white border-none">
+                          متابعة مطلوبة
+                        </Badge>
+                      )}
                     </CardTitle>
                     <p className="text-muted-foreground mt-1 text-sm">
                       {caseItem.short_description_ar || caseItem.short_description}
                     </p>
+
+                    {/* New Key Metrics Row */}
+                    <div className="flex items-center gap-4 mt-3 text-sm text-slate-600">
+                      <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
+                        <Users className="w-4 h-4 text-blue-500" />
+                        <span>{caseItem.kids_count} أطفال</span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
+                        <FileText className={`w-4 h-4 ${caseItem.pending_followups_count > 0 ? 'text-red-500' : 'text-green-500'}`} />
+                        <span className={caseItem.pending_followups_count > 0 ? 'text-red-600 font-bold' : ''}>
+                          {caseItem.pending_followups_count} متابعات معلقة
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md">
+                        <span className="font-bold text-green-700">{caseItem.confirmed_amount?.toLocaleString() || 0}</span>
+                        <span className="text-xs">جمعة دخل</span>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -196,7 +243,7 @@ const CasesList = () => {
             </CardHeader>
 
             <CardContent>
-              <div className="grid md:grid-cols-5 gap-4 mb-4">
+              <div className="grid md:grid-cols-5 gap-4 mb-4 pt-4 border-t">
                 <div className="text-sm">
                   <span className="font-medium">التكلفة الشهرية:</span>
                   <br />

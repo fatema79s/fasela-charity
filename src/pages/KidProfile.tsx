@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, GraduationCap, BookOpen, Calendar, Award, Edit2, Save, Plus, X, TrendingUp, Palette } from "lucide-react";
+import { Heart, GraduationCap, BookOpen, Calendar, Award, Edit2, Save, Plus, X, TrendingUp, Palette, PenTool } from "lucide-react";
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -214,9 +214,29 @@ const KidProfile = () => {
             </div>
 
             {kid.description && (
-              <div>
-                <h3 className="font-semibold mb-2">نبذة</h3>
-                <p className="text-muted-foreground">{kid.description}</p>
+              <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <PenTool className="w-4 h-4 text-primary" />
+                  ملاحظات / نبذة
+                </h3>
+                <p className="text-muted-foreground whitespace-pre-wrap">{kid.description}</p>
+              </div>
+            )}
+
+            {/* Hobbies Section */}
+            {kid.hobbies && kid.hobbies.length > 0 && (
+              <div className="bg-white p-4 rounded-lg border border-border shadow-sm">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-lg">
+                  <Palette className="w-5 h-5 text-purple-600" />
+                  الهوايات والاهتمامات
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {kid.hobbies.map((hobby, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-base py-1 px-3 bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
+                      {hobby}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
