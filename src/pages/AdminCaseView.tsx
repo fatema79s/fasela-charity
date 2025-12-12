@@ -43,6 +43,7 @@ export default function AdminCaseView() {
     description: "",
     monthly_cost: 0,
     is_published: false,
+    contact_phone: "",
   });
 
   const { data: caseData, isLoading } = useQuery({
@@ -92,6 +93,7 @@ export default function AdminCaseView() {
 
       return {
         ...caseInfo,
+        contact_phone: caseInfo.contact_phone || "", // Ensure it's defined
         case_kids: kidsData.data || [],
         case_charities: caseCharities,
         stats: {
@@ -145,6 +147,7 @@ export default function AdminCaseView() {
         description: caseData.description || "",
         monthly_cost: caseData.monthly_cost || 0,
         is_published: caseData.is_published || false,
+        contact_phone: caseData.contact_phone || "",
       });
       setEditCaseOpen(true);
     }
@@ -319,6 +322,10 @@ export default function AdminCaseView() {
                 <p className="font-medium">{caseData.monthly_cost} ريال</p>
               </div>
               <div>
+                <p className="text-sm text-muted-foreground">رقم جوال الأم</p>
+                <p className="font-medium">{caseData.contact_phone || "غير مسجل"}</p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground">الحالة</p>
                 <Badge variant={caseData.is_published ? "default" : "secondary"}>
                   {caseData.is_published ? "منشور" : "غير منشور"}
@@ -435,6 +442,15 @@ export default function AdminCaseView() {
                 value={editForm.title}
                 onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="أدخل العنوان بالإنجليزية"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_phone">رقم جوال الأم (للدخول)</Label>
+              <Input
+                id="contact_phone"
+                value={editForm.contact_phone}
+                onChange={(e) => setEditForm(prev => ({ ...prev, contact_phone: e.target.value }))}
+                placeholder="05XXXXXXXX"
               />
             </div>
             <div>
