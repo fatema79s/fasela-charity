@@ -38,6 +38,7 @@ interface CaseFormData {
   skills?: string;
   education_level?: string;
   profile_notes?: string;
+  contact_phone?: string;
 }
 
 interface MonthlyNeed {
@@ -150,7 +151,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
   const loadCaseData = async () => {
     if (!caseId) return;
-    
+
     setLoadingCase(true);
     try {
       // Load case data
@@ -210,24 +211,23 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setValue("area", caseData.area || "");
         setValue("deserve_zakkah", caseData.deserve_zakkah || false);
         setValue("case_care_type", (caseData.case_care_type as "cancelled" | "one_time_donation" | "sponsorship") || 'sponsorship');
-        
+
         // Parent profile fields
         setValue("rent_amount", caseData.rent_amount || 0);
         setValue("kids_number", caseData.kids_number || 0);
         setValue("health_state", caseData.health_state || "");
         setValue("parent_age", caseData.parent_age || undefined);
-        setValue("work_ability", caseData.work_ability || "");
-        setValue("skills", Array.isArray(caseData.skills) ? caseData.skills.join(', ') : "");
         setValue("education_level", caseData.education_level || "");
         setValue("profile_notes", caseData.profile_notes || "");
-        
+        setValue("contact_phone", caseData.contact_phone || "");
+
         // Set current image URL
         setCurrentImageUrl(caseData.photo_url || "");
-        
+
         // Set admin profile picture URL
         setAdminProfilePictureUrl(caseData.admin_profile_picture_url || "");
         setValue("admin_profile_picture_url", caseData.admin_profile_picture_url || "");
-        
+
         // Set description images
         const images = caseData.description_images;
         if (Array.isArray(images)) {
@@ -508,12 +508,12 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   };
 
   const addMonthlyNeed = () => {
-    setMonthlyNeeds([...monthlyNeeds, { 
-      category: "", 
-      amount: 0, 
-      description: "", 
-      icon: "💰", 
-      color: "bg-blue-500" 
+    setMonthlyNeeds([...monthlyNeeds, {
+      category: "",
+      amount: 0,
+      description: "",
+      icon: "💰",
+      color: "bg-blue-500"
     }]);
   };
 
@@ -530,10 +530,10 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
   };
 
   const addKid = () => {
-    setKids([...kids, { 
-      name: "", 
-      age: 0, 
-      gender: 'male', 
+    setKids([...kids, {
+      name: "",
+      age: 0,
+      gender: 'male',
       description: "",
       health_state: "",
       current_grade: "",
@@ -660,12 +660,12 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
   const onSubmit = async (data: CaseFormData) => {
     setLoading(true);
-    
+
     try {
       if (isEditMode && caseId) {
         // Update existing case
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
-        
+
         const { error: caseError } = await supabase
           .from("cases")
           .update({
@@ -695,6 +695,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             skills: skillsArray.length > 0 ? skillsArray : null,
             education_level: data.education_level || null,
             profile_notes: data.profile_notes || null,
+            contact_phone: data.contact_phone || null,
             updated_at: new Date().toISOString()
           })
           .eq("id", caseId);
@@ -794,7 +795,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
       } else {
         // Create new case
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
-        
+
         const { data: caseData, error: caseError } = await supabase
           .from("cases")
           .insert({
@@ -820,11 +821,6 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             kids_number: data.kids_number || 0,
             health_state: data.health_state || null,
             parent_age: data.parent_age || null,
-            work_ability: data.work_ability || null,
-            skills: skillsArray.length > 0 ? skillsArray : null,
-            education_level: data.education_level || null,
-            profile_notes: data.profile_notes || null,
-            months_covered: 0,
             total_secured_money: 0
           })
           .select()
@@ -901,10 +897,10 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
         setAdminProfilePictureUrl("");
         setDescriptionImages([]);
         setMonthlyNeeds([{ category: "", amount: 0, description: "", icon: "💰", color: "bg-blue-500" }]);
-        setKids([{ 
-          name: "", 
-          age: 0, 
-          gender: 'male', 
+        setKids([{
+          name: "",
+          age: 0,
+          gender: 'male',
           description: "",
           health_state: "",
           current_grade: "",
@@ -914,7 +910,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           ongoing_courses: []
         }]);
         setCaseCharities([]);
-        
+
         // Call onSuccess callback if provided
         onSuccess?.();
       }
@@ -1032,8 +1028,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {descriptionImages.map((imageUrl, index) => (
                     <div key={index} className="relative group">
-                      <img 
-                        src={imageUrl} 
+                      <img
+                        src={imageUrl}
                         alt={`صورة وصف ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg border"
                       />
@@ -1061,13 +1057,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                   className="hidden"
                   id="description-image-upload"
                 />
-                <Label 
-                  htmlFor="description-image-upload" 
+                <Label
+                  htmlFor="description-image-upload"
                   className="cursor-pointer"
                 >
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     disabled={uploadingDescriptionImage}
                     asChild
                   >
@@ -1089,7 +1085,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
               <Input
                 id="monthly_cost"
                 type="number"
-                {...register("monthly_cost", { 
+                {...register("monthly_cost", {
                   required: watch("case_care_type") === 'one_time_donation' ? "المبلغ المطلوب مطلوب" : "التكلفة الشهرية مطلوبة",
                   min: { value: 1, message: "يجب أن يكون المبلغ أكبر من صفر" }
                 })}
@@ -1113,7 +1109,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                 <Input
                   id="months_needed"
                   type="number"
-                  {...register("months_needed", { 
+                  {...register("months_needed", {
                     required: "عدد الأشهر مطلوب",
                     min: { value: 1, message: "يجب أن يكون عدد الأشهر أكبر من صفر" }
                   })}
@@ -1130,9 +1126,9 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
               <div className="space-y-3">
                 {currentImageUrl && (
                   <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-                    <img 
-                      src={currentImageUrl} 
-                      alt="صورة الحالة" 
+                    <img
+                      src={currentImageUrl}
+                      alt="صورة الحالة"
                       className="w-full h-full object-cover"
                     />
                     <Button
@@ -1156,13 +1152,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                       className="hidden"
                       id="case-image-upload"
                     />
-                    <Label 
-                      htmlFor="case-image-upload" 
+                    <Label
+                      htmlFor="case-image-upload"
                       className="cursor-pointer"
                     >
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         disabled={uploadingImage}
                         asChild
                       >
@@ -1200,9 +1196,9 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
               <div className="space-y-3">
                 {adminProfilePictureUrl && (
                   <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-                    <img 
-                      src={adminProfilePictureUrl} 
-                      alt="صورة الملف الشخصي للإدارة" 
+                    <img
+                      src={adminProfilePictureUrl}
+                      alt="صورة الملف الشخصي للإدارة"
                       className="w-full h-full object-cover"
                     />
                     <Button
@@ -1226,13 +1222,13 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                       className="hidden"
                       id="admin-profile-picture-upload"
                     />
-                    <Label 
-                      htmlFor="admin-profile-picture-upload" 
+                    <Label
+                      htmlFor="admin-profile-picture-upload"
                       className="cursor-pointer"
                     >
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         disabled={uploadingAdminProfilePicture}
                         asChild
                       >
@@ -1334,8 +1330,8 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="case_care_type">نوع رعاية الحالة</Label>
-              <Select 
-                value={watch("case_care_type") || 'sponsorship'} 
+              <Select
+                value={watch("case_care_type") || 'sponsorship'}
                 onValueChange={(value) => setValue("case_care_type", value as 'cancelled' | 'sponsorship' | 'one_time_donation')}
               >
                 <SelectTrigger>
@@ -1348,11 +1344,11 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {watch("case_care_type") === 'sponsorship' 
+                {watch("case_care_type") === 'sponsorship'
                   ? "هذه الحالة تتطلب التزام شهري مستمر"
                   : watch("case_care_type") === 'one_time_donation'
-                  ? "هذه الحالة تحتاج مساعدة لمرة واحدة فقط"
-                  : "هذه الحالة ملغاة ولا تقبل تبرعات"}
+                    ? "هذه الحالة تحتاج مساعدة لمرة واحدة فقط"
+                    : "هذه الحالة ملغاة ولا تقبل تبرعات"}
               </p>
             </div>
           </div>
@@ -1491,6 +1487,19 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           <CardTitle>بيانات ولي الأمر / مقدم الرعاية</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="contact_phone">رقم جوال الأم (للدخول)</Label>
+            <Input
+              id="contact_phone"
+              {...register("contact_phone")}
+              placeholder="05XXXXXXXX"
+              className="max-w-md"
+            />
+            <p className="text-xs text-muted-foreground">
+              هذا الرقم يستخدم لدخول الأم إلى صفحة الاستبيان (mom-survey)
+            </p>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="parent_age">العمر</Label>
@@ -1713,7 +1722,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           {/* Add Charity Section */}
           <div className="p-4 border rounded-lg space-y-4 bg-muted/30">
             <h4 className="font-medium">إضافة جمعية خيرية</h4>
-            
+
             {!showNewCharityForm ? (
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -1863,7 +1872,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={loading} size="lg">
-          {loading 
+          {loading
             ? (isEditMode ? "جار التحديث..." : "جار الحفظ...")
             : (isEditMode ? "تحديث الحالة" : "حفظ الحالة")
           }
