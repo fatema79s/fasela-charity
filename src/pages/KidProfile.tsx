@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,7 +21,6 @@ interface Kid {
   current_grade?: string;
   school_name?: string;
   education_progress?: Array<{ year: string; description: string; grade?: string }>;
-  certificates?: Array<{ name: string; date?: string; issuer?: string }>;
   certificates?: Array<{ name: string; date?: string; issuer?: string }>;
   ongoing_courses?: Array<{ name: string; startDate?: string; description?: string }>;
   hobbies?: string[];
@@ -143,7 +141,7 @@ const KidProfile = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background" dir="rtl">
-        <Navigation />
+
         <main className="container mx-auto px-4 py-8">
           <Skeleton className="h-64 w-full" />
         </main>
@@ -154,7 +152,7 @@ const KidProfile = () => {
   if (!kid) {
     return (
       <div className="min-h-screen bg-background" dir="rtl">
-        <Navigation />
+
         <main className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-12 text-center">
@@ -168,7 +166,6 @@ const KidProfile = () => {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <Navigation />
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header Card */}

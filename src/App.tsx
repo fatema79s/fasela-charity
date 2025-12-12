@@ -32,6 +32,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+import PublicLayout from "./components/layouts/PublicLayout";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -39,11 +41,22 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<CasesList />} />
-          <Route path="/cases" element={<CasesList />} />
-          <Route path="/case/:id" element={<CaseDetails />} />
-          <Route path="/kids" element={<KidsList />} />
-          <Route path="/kid/:id" element={<KidProfile />} />
+          {/* Public Routes - Wrapped in PublicLayout */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<CasesList />} />
+            <Route path="/cases" element={<CasesList />} />
+            <Route path="/case/:id" element={<CaseDetails />} />
+            <Route path="/kids" element={<KidsList />} />
+            <Route path="/kid/:id" element={<KidProfile />} />
+            <Route path="/case-pipeline" element={<CasePipeline />} />
+            <Route path="/selection-criteria" element={<SelectionCriteria />} />
+            <Route path="/funding-channels" element={<FundingChannels />} />
+            <Route path="/monthly-report" element={<MonthlyReport />} />
+            <Route path="/donor-report" element={<PublicDonorReport />} />
+            <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
+            <Route path="/mob-survey" element={<MomSurvey />} />
+          </Route>
+
           <Route path="/auth" element={<Auth />} />
 
           {/* Admin Routes */}
@@ -61,13 +74,7 @@ const App = () => (
           <Route path="/admin/case/:id" element={<AdminLayout><AdminCaseView /></AdminLayout>} />
           <Route path="/admin/followups" element={<AdminLayout><AdminFollowupActions /></AdminLayout>} />
 
-          <Route path="/donor-report" element={<PublicDonorReport />} />
-          <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
-          <Route path="/monthly-report" element={<MonthlyReport />} />
-          <Route path="/selection-criteria" element={<SelectionCriteria />} />
-          <Route path="/funding-channels" element={<FundingChannels />} />
-          <Route path="/case-pipeline" element={<CasePipeline />} />
-          <Route path="/mom-survey" element={<MomSurvey />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

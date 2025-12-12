@@ -1,11 +1,10 @@
 import { Badge } from "@/components/ui/badge";
-import Navigation from "@/components/Navigation";
-import { 
-  Search, 
-  Users, 
-  Heart, 
-  CheckCircle, 
-  Home, 
+import {
+  Search,
+  Users,
+  Heart,
+  CheckCircle,
+  Home,
   FileSearch,
   Calendar,
   DollarSign,
@@ -148,21 +147,20 @@ const phases = [
 const CasePipeline = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
-      <Navigation />
-      
+
       {/* Hero Section */}
       <div className="gradient-hero text-white py-20 md:py-28 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 right-[10%] w-72 h-72 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-10 left-[10%] w-96 h-96 bg-white/5 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2.5 mb-8">
             <Sparkles className="w-5 h-5" />
             <span className="font-medium">١٤ خطوة نحو التغيير</span>
           </div>
-          
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
             رحلة الكفالة
           </h1>
@@ -196,7 +194,7 @@ const CasePipeline = () => {
             const phaseInfo = phases.find(p => p.name === step.phase);
             const isEven = index % 2 === 0;
             const isLast = index === pipelineSteps.length - 1;
-            
+
             return (
               <div key={step.id} className="relative">
                 {/* Snake connector */}
@@ -209,7 +207,7 @@ const CasePipeline = () => {
                       preserveAspectRatio="none"
                     >
                       <path
-                        d={isEven 
+                        d={isEven
                           ? "M 400 0 C 400 64, 100 64, 100 128"
                           : "M 400 0 C 400 64, 700 64, 700 128"
                         }
@@ -234,36 +232,34 @@ const CasePipeline = () => {
                     <div className="w-0.5 h-12 bg-gradient-to-b from-primary/50 to-primary/10" />
                   </div>
                 )}
-                
+
                 {/* Step Card */}
-                <div className={`flex items-center gap-4 md:gap-8 mb-8 md:mb-0 ${
-                  isEven ? 'md:flex-row' : 'md:flex-row-reverse'
-                }`}>
+                <div className={`flex items-center gap-4 md:gap-8 mb-8 md:mb-0 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'
+                  }`}>
                   {/* Empty space for snake effect */}
                   <div className="hidden md:block flex-1" />
-                  
+
                   {/* Card */}
-                  <div className={`flex-1 md:max-w-md group ${
-                    isEven ? 'md:text-right' : 'md:text-left'
-                  }`}>
+                  <div className={`flex-1 md:max-w-md group ${isEven ? 'md:text-right' : 'md:text-left'
+                    }`}>
                     <div className="relative bg-card rounded-3xl p-6 shadow-lg border border-border/50 hover:shadow-2xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-1">
                       {/* Glow effect */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500`} />
-                      
+
                       {/* Step number badge */}
                       <div className={`absolute -top-4 ${isEven ? 'md:-left-4 -left-2' : 'md:-right-4 -right-2'}`}>
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
                           {step.id}
                         </div>
                       </div>
-                      
+
                       {/* Icon */}
                       <div className={`inline-flex mb-4 ${isEven ? 'md:float-left md:ml-4' : 'md:float-right md:mr-4'}`}>
                         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                           <step.icon className="w-8 h-8 text-white" />
                         </div>
                       </div>
-                      
+
                       {/* Content */}
                       <div className="relative z-10">
                         <div className={`flex flex-wrap items-center gap-2 mb-3 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
@@ -282,19 +278,19 @@ const CasePipeline = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Center Line Node */}
                   <div className="hidden md:flex flex-col items-center">
                     <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${step.gradient} shadow-lg ring-4 ring-background`} />
                   </div>
-                  
+
                   {/* Empty space for snake effect */}
                   <div className="hidden md:block flex-1" />
                 </div>
               </div>
             );
           })}
-          
+
           {/* Center vertical line (desktop) */}
           <div className="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-gradient-to-b from-primary/50 via-primary/30 to-primary/10 rounded-full" />
         </div>
@@ -306,12 +302,12 @@ const CasePipeline = () => {
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
             ملخص الرحلة
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="bg-card rounded-3xl p-8 text-center shadow-xl border border-border/50 hover:border-blue-500/30 transition-colors group">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
@@ -320,7 +316,7 @@ const CasePipeline = () => {
               <h3 className="text-3xl font-bold mb-2 text-foreground">٦ خطوات</h3>
               <p className="text-muted-foreground text-lg">للاكتشاف والتحقق</p>
             </div>
-            
+
             <div className="bg-card rounded-3xl p-8 text-center shadow-xl border border-border/50 hover:border-primary/30 transition-colors group">
               <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
                 <HandHeart className="w-10 h-10 text-white" />
@@ -328,7 +324,7 @@ const CasePipeline = () => {
               <h3 className="text-3xl font-bold mb-2 text-foreground">١٥٠٠-٢٠٠٠</h3>
               <p className="text-muted-foreground text-lg">جنيه كفالة شهرية</p>
             </div>
-            
+
             <div className="bg-card rounded-3xl p-8 text-center shadow-xl border border-border/50 hover:border-purple-500/30 transition-colors group">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
                 <GraduationCap className="w-10 h-10 text-white" />

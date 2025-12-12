@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Users, Calendar, Heart, Filter, Home, Baby, BookOpen, CheckCircle2, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import Navigation from "@/components/Navigation";
 import { FeaturedCasesCarousel } from "@/components/FeaturedCasesCarousel";
 
 const CasesList = () => {
@@ -26,9 +25,9 @@ const CasesList = () => {
         .not("title_ar", "is", null)
         .not("description_ar", "is", null)
         .order("created_at", { ascending: false });
-      
+
       if (casesError) throw casesError;
-      
+
       // Then get report counts, confirmed donations, and handovers for each case
       const casesWithReports = await Promise.all(
         cases.map(async (caseItem) => {
@@ -51,12 +50,12 @@ const CasesList = () => {
               .select("handover_amount")
               .eq("case_id", caseItem.id)
           ]);
-          
+
           // Calculate total from both direct donations and handovers
           const directDonations = donations?.reduce((sum, d) => sum + Number(d.amount || 0), 0) || 0;
           const handoverAmounts = handovers?.reduce((sum, h) => sum + Number(h.handover_amount || 0), 0) || 0;
           const totalSecured = directDonations + handoverAmounts;
-          
+
           return {
             ...caseItem,
             reports_count: reportsCount || 0,
@@ -64,7 +63,7 @@ const CasesList = () => {
           };
         })
       );
-      
+
       return casesWithReports;
     }
   });
@@ -76,7 +75,7 @@ const CasesList = () => {
         .from("program_stats")
         .select("*")
         .order("created_at", { ascending: true });
-      
+
       if (error) throw error;
       return data;
     }
@@ -85,10 +84,10 @@ const CasesList = () => {
   // Apply filters
   const cases = allCases?.filter((caseItem) => {
     const statusMatch = statusFilter === "all" || caseItem.status === statusFilter;
-    const zakahMatch = zakahFilter === "all" || 
+    const zakahMatch = zakahFilter === "all" ||
       (zakahFilter === "true" && caseItem.deserve_zakkah) ||
       (zakahFilter === "false" && !caseItem.deserve_zakkah);
-    
+
     return statusMatch && zakahMatch;
   });
 
@@ -106,19 +105,8 @@ const CasesList = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Navigation Header */}
-        <header className="gradient-hero text-white py-4">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Heart className="w-8 h-8 text-white" />
-                <span className="text-xl font-bold">فَسِيلَة خير</span>
-              </div>
-              <Navigation />
-            </div>
-          </div>
-        </header>
-        
+        {/* Navigation Header removed - now in PublicLayout */}
+
         {/* Hero Section */}
         <div className="gradient-hero text-white py-16">
           <div className="container mx-auto px-4 text-center">
@@ -139,19 +127,8 @@ const CasesList = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="gradient-hero text-white py-4">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Heart className="w-8 h-8 text-white" />
-              <span className="text-xl font-bold">فَسِيلَة خير</span>
-            </div>
-            <Navigation />
-          </div>
-        </div>
-      </header>
-      
+      {/* Navigation Header removed - now in PublicLayout */}
+
       {/* Hero Section */}
       <div className="relative gradient-hero text-white py-12 sm:py-16 lg:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -164,7 +141,7 @@ const CasesList = () => {
           <p className="text-lg sm:text-xl md:text-2xl opacity-90 max-w-3xl mx-auto leading-relaxed">
             اختر الأسرة التي تود كفالتها واتبع رحلتها الشهرية بشفافية كاملة
           </p>
-          
+
           {/* Statistics Section */}
           <div className="mt-8 sm:mt-10">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
@@ -178,7 +155,7 @@ const CasesList = () => {
                   <div className="text-xs sm:text-sm text-white/80">الأسر المكفولة</div>
                 </div>
               </div>
-              
+
               {/* Number of sponsored orphan children - admin configurable */}
               <div className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all hover-scale">
@@ -189,7 +166,7 @@ const CasesList = () => {
                   <div className="text-xs sm:text-sm text-white/80">الأيتام المكفولين</div>
                 </div>
               </div>
-              
+
               {/* Number of children taught Quran, Sunnah and electronics - admin configurable */}
               <div className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all hover-scale">
@@ -200,7 +177,7 @@ const CasesList = () => {
                   <div className="text-xs sm:text-sm text-white/80">الأطفال المتعلمين</div>
                 </div>
               </div>
-              
+
               {/* Number of cases we helped - calculated */}
               <div className="text-center">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20 shadow-lg hover:bg-white/15 transition-all hover-scale">
@@ -213,8 +190,8 @@ const CasesList = () => {
               </div>
             </div>
           </div>
-          
-          
+
+
           <div className="mt-8 flex justify-center">
             <div className="w-24 h-1 bg-white/30 rounded-full"></div>
           </div>
@@ -230,28 +207,28 @@ const CasesList = () => {
 
         {/* الفلاتر البسيطة */}
         <div className="mb-6 flex flex-wrap gap-2 justify-center">
-          <Badge 
+          <Badge
             variant={statusFilter === "all" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={() => setStatusFilter("all")}
           >
             جميع الحالات
           </Badge>
-          <Badge 
+          <Badge
             variant={statusFilter === "active" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={() => setStatusFilter("active")}
           >
             نشطة
           </Badge>
-          <Badge 
+          <Badge
             variant={statusFilter === "complete" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={() => setStatusFilter("complete")}
           >
             مكتملة
           </Badge>
-          <Badge 
+          <Badge
             variant={zakahFilter === "true" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={() => {
@@ -270,42 +247,42 @@ const CasesList = () => {
                 {/* Image Section */}
                 {caseItem.photo_url && (
                   <div className="relative h-64 md:h-auto bg-gray-100">
-                    <img 
-                      src={caseItem.photo_url} 
+                    <img
+                      src={caseItem.photo_url}
                       alt={caseItem.title}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-4 right-4 flex flex-col gap-2">
-                      <Badge 
+                      <Badge
                         variant="default"
                         className="bg-primary text-primary-foreground text-sm px-3 py-1"
                       >
                         حالة مميزة
                       </Badge>
-                      <Badge 
+                      <Badge
                         variant={caseItem.status === 'active' ? 'default' : 'secondary'}
                         className="bg-white/90 text-gray-800 text-sm"
                       >
                         {caseItem.status === 'active' ? 'نشطة' : 'مكتملة'}
                       </Badge>
-                      <Badge 
+                      <Badge
                         variant="outline"
                         className={
                           caseItem.case_care_type === 'one_time_donation'
                             ? "bg-orange-500/90 text-white border-orange-600 text-sm"
                             : caseItem.case_care_type === 'cancelled'
-                            ? "bg-gray-500/90 text-white border-gray-600 text-sm"
-                            : "bg-blue-500/90 text-white border-blue-600 text-sm"
+                              ? "bg-gray-500/90 text-white border-gray-600 text-sm"
+                              : "bg-blue-500/90 text-white border-blue-600 text-sm"
                         }
                       >
-                        {caseItem.case_care_type === 'one_time_donation' 
-                          ? 'مساعدة لمرة واحدة' 
+                        {caseItem.case_care_type === 'one_time_donation'
+                          ? 'مساعدة لمرة واحدة'
                           : caseItem.case_care_type === 'cancelled'
-                          ? 'ملغاة'
-                          : 'كفالة (التزام شهري)'}
+                            ? 'ملغاة'
+                            : 'كفالة (التزام شهري)'}
                       </Badge>
                       {caseItem.deserve_zakkah && (
-                        <Badge 
+                        <Badge
                           variant="outline"
                           className="bg-green-500/90 text-white border-green-600 text-sm"
                         >
@@ -315,7 +292,7 @@ const CasesList = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Content Section */}
                 <div className="p-6 md:p-8 flex flex-col justify-between">
                   <div>
@@ -324,7 +301,7 @@ const CasesList = () => {
                       {caseItem.short_description_ar || caseItem.short_description}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="flex items-center gap-3 text-sm">
@@ -336,7 +313,7 @@ const CasesList = () => {
                           <div className="font-semibold">{caseItem.monthly_cost} جنيه</div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 text-sm">
                         <div className="bg-primary/10 p-2 rounded-lg">
                           <Calendar className="w-5 h-5 text-primary" />
@@ -346,7 +323,7 @@ const CasesList = () => {
                           <div className="font-semibold">{caseItem.months_covered} من {caseItem.months_needed}</div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-3 text-sm">
                         <div className="bg-primary/10 p-2 rounded-lg">
                           <Heart className="w-5 h-5 text-primary" />
@@ -367,7 +344,7 @@ const CasesList = () => {
                             {Math.round(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100)}%
                           </span>
                         </div>
-                        <Progress 
+                        <Progress
                           value={Math.min(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100, 100)}
                           className="h-3"
                         />
@@ -393,45 +370,45 @@ const CasesList = () => {
           {cases?.filter(c => c.title_ar !== "الدعم العام").map((caseItem) => (
             <Link key={caseItem.id} to={`/case/${caseItem.id}`} className="block">
               <Card className="overflow-hidden shadow-soft hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transform transition-transform">
-              {caseItem.photo_url && (
+                {caseItem.photo_url && (
                   <div className="relative h-40 sm:h-48 bg-gray-100">
-                    <img 
-                      src={caseItem.photo_url} 
+                    <img
+                      src={caseItem.photo_url}
                       alt={caseItem.title}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex flex-col sm:flex-row gap-2">
-                      <Badge 
+                      <Badge
                         variant={caseItem.status === 'active' ? 'default' : 'secondary'}
                         className="bg-white/90 text-gray-800 text-xs"
                       >
                         {caseItem.status === 'active' ? 'نشطة' : 'مكتملة'}
                       </Badge>
-                      <Badge 
+                      <Badge
                         variant="outline"
                         className={
                           caseItem.case_care_type === 'one_time_donation'
                             ? "bg-orange-500/90 text-white border-orange-600 text-xs"
                             : caseItem.case_care_type === 'cancelled'
-                            ? "bg-gray-500/90 text-white border-gray-600 text-xs"
-                            : "bg-blue-500/90 text-white border-blue-600 text-xs"
+                              ? "bg-gray-500/90 text-white border-gray-600 text-xs"
+                              : "bg-blue-500/90 text-white border-blue-600 text-xs"
                         }
                       >
-                        {caseItem.case_care_type === 'one_time_donation' 
-                          ? 'مساعدة لمرة واحدة' 
+                        {caseItem.case_care_type === 'one_time_donation'
+                          ? 'مساعدة لمرة واحدة'
                           : caseItem.case_care_type === 'cancelled'
-                          ? 'ملغاة'
-                          : 'كفالة (التزام شهري)'}
+                            ? 'ملغاة'
+                            : 'كفالة (التزام شهري)'}
                       </Badge>
                       {caseItem.deserve_zakkah && (
-                        <Badge 
+                        <Badge
                           variant="outline"
                           className="bg-green-500/90 text-white border-green-600 text-xs"
                         >
                           مستحق للزكاة
                         </Badge>
                       )}
-                      <Badge 
+                      <Badge
                         variant="outline"
                         className="bg-purple-500/90 text-white border-purple-600 text-xs flex items-center gap-1"
                       >
@@ -440,57 +417,57 @@ const CasesList = () => {
                       </Badge>
                     </div>
                   </div>
-              )}
-              
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">{caseItem.title_ar || caseItem.title}</CardTitle>
-              </CardHeader>
-              
-              <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
-                <p className="text-muted-foreground line-clamp-3 text-sm sm:text-base">
-                  {caseItem.short_description_ar || caseItem.short_description}
-                </p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>المبلغ الشهري المطلوب: {caseItem.monthly_cost} جنيه</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {caseItem.months_covered} من {caseItem.months_needed} شهر مكتمل
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <Heart className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-primary">المبلغ المجمع: {(caseItem.total_secured_money || 0).toLocaleString()} جنيه</span>
-                  </div>
-                </div>
-
-                {/* شريط التقدم المالي - Hidden when collected exceeds needed */}
-                {(caseItem.total_secured_money || 0) <= (caseItem.monthly_cost * caseItem.months_needed) && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>التقدم المالي</span>
-                      <span>
-                        {Math.round(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100)}%
-                      </span>
-                    </div>
-                    <Progress 
-                      value={Math.min(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100, 100)}
-                      className="h-3"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{(caseItem.total_secured_money || 0).toLocaleString()} جنيه</span>
-                      <span>{(caseItem.monthly_cost * caseItem.months_needed).toLocaleString()} جنيه</span>
-                    </div>
-                  </div>
                 )}
 
-              </CardContent>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">{caseItem.title_ar || caseItem.title}</CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
+                  <p className="text-muted-foreground line-clamp-3 text-sm sm:text-base">
+                    {caseItem.short_description_ar || caseItem.short_description}
+                  </p>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>المبلغ الشهري المطلوب: {caseItem.monthly_cost} جنيه</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        {caseItem.months_covered} من {caseItem.months_needed} شهر مكتمل
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <Heart className="w-4 h-4 text-primary" />
+                      <span className="font-bold text-primary">المبلغ المجمع: {(caseItem.total_secured_money || 0).toLocaleString()} جنيه</span>
+                    </div>
+                  </div>
+
+                  {/* شريط التقدم المالي - Hidden when collected exceeds needed */}
+                  {(caseItem.total_secured_money || 0) <= (caseItem.monthly_cost * caseItem.months_needed) && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>التقدم المالي</span>
+                        <span>
+                          {Math.round(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100)}%
+                        </span>
+                      </div>
+                      <Progress
+                        value={Math.min(((caseItem.total_secured_money || 0) / (caseItem.monthly_cost * caseItem.months_needed)) * 100, 100)}
+                        className="h-3"
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{(caseItem.total_secured_money || 0).toLocaleString()} جنيه</span>
+                        <span>{(caseItem.monthly_cost * caseItem.months_needed).toLocaleString()} جنيه</span>
+                      </div>
+                    </div>
+                  )}
+
+                </CardContent>
               </Card>
             </Link>
           ))}

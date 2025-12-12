@@ -7,14 +7,13 @@ import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Cart
 import { Calendar, TrendingUp, TrendingDown, Users, ClipboardList, DollarSign, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Navigation from "@/components/Navigation";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 const MonthlyReport = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`);
-  
+
   const months = [];
   for (let i = 11; i >= 0; i--) {
     const date = new Date();
@@ -127,7 +126,6 @@ const MonthlyReport = () => {
   if (isLoading) {
     return (
       <>
-        <Navigation />
         <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12">
           <div className="container mx-auto px-4">
             <div className="text-center">جاري التحميل...</div>
@@ -139,7 +137,6 @@ const MonthlyReport = () => {
 
   return (
     <>
-      <Navigation />
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-12">
         <div className="container mx-auto px-4 max-w-7xl">
           {/* Header */}
@@ -216,7 +213,7 @@ const MonthlyReport = () => {
                   {reportData?.stats.followupsCount || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  مكتمل: {reportData?.stats.followupsCompleted || 0} | 
+                  مكتمل: {reportData?.stats.followupsCompleted || 0} |
                   قيد الانتظار: {reportData?.stats.followupsPending || 0}
                 </p>
               </CardContent>
@@ -347,10 +344,10 @@ const MonthlyReport = () => {
                     >
                       <div className="flex items-center justify-between">
                         <p className="font-semibold">{caseItem.title_ar || caseItem.title}</p>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={
-                            caseItem.lifecycle_status === 'closed' 
+                            caseItem.lifecycle_status === 'closed'
                               ? "bg-red-100 text-red-800 border-red-300"
                               : "bg-yellow-100 text-yellow-800 border-yellow-300"
                           }

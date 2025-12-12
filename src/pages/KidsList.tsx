@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,7 +44,7 @@ const KidsList = () => {
         .in("id", caseIds);
 
       const casesMap = new Map(casesData?.map(c => [c.id, c]) || []);
-      
+
       return data?.map(kid => ({
         ...kid,
         cases: casesMap.get(kid.case_id)
@@ -63,8 +62,7 @@ const KidsList = () => {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <Navigation />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
@@ -101,81 +99,81 @@ const KidsList = () => {
               {kids?.map((kid) => (
                 <Link key={kid.id} to={`/kid/${kid.id}`}>
                   <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="text-3xl">{getGenderIcon(kid.gender)}</div>
-                        <div>
-                          <CardTitle className="text-xl">{kid.name}</CardTitle>
-                          <Link 
-                            to={`/case/${kid.case_id}`}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {kid.cases?.title_ar || kid.cases?.title}
-                          </Link>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-3xl">{getGenderIcon(kid.gender)}</div>
+                          <div>
+                            <CardTitle className="text-xl">{kid.name}</CardTitle>
+                            <Link
+                              to={`/case/${kid.case_id}`}
+                              className="text-sm text-primary hover:underline"
+                            >
+                              {kid.cases?.title_ar || kid.cases?.title}
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {kid.age} سنة
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {getGenderText(kid.gender)}
-                      </Badge>
-                    </div>
-
-                    {kid.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {kid.description}
-                      </p>
-                    )}
-
-                    <div className="space-y-2">
-                      {kid.health_state && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Heart className="w-4 h-4 text-red-500" />
-                          <span className="text-muted-foreground">الحالة الصحية:</span>
-                          <span className="font-medium">{kid.health_state}</span>
-                        </div>
-                      )}
-
-                      {kid.current_grade && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <GraduationCap className="w-4 h-4 text-blue-500" />
-                          <span className="text-muted-foreground">الصف:</span>
-                          <span className="font-medium">{kid.current_grade}</span>
-                        </div>
-                      )}
-
-                      {kid.school_name && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <BookOpen className="w-4 h-4 text-green-500" />
-                          <span className="text-muted-foreground">المدرسة:</span>
-                          <span className="font-medium line-clamp-1">{kid.school_name}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {kid.ongoing_courses && kid.ongoing_courses.length > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">
-                          الدورات الحالية: {kid.ongoing_courses.length}
-                        </p>
-                      </div>
-                    )}
-
-                    {kid.certificates && kid.certificates.length > 0 && (
-                      <div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-wrap gap-2">
                         <Badge variant="outline" className="text-xs">
-                          🏆 {kid.certificates.length} شهادة
+                          {kid.age} سنة
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {getGenderText(kid.gender)}
                         </Badge>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+
+                      {kid.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {kid.description}
+                        </p>
+                      )}
+
+                      <div className="space-y-2">
+                        {kid.health_state && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Heart className="w-4 h-4 text-red-500" />
+                            <span className="text-muted-foreground">الحالة الصحية:</span>
+                            <span className="font-medium">{kid.health_state}</span>
+                          </div>
+                        )}
+
+                        {kid.current_grade && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <GraduationCap className="w-4 h-4 text-blue-500" />
+                            <span className="text-muted-foreground">الصف:</span>
+                            <span className="font-medium">{kid.current_grade}</span>
+                          </div>
+                        )}
+
+                        {kid.school_name && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <BookOpen className="w-4 h-4 text-green-500" />
+                            <span className="text-muted-foreground">المدرسة:</span>
+                            <span className="font-medium line-clamp-1">{kid.school_name}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {kid.ongoing_courses && kid.ongoing_courses.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            الدورات الحالية: {kid.ongoing_courses.length}
+                          </p>
+                        </div>
+                      )}
+
+                      {kid.certificates && kid.certificates.length > 0 && (
+                        <div>
+                          <Badge variant="outline" className="text-xs">
+                            🏆 {kid.certificates.length} شهادة
+                          </Badge>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </Link>
               ))}
             </div>
