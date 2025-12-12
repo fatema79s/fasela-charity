@@ -54,7 +54,7 @@ const App = () => (
             <Route path="/monthly-report" element={<MonthlyReport />} />
             <Route path="/donor-report" element={<PublicDonorReport />} />
             <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
-            <Route path="/mob-survey" element={<MomSurvey />} />
+            <Route path="/mom-survey" element={<MomSurvey />} />
           </Route>
 
           <Route path="/auth" element={<Auth />} />
