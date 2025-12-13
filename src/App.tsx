@@ -27,6 +27,7 @@ import AdminStaticPages from "./pages/admin/AdminStaticPages";
 import SelectionCriteria from "./pages/SelectionCriteria";
 import FundingChannels from "./pages/FundingChannels";
 import CasePipeline from "./pages/CasePipeline";
+import Fasela50 from "./pages/Fasela50";
 import MomSurvey from "./pages/MomSurvey";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/kids" element={<KidsList />} />
             <Route path="/kid/:id" element={<KidProfile />} />
             <Route path="/case-pipeline" element={<CasePipeline />} />
+            <Route path="/fasela50" element={<Fasela50 />} />
             <Route path="/selection-criteria" element={<SelectionCriteria />} />
             <Route path="/funding-channels" element={<FundingChannels />} />
             <Route path="/monthly-report" element={<MonthlyReport />} />
