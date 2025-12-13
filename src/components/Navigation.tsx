@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Heart, Settings, Users, Home, Route } from "lucide-react";
+import { Heart, Settings, Users, Home, Route, Menu, X, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
@@ -10,11 +9,11 @@ const Navigation = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -30,7 +29,6 @@ const Navigation = () => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -61,56 +59,124 @@ const Navigation = () => {
     }
   };
 
+  const navLinks = [
+    { to: "/", icon: Home, label: "الرئيسية" },
+    { to: "/fasela50", icon: Sparkles, label: "فسيلة ٥٠" },
+    { to: "/case-pipeline", icon: Route, label: "رحلة الكفالة" },
+  ];
+
+  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) => (
+    <Link
+      to={to}
+      onClick={() => setIsMobileMenuOpen(false)}
+      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+        isActive(to)
+          ? 'bg-white text-primary font-bold shadow-sm scale-105'
+          : 'text-white/90 hover:bg-white/10 hover:text-white'
+      }`}
+    >
+      <Icon className="w-4 h-4" />
+      <span>{label}</span>
+    </Link>
+  );
+
   return (
-    <nav className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 rounded-full border border-white/20 shadow-lg">
-      <Link
-        to="/"
-        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/')
-            ? 'bg-white text-primary font-bold shadow-sm scale-105'
-            : 'text-white/90 hover:bg-white/10 hover:text-white'
-          }`}
-      >
-        <Home className="w-4 h-4" />
-        <span className="hidden sm:inline">الرئيسية</span>
-      </Link>
-
-      <Link
-        to="/case-pipeline"
-        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/case-pipeline')
-            ? 'bg-white text-primary font-bold shadow-sm scale-105'
-            : 'text-white/90 hover:bg-white/10 hover:text-white'
-          }`}
-      >
-        <Route className="w-4 h-4" />
-        <span className="hidden sm:inline">رحلة الكفالة</span>
-      </Link>
-
-      {!user && (
-        <Link
-          to="/auth"
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/auth')
-              ? 'bg-white text-primary font-bold shadow-sm scale-105'
-              : 'text-white/90 hover:bg-white/10 hover:text-white'
+    <>
+      {/* Desktop Navigation */}
+      <nav className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 rounded-full border border-white/20 shadow-lg">
+        {navLinks.map((link) => (
+          <Link
+            key={link.to}
+            to={link.to}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+              isActive(link.to)
+                ? 'bg-white text-primary font-bold shadow-sm scale-105'
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
             }`}
-        >
-          <Users className="w-4 h-4" />
-          <span className="hidden sm:inline">تسجيل الدخول</span>
-        </Link>
+          >
+            <link.icon className="w-4 h-4" />
+            <span>{link.label}</span>
+          </Link>
+        ))}
+
+        {!user && (
+          <Link
+            to="/auth"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+              isActive('/auth')
+                ? 'bg-white text-primary font-bold shadow-sm scale-105'
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>تسجيل الدخول</span>
+          </Link>
+        )}
+
+        {user && isAdmin && (
+          <Link
+            to="/admin"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+              isActive('/admin')
+                ? 'bg-white text-primary font-bold shadow-sm scale-105'
+                : 'text-white/90 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>لوحة التحكم</span>
+          </Link>
+        )}
+      </nav>
+
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white"
+      >
+        {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
       )}
 
-      {user && isAdmin && (
-        <Link
-          to="/admin"
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive('/admin')
-              ? 'bg-white text-primary font-bold shadow-sm scale-105'
-              : 'text-white/90 hover:bg-white/10 hover:text-white'
-            }`}
-        >
-          <Settings className="w-4 h-4" />
-          <span className="hidden sm:inline">لوحة التحكم</span>
-        </Link>
-      )}
-    </nav>
+      {/* Mobile Menu */}
+      <div
+        className={`md:hidden fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-primary to-primary/90 z-50 transform transition-transform duration-300 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-bold text-white">القائمة</h2>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <nav className="flex flex-col gap-2">
+            {navLinks.map((link) => (
+              <NavLink key={link.to} {...link} />
+            ))}
+
+            {!user && (
+              <NavLink to="/auth" icon={Users} label="تسجيل الدخول" />
+            )}
+
+            {user && isAdmin && (
+              <NavLink to="/admin" icon={Settings} label="لوحة التحكم" />
+            )}
+          </nav>
+        </div>
+      </div>
+    </>
   );
 };
 

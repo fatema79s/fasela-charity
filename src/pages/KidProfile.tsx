@@ -36,6 +36,23 @@ const KidProfile = () => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editedKid, setEditedKid] = useState<Partial<Kid>>({});
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useState(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+        setIsAdmin(data?.role === "admin");
+      }
+    };
+    checkAdmin();
+  });
 
   const { data: kid, isLoading } = useQuery({
     queryKey: ["kid", id],
