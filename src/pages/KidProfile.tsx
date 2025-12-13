@@ -184,23 +184,25 @@ const KidProfile = () => {
                   </Link>
                 </div>
               </div>
-              <Button
-                onClick={isEditing ? handleSave : handleEdit}
-                variant={isEditing ? "default" : "outline"}
-                size="lg"
-              >
-                {isEditing ? (
-                  <>
-                    <Save className="w-4 h-4 ml-2" />
-                    حفظ
-                  </>
-                ) : (
-                  <>
-                    <Edit2 className="w-4 h-4 ml-2" />
-                    تعديل
-                  </>
-                )}
-              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={isEditing ? handleSave : handleEdit}
+                  variant={isEditing ? "default" : "outline"}
+                  size="lg"
+                >
+                  {isEditing ? (
+                    <>
+                      <Save className="w-4 h-4 ml-2" />
+                      حفظ
+                    </>
+                  ) : (
+                    <>
+                      <Edit2 className="w-4 h-4 ml-2" />
+                      تعديل
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

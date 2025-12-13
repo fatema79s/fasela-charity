@@ -399,39 +399,33 @@ export default function AdminCaseView() {
 
         {/* Kids Tab */}
         <TabsContent value="kids" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>معلومات الأبناء</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {caseData.case_kids && Array.isArray(caseData.case_kids) && caseData.case_kids.length > 0 ? (
-                <KidsInfo kids={caseData.case_kids.map((kid: any) => ({
-                  id: kid.id,
-                  name: kid.name,
-                  age: kid.age,
-                  gender: kid.gender as 'male' | 'female',
-                  description: kid.description || ""
-                }))} />
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>لا توجد بيانات عن الأبناء</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {caseData.case_kids && Array.isArray(caseData.case_kids) && caseData.case_kids.length > 0 ? (
+            <KidsInfo kids={caseData.case_kids.map((kid: any) => ({
+              id: kid.id,
+              name: kid.name,
+              age: kid.age,
+              gender: kid.gender as 'male' | 'female',
+              description: kid.description || "",
+              hobbies: kid.hobbies || []
+            }))} />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>لا توجد بيانات عن الأبناء</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
       {/* Follow-up Form Dialog */}
-      <FollowupActionForm
+      < FollowupActionForm
         caseId={id!}
         open={followupFormOpen}
         onOpenChange={setFollowupFormOpen}
       />
 
       {/* Edit Case Dialog */}
-      <Dialog open={editCaseOpen} onOpenChange={setEditCaseOpen}>
+      < Dialog open={editCaseOpen} onOpenChange={setEditCaseOpen} >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>تعديل بيانات الحالة</DialogTitle>

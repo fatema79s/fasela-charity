@@ -16,12 +16,12 @@ import { ar } from "date-fns/locale";
 
 const CaseDetails = () => {
   const { id } = useParams();
-  
+
   const { data: caseData, isLoading } = useQuery({
     queryKey: ["case", id],
     queryFn: async () => {
       if (!id) throw new Error("Case ID is required");
-      
+
       const [
         { data: caseRecord, error: caseError },
         { data: donations },
@@ -43,15 +43,15 @@ const CaseDetails = () => {
           .select("handover_amount")
           .eq("case_id", id)
       ]);
-      
+
       if (caseError) throw caseError;
       if (!caseRecord) return null;
-      
+
       // Calculate total from both direct donations and handovers
       const directDonations = donations?.reduce((sum, d) => sum + Number(d.amount || 0), 0) || 0;
       const handoverAmounts = handovers?.reduce((sum, h) => sum + Number(h.handover_amount || 0), 0) || 0;
       const totalSecured = directDonations + handoverAmounts;
-      
+
       return {
         ...caseRecord,
         total_secured_money: totalSecured
@@ -65,13 +65,13 @@ const CaseDetails = () => {
     queryKey: ["monthly-needs", id],
     queryFn: async () => {
       if (!id) return null;
-      
+
       const { data, error } = await supabase
         .from("monthly_needs")
         .select("*")
         .eq("case_id", id)
         .order("amount", { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -83,13 +83,13 @@ const CaseDetails = () => {
     queryKey: ["case-kids", id],
     queryFn: async () => {
       if (!id) return null;
-      
+
       const { data, error } = await supabase
         .from("case_kids")
         .select("*")
         .eq("case_id", id)
         .order("age", { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -101,13 +101,13 @@ const CaseDetails = () => {
     queryKey: ["monthly-reports", id],
     queryFn: async () => {
       if (!id) return null;
-      
+
       const { data, error } = await supabase
         .from("monthly_reports")
         .select("*")
         .eq("case_id", id)
         .order("report_date", { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -119,14 +119,14 @@ const CaseDetails = () => {
     queryKey: ["followup-actions", id],
     queryFn: async () => {
       if (!id) return null;
-      
+
       const { data, error } = await supabase
         .from("followup_actions" as any)
         .select("*")
         .eq("case_id", id)
         .order("action_date", { ascending: false })
         .limit(5);
-      
+
       if (error) throw error;
       return data as any[];
     },
@@ -157,10 +157,10 @@ const CaseDetails = () => {
   // التحديثات الشهرية من قاعدة البيانات فقط
   const monthlyUpdates = monthlyReportsData?.map((report) => ({
     id: report.id,
-    date: new Date(report.report_date).toLocaleDateString('ar-SA', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    date: new Date(report.report_date).toLocaleDateString('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     }),
     title: report.title,
     description: report.description || "",
@@ -220,11 +220,11 @@ const CaseDetails = () => {
       {/* المحتوى الرئيسي */}
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-          
+
           {/* العمود الأيسر - معلومات العائلة */}
           <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             <FamilyProfile {...familyData} />
-            
+
             {/* Display description images if available */}
             {caseData?.description_images && Array.isArray(caseData.description_images) && caseData.description_images.length > 0 && (
               <Card>
@@ -234,31 +234,32 @@ const CaseDetails = () => {
                     {caseData.description_images
                       .filter((img): img is string => typeof img === 'string')
                       .map((imageUrl: string, index: number) => (
-                      <div key={index} className="relative group">
-                        <img 
-                          src={imageUrl} 
-                          alt={`صورة إضافية ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
-                        />
-                      </div>
-                    ))}
+                        <div key={index} className="relative group">
+                          <img
+                            src={imageUrl}
+                            alt={`صورة إضافية ${index + 1}`}
+                            className="w-full h-48 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                          />
+                        </div>
+                      ))}
                   </div>
                 </CardContent>
               </Card>
             )}
-            
+
             {kidsData && kidsData.length > 0 && (
               <KidsInfo kids={kidsData.map(kid => ({
                 id: kid.id,
                 name: kid.name,
                 age: kid.age,
                 gender: kid.gender as 'male' | 'female',
-                description: kid.description || ""
+                description: kid.description || "",
+                hobbies: kid.hobbies || []
               }))} />
             )}
-            
+
             <MonthlyNeeds totalMonthlyNeed={totalMonthlyNeed} needs={monthlyNeeds} />
-            
+
             {/* Follow-up Actions Section */}
             {followupActions && followupActions.length > 0 && (
               <Card>
@@ -303,7 +304,7 @@ const CaseDetails = () => {
                 </CardContent>
               </Card>
             )}
-            
+
             <MonthlyUpdates updates={monthlyUpdates} />
           </div>
 
@@ -314,27 +315,27 @@ const CaseDetails = () => {
               <div className="text-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold mb-2">التقدم المالي للحالة</h3>
                 <p className="text-muted-foreground text-sm">
-                  {caseData.case_care_type === 'one_time_donation' 
+                  {caseData.case_care_type === 'one_time_donation'
                     ? 'المبلغ المجمع من المبلغ المطلوب'
                     : 'المبلغ المجمع من إجمالي المطلوب'
                   }
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 {(() => {
                   const isOneTime = caseData.case_care_type === 'one_time_donation';
-                  const totalNeeded = isOneTime 
-                    ? caseData.monthly_cost 
+                  const totalNeeded = isOneTime
+                    ? caseData.monthly_cost
                     : (caseData.monthly_cost * (caseData.months_needed || 1));
-                  const progressValue = totalNeeded > 0 
+                  const progressValue = totalNeeded > 0
                     ? Math.min(((caseData.total_secured_money || 0) / totalNeeded) * 100, 100)
                     : 0;
-                  
+
                   return (
                     <>
                       <div className="relative">
-                        <Progress 
+                        <Progress
                           value={progressValue}
                           className="h-6 bg-white/50"
                         />
@@ -344,7 +345,7 @@ const CaseDetails = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex justify-between items-center text-sm">
                         <div className="text-center">
                           <div className="font-bold text-primary text-base sm:text-lg">
@@ -359,7 +360,7 @@ const CaseDetails = () => {
                           <div className="text-muted-foreground text-xs sm:text-sm">المطلوب</div>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white/30 p-3 rounded-lg">
                         <div className="flex justify-between text-sm">
                           <span>المتبقي:</span>
@@ -374,8 +375,8 @@ const CaseDetails = () => {
               </div>
             </Card>
 
-            <DonationSection 
-              monthlyNeed={totalMonthlyNeed} 
+            <DonationSection
+              monthlyNeed={totalMonthlyNeed}
               caseStatus={caseData.status}
               monthsCovered={caseData.months_covered}
               monthsNeeded={caseData.months_needed}
@@ -385,7 +386,7 @@ const CaseDetails = () => {
               caseCareType={caseData.case_care_type as 'cancelled' | 'sponsorship' | 'one_time_donation' | undefined}
               totalSecured={caseData.total_secured_money || 0}
             />
-            
+
             {/* معلومات إضافية */}
             <Card className="p-4 sm:p-6 shadow-soft">
               <h4 className="font-semibold mb-4 text-base sm:text-lg">لماذا تختار كفالة الأسر؟</h4>
