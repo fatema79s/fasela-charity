@@ -12,7 +12,6 @@ import {
   TrendingUp
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import Navigation from "@/components/Navigation";
 
 const Fasela50 = () => {
   const features = [
@@ -44,7 +43,7 @@ const Fasela50 = () => {
 
   const stats = [
     { number: "50", label: "أسرة مستهدفة", icon: Users },
-    { number: "150+", label: "طفل مستفيد", icon: Heart },
+    { number: "60-100", label: "طفل يتيم", icon: Heart },
     { number: "24", label: "شهر كفالة", icon: Target },
     { number: "100%", label: "شفافية", icon: Sparkles }
   ];
@@ -81,14 +80,6 @@ const Fasela50 = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10" dir="rtl">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-l from-primary to-primary/80 shadow-lg">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl md:text-2xl font-bold text-white">فسيلة ٥٠</h1>
-          <Navigation />
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 md:py-24">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
@@ -108,10 +99,20 @@ const Fasela50 = () => {
               مشروع <span className="text-primary">فسيلة ٥٠</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-              نسعى لكفالة ٥٠ أسرة محتاجة كفالة شاملة تغطي جميع جوانب الحياة 
-              من معيشة وتعليم وصحة ودعم نفسي، لبناء مستقبل أفضل لأطفالنا
-            </p>
+            <div className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed text-right space-y-4">
+              <p>
+                إن شاء الله، هدفُنا كفالةُ <strong className="text-foreground">50 أسرة</strong> و<strong className="text-foreground">60 إلى 100 طفلٍ يتيم</strong>؛ بهدف تكثيف الجهود معهم، ومساندتهم في رحلتهم التعليمية. عسى الله أن يكتب لهذا الأمر النجاحَ والقبول، وأن نُعينهم على إكمال تعليمهم، ليكونوا أسوياءَ نافعِين، ويكسروا دائرةَ الفقر التي عاشها آباؤهم وأجدادهم.
+              </p>
+              <p>
+                ونستعين في هذا المشروع والحمد لله أولًا بالله، ثم بالعلم، وبالتجارب المشابهة في دولٍ مثل الهند وإفريقيا. ويمكنكم الاطّلاع على رحلة الكفالة وآلية الاختيار.
+              </p>
+              <p>
+                هدفُنا أن نُسلّم كلَّ أسرةٍ <strong className="text-foreground">حاسوبًا محمولًا</strong>، وأن يتعلّموا عبر الإنترنت مع الأكاديميات المتعاقدين معها، التي تم اختيارها بعناية. كما نُعلّم الأمهاتَ مبادئَ <strong className="text-foreground">التربية الإيجابية</strong>؛ ليُساعِدننا في رحلة تنشئة الأطفال.
+              </p>
+              <p>
+                نستعين بالله وحده في إتمام هذا الأمر؛ فمهما بذلنا، إن لم يكتب الله لهذا الأمر النجاحَ والقبول، فلا فائدةَ منه.
+              </p>
+            </div>
 
             <div className="flex flex-wrap justify-center gap-4">
               <motion.a
@@ -308,13 +309,6 @@ const Fasela50 = () => {
           </motion.div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-8 bg-muted/50">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2024 فسيلة ٥٠ - جميع الحقوق محفوظة</p>
-        </div>
-      </footer>
     </div>
   );
 };
