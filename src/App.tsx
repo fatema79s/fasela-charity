@@ -29,6 +29,7 @@ import FundingChannels from "./pages/FundingChannels";
 import CasePipeline from "./pages/CasePipeline";
 import Fasela50 from "./pages/Fasela50";
 import MomSurvey from "./pages/MomSurvey";
+import CaseFollowups from "./pages/CaseFollowups";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/donor-report" element={<PublicDonorReport />} />
             <Route path="/monthly-donor-report" element={<MonthlyDonorReport />} />
             <Route path="/mom-survey" element={<MomSurvey />} />
+            <Route path="/case-followups" element={<CaseFollowups />} />
           </Route>
 
           <Route path="/auth" element={<Auth />} />
