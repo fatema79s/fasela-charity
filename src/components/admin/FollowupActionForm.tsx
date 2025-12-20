@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -107,6 +107,13 @@ export default function FollowupActionForm({
   const createForAllCases = form.watch("create_for_all_cases");
   const selectedCaseId = form.watch("case_id") || caseId;
   const taskLevel = form.watch("task_level");
+
+  // Reset kid selection when task level changes to case_level
+  useEffect(() => {
+    if (taskLevel === "case_level") {
+      setSelectedKidIds([]);
+    }
+  }, [taskLevel]);
 
   // Fetch all cases for the dropdown
   const { data: cases } = useQuery({
@@ -473,46 +480,62 @@ export default function FollowupActionForm({
               <FormField
                 control={form.control}
                 name="kid_ids"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>اختر الأطفال</FormLabel>
-                    <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
-                      {kids && kids.length > 0 ? (
-                        <>
-                          <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {kids.map((kid) => (
-                              <div
-                                key={kid.id}
-                                className="flex items-center space-x-2 space-y-0 p-2 hover:bg-background rounded cursor-pointer"
-                                onClick={() => toggleKidSelection(kid.id)}
-                              >
-                                <Checkbox
-                                  checked={selectedKidIds.includes(kid.id)}
-                                  onCheckedChange={() => toggleKidSelection(kid.id)}
-                                />
-                                <Label className="font-normal cursor-pointer flex-1">
-                                  {kid.name} ({kid.age} سنة)
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                          {selectedKidIds.length > 0 && (
-                            <div className="pt-2 border-t">
-                              <p className="text-sm text-muted-foreground">
-                                تم اختيار {selectedKidIds.length} طفل
-                              </p>
+                render={({ field }) => {
+                  const handleKidToggle = (kidId: string) => {
+                    const updated = selectedKidIds.includes(kidId)
+                      ? selectedKidIds.filter(id => id !== kidId)
+                      : [...selectedKidIds, kidId];
+                    setSelectedKidIds(updated);
+                    field.onChange(updated);
+                  };
+
+                  return (
+                    <FormItem>
+                      <FormLabel>اختر الأطفال</FormLabel>
+                      <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
+                        {kids && kids.length > 0 ? (
+                          <>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {kids.map((kid) => (
+                                <div
+                                  key={kid.id}
+                                  className="flex items-center space-x-2 space-y-0 p-2 hover:bg-background rounded"
+                                >
+                                  <Checkbox
+                                    checked={selectedKidIds.includes(kid.id)}
+                                    onCheckedChange={() => handleKidToggle(kid.id)}
+                                  />
+                                  <Label 
+                                    htmlFor={`kid-${kid.id}`}
+                                    className="font-normal cursor-pointer flex-1"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleKidToggle(kid.id);
+                                    }}
+                                  >
+                                    {kid.name} ({kid.age} سنة)
+                                  </Label>
+                                </div>
+                              ))}
                             </div>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          لا توجد أطفال مسجلين في هذه الحالة
-                        </p>
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                            {selectedKidIds.length > 0 && (
+                              <div className="pt-2 border-t">
+                                <p className="text-sm text-muted-foreground">
+                                  تم اختيار {selectedKidIds.length} طفل
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            لا توجد أطفال مسجلين في هذه الحالة
+                          </p>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
 
