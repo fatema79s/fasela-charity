@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { CheckCircle, Clock, XCircle, Plus, User, Users, Edit, Save } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface FollowupAction {
   id: string;
@@ -273,8 +274,45 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
     );
   }
 
+  // Calculate progress statistics
+  const totalActions = actions.length;
+  const completedActions = actions.filter(a => a.status === 'completed').length;
+  const pendingActions = actions.filter(a => a.status === 'pending').length;
+  const cancelledActions = actions.filter(a => a.status === 'cancelled').length;
+  const progressPercentage = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
+
   return (
     <div className="space-y-4">
+      {/* Progress Bar Card */}
+      <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">تقدم المتابعات</h3>
+            <span className="text-2xl font-bold text-blue-600">{progressPercentage}%</span>
+          </div>
+          <Progress value={progressPercentage} className="h-3" />
+          <div className="flex gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-muted-foreground">مكتملة: <span className="font-semibold text-green-600">{completedActions}</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-yellow-500" />
+              <span className="text-muted-foreground">معلقة: <span className="font-semibold text-yellow-600">{pendingActions}</span></span>
+            </div>
+            {cancelledActions > 0 && (
+              <div className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-muted-foreground">ملغاة: <span className="font-semibold text-red-600">{cancelledActions}</span></span>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">الإجمالي: <span className="font-semibold">{totalActions}</span></span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">المتابعات ({actions.length})</h3>
         <Button onClick={() => {

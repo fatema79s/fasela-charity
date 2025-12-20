@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { CheckCircle, Clock, XCircle, Plus, User, Users, Search, Filter } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FollowupActionForm from "@/components/admin/FollowupActionForm";
@@ -219,6 +220,13 @@ export default function FollowupActionsView() {
     return matchesSearch && matchesStatus;
   }) || [];
 
+  // Calculate overall progress statistics
+  const totalActions = actions?.length || 0;
+  const completedActions = actions?.filter(a => a.status === 'completed').length || 0;
+  const pendingActions = actions?.filter(a => a.status === 'pending').length || 0;
+  const cancelledActions = actions?.filter(a => a.status === 'cancelled').length || 0;
+  const progressPercentage = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -252,21 +260,50 @@ export default function FollowupActionsView() {
   return (
     <AdminHeader title="جميع المتابعات">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            إجمالي المتابعات: {actions?.length || 0}
+        {/* Overall Progress Card */}
+        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-semibold">التقدم الإجمالي للمتابعات</h3>
+              <div className="flex items-center gap-4">
+                <span className="text-3xl font-bold text-blue-600">{progressPercentage}%</span>
+                <Button 
+                  onClick={() => {
+                    console.log("Button clicked, opening form");
+                    setShowTaskForm(true);
+                  }}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة مهمة جديدة
+                </Button>
+              </div>
+            </div>
+            <Progress value={progressPercentage} className="h-4" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-500 mb-1" />
+                <span className="text-2xl font-bold text-green-600">{completedActions}</span>
+                <span className="text-muted-foreground text-xs">مكتملة</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-500 mb-1" />
+                <span className="text-2xl font-bold text-yellow-600">{pendingActions}</span>
+                <span className="text-muted-foreground text-xs">معلقة</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+                <XCircle className="h-5 w-5 text-red-500 mb-1" />
+                <span className="text-2xl font-bold text-red-600">{cancelledActions}</span>
+                <span className="text-muted-foreground text-xs">ملغاة</span>
+              </div>
+              <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+                <Plus className="h-5 w-5 text-blue-500 mb-1" />
+                <span className="text-2xl font-bold text-blue-600">{totalActions}</span>
+                <span className="text-muted-foreground text-xs">الإجمالي</span>
+              </div>
+            </div>
           </div>
-          <Button 
-            onClick={() => {
-              console.log("Button clicked, opening form");
-              setShowTaskForm(true);
-            }}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4 ml-2" />
-            إضافة مهمة جديدة
-          </Button>
-        </div>
+        </Card>
 
       {/* Filters */}
       <Card>

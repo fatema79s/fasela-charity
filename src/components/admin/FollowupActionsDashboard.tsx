@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Clock, CheckCircle, XCircle, ArrowRight, Plus } from "lucide-react";
 import FollowupActionForm from "./FollowupActionForm";
+import { Progress } from "@/components/ui/progress";
 
 export default function FollowupActionsDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -43,6 +44,8 @@ export default function FollowupActionsDashboard() {
   const pendingActions = actions?.filter(action => action.status === 'pending') || [];
   const completedActions = actions?.filter(action => action.status === 'completed') || [];
   const cancelledActions = actions?.filter(action => action.status === 'cancelled') || [];
+  const totalActions = actions?.length || 0;
+  const progressPercentage = totalActions > 0 ? Math.round((completedActions.length / totalActions) * 100) : 0;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -87,6 +90,39 @@ export default function FollowupActionsDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Overall Progress Card */}
+      <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">التقدم الإجمالي للمتابعات</h3>
+            <span className="text-3xl font-bold text-blue-600">{progressPercentage}%</span>
+          </div>
+          <Progress value={progressPercentage} className="h-4" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+              <CheckCircle className="h-5 w-5 text-green-500 mb-1" />
+              <span className="text-2xl font-bold text-green-600">{completedActions.length}</span>
+              <span className="text-muted-foreground text-xs">مكتملة</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+              <Clock className="h-5 w-5 text-yellow-500 mb-1" />
+              <span className="text-2xl font-bold text-yellow-600">{pendingActions.length}</span>
+              <span className="text-muted-foreground text-xs">معلقة</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+              <XCircle className="h-5 w-5 text-red-500 mb-1" />
+              <span className="text-2xl font-bold text-red-600">{cancelledActions.length}</span>
+              <span className="text-muted-foreground text-xs">ملغاة</span>
+            </div>
+            <div className="flex flex-col items-center p-3 bg-white rounded-lg">
+              <Plus className="h-5 w-5 text-blue-500 mb-1" />
+              <span className="text-2xl font-bold text-blue-600">{totalActions}</span>
+              <span className="text-muted-foreground text-xs">الإجمالي</span>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
