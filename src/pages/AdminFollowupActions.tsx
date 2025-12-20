@@ -14,6 +14,7 @@ import { ar } from "date-fns/locale";
 import { CheckCircle, Clock, XCircle, Plus, User, Users, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import AdminHeader from "@/components/admin/AdminHeader";
+import FollowupActionForm from "@/components/admin/FollowupActionForm";
 
 interface FollowupAction {
   id: string;
@@ -29,6 +30,12 @@ interface FollowupAction {
   created_at: string;
   created_by: string;
   case_id: string;
+  answer_type: "multi_choice" | "photo_upload" | "text_area" | null;
+  answer_options: string[];
+  answer_text: string | null;
+  answer_photos: string[] | null;
+  answer_multi_choice: string | null;
+  answered_at: string | null;
   cases: {
     title: string;
     title_ar: string;
@@ -41,6 +48,7 @@ export default function FollowupActionsView() {
   const [selectedAction, setSelectedAction] = useState<FollowupAction | null>(null);
   const [completionNotes, setCompletionNotes] = useState("");
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: actions, isLoading } = useQuery({
@@ -56,6 +64,26 @@ export default function FollowupActionsView() {
           )
         `)
         .order("action_date", { ascending: false });
+      
+      // Parse answer_options if it's a string
+      if (data) {
+        data.forEach((action: any) => {
+          if (action.answer_options && typeof action.answer_options === 'string') {
+            try {
+              action.answer_options = JSON.parse(action.answer_options);
+            } catch (e) {
+              action.answer_options = [];
+            }
+          }
+          if (action.answer_photos && typeof action.answer_photos === 'string') {
+            try {
+              action.answer_photos = JSON.parse(action.answer_photos);
+            } catch (e) {
+              action.answer_photos = [];
+            }
+          }
+        });
+      }
 
       if (error) throw error;
       return data as any as FollowupAction[];
@@ -175,6 +203,10 @@ export default function FollowupActionsView() {
           <div className="text-sm text-muted-foreground">
             إجمالي المتابعات: {actions?.length || 0}
           </div>
+          <Button onClick={() => setShowTaskForm(true)}>
+            <Plus className="w-4 h-4 ml-2" />
+            إضافة مهمة جديدة
+          </Button>
         </div>
 
       {/* Filters */}
@@ -263,6 +295,47 @@ export default function FollowupActionsView() {
                 )}
               </div>
 
+              {/* Show Task Answer if Available */}
+              {action.requires_case_action && action.answer_type && action.answered_at && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                  <h5 className="text-sm font-semibold text-blue-900 mb-2">إجابة المهمة:</h5>
+                  {action.answer_type === "text_area" && action.answer_text && (
+                    <div>
+                      <p className="text-xs text-blue-700 mb-1">نوع الإجابة: نص</p>
+                      <p className="text-sm text-blue-800 whitespace-pre-wrap bg-white p-2 rounded">
+                        {action.answer_text}
+                      </p>
+                    </div>
+                  )}
+                  {action.answer_type === "multi_choice" && action.answer_multi_choice && (
+                    <div>
+                      <p className="text-xs text-blue-700 mb-1">نوع الإجابة: اختيار متعدد</p>
+                      <p className="text-sm text-blue-800 bg-white p-2 rounded">
+                        {action.answer_multi_choice}
+                      </p>
+                    </div>
+                  )}
+                  {action.answer_type === "photo_upload" && action.answer_photos && action.answer_photos.length > 0 && (
+                    <div>
+                      <p className="text-xs text-blue-700 mb-2">نوع الإجابة: رفع صور ({action.answer_photos.length} صورة)</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {action.answer_photos.map((photo, index) => (
+                          <img
+                            key={index}
+                            src={photo}
+                            alt={`Answer ${index + 1}`}
+                            className="w-full h-20 object-cover rounded"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-blue-700 mt-2">
+                    تم الإجابة: {format(new Date(action.answered_at), "dd MMM yyyy - HH:mm", { locale: ar })}
+                  </p>
+                </div>
+              )}
+
               {action.status === "completed" && action.completion_notes && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                   <h5 className="text-sm font-semibold text-green-900 mb-1">ملاحظات الإكمال:</h5>
@@ -338,6 +411,12 @@ export default function FollowupActionsView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Task Form Dialog */}
+      <FollowupActionForm
+        open={showTaskForm}
+        onOpenChange={setShowTaskForm}
+      />
       </div>
     </AdminHeader>
   );

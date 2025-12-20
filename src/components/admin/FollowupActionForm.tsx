@@ -25,7 +25,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, X, Upload } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -42,6 +43,8 @@ const formSchema = z.object({
   cost: z.number().min(0, "التكلفة يجب أن تكون صفر أو أكبر").default(0),
   requires_case_action: z.boolean().default(false),
   requires_volunteer_action: z.boolean().default(false),
+  answer_type: z.enum(["multi_choice", "photo_upload", "text_area"]).optional().nullable(),
+  answer_options: z.array(z.string()).optional(),
 });
 
 interface FollowupActionFormProps {
@@ -58,6 +61,8 @@ export default function FollowupActionForm({
   console.log("FollowupActionForm: Props received:", { caseId, open, onOpenChange });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [answerOptions, setAnswerOptions] = useState<string[]>([]);
+  const [newOption, setNewOption] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch all cases for the dropdown
@@ -84,8 +89,40 @@ export default function FollowupActionForm({
       cost: 0,
       requires_case_action: false,
       requires_volunteer_action: false,
+      answer_type: null,
+      answer_options: [],
     },
   });
+
+  const answerType = form.watch("answer_type");
+  const requiresCaseAction = form.watch("requires_case_action");
+
+  // Reset answer options when answer type changes
+  const handleAnswerTypeChange = (value: string) => {
+    form.setValue("answer_type", value as any);
+    if (value === "multi_choice") {
+      setAnswerOptions([]);
+      form.setValue("answer_options", []);
+    } else {
+      setAnswerOptions([]);
+      form.setValue("answer_options", []);
+    }
+  };
+
+  const addAnswerOption = () => {
+    if (newOption.trim()) {
+      const updated = [...answerOptions, newOption.trim()];
+      setAnswerOptions(updated);
+      form.setValue("answer_options", updated);
+      setNewOption("");
+    }
+  };
+
+  const removeAnswerOption = (index: number) => {
+    const updated = answerOptions.filter((_, i) => i !== index);
+    setAnswerOptions(updated);
+    form.setValue("answer_options", updated);
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log("FollowupActionForm: Starting submission with values:", values);
@@ -99,6 +136,12 @@ export default function FollowupActionForm({
       }
 
       console.log("FollowupActionForm: Attempting to insert followup action...");
+      // Validate multi-choice options
+      if (values.answer_type === "multi_choice" && (!values.answer_options || values.answer_options.length < 2)) {
+        toast.error("يرجى إضافة خيارين على الأقل للاختيار المتعدد");
+        return;
+      }
+
       const { error } = await supabase.from("followup_actions" as any).insert({
         case_id: values.case_id,
         title: values.title,
@@ -107,6 +150,8 @@ export default function FollowupActionForm({
         cost: values.cost,
         requires_case_action: values.requires_case_action,
         requires_volunteer_action: values.requires_volunteer_action,
+        answer_type: values.requires_case_action ? (values.answer_type || null) : null,
+        answer_options: values.answer_type === "multi_choice" && values.answer_options ? values.answer_options : [],
         created_by: userData.user.id,
       });
 
@@ -121,6 +166,8 @@ export default function FollowupActionForm({
       queryClient.invalidateQueries({ queryKey: ["followup-actions-all"] });
       queryClient.invalidateQueries({ queryKey: ["followup-actions-dashboard"] });
       form.reset();
+      setAnswerOptions([]);
+      setNewOption("");
       onOpenChange(false);
     } catch (error: any) {
       console.error("FollowupActionForm: Error creating followup action:", error);
@@ -243,11 +290,17 @@ export default function FollowupActionForm({
                     <FormControl>
                       <Checkbox
                         checked={field.value}
-                        onCheckedChange={field.onChange}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          if (!checked) {
+                            form.setValue("answer_type", null);
+                            setAnswerOptions([]);
+                          }
+                        }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>يتطلب إجراء من الحالة</FormLabel>
+                      <FormLabel>يتطلب إجراء من الحالة (مهمة)</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         هذه المتابعة تحتاج إلى إجراء من جانب الحالة
                       </p>
@@ -255,6 +308,89 @@ export default function FollowupActionForm({
                   </FormItem>
                 )}
               />
+
+              {requiresCaseAction && (
+                <FormField
+                  control={form.control}
+                  name="answer_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع الإجابة المطلوبة</FormLabel>
+                      <Select onValueChange={handleAnswerTypeChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع الإجابة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="text_area">نص (Text Area)</SelectItem>
+                          <SelectItem value="multi_choice">اختيار متعدد (Multi Choice)</SelectItem>
+                          <SelectItem value="photo_upload">رفع صورة (Photo Upload)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {answerType === "multi_choice" && (
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+                  <Label>خيارات الاختيار المتعدد</Label>
+                  <div className="space-y-2">
+                    {answerOptions.map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input value={option} readOnly className="flex-1" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeAnswerOption(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="أضف خيار جديد"
+                        value={newOption}
+                        onChange={(e) => setNewOption(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addAnswerOption();
+                          }
+                        }}
+                      />
+                      <Button type="button" onClick={addAnswerOption} variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {answerOptions.length < 2 && (
+                      <p className="text-sm text-muted-foreground">
+                        يرجى إضافة خيارين على الأقل
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {answerType === "photo_upload" && (
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">
+                    سيتمكن المستخدم من رفع صورة واحدة أو أكثر عند الإجابة على هذه المهمة
+                  </p>
+                </div>
+              )}
+
+              {answerType === "text_area" && (
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">
+                    سيتمكن المستخدم من إدخال نص طويل عند الإجابة على هذه المهمة
+                  </p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
