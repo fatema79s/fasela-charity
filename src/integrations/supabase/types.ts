@@ -842,6 +842,7 @@ export type Database = {
           handover_date: string
           handover_notes: string | null
           id: string
+          original_case_id: string | null
           updated_at: string
         }
         Insert: {
@@ -853,6 +854,7 @@ export type Database = {
           handover_date?: string
           handover_notes?: string | null
           id?: string
+          original_case_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -864,6 +866,7 @@ export type Database = {
           handover_date?: string
           handover_notes?: string | null
           id?: string
+          original_case_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -879,6 +882,13 @@ export type Database = {
             columns: ["donation_id"]
             isOneToOne: false
             referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_handovers_original_case_id_fkey"
+            columns: ["original_case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
             referencedColumns: ["id"]
           },
         ]
