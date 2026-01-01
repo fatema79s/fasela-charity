@@ -56,6 +56,7 @@ interface HandoverRecord {
   id: string;
   donation_id: string;
   case_id: string;
+  original_case_id: string | null;
   handover_amount: number;
   handover_date: string;
   handover_notes: string | null;
@@ -65,6 +66,10 @@ interface HandoverRecord {
     title: string;
     title_ar: string;
   };
+  original_case: {
+    title: string;
+    title_ar: string;
+  } | null;
   donations: {
     donor_name: string | null;
     amount: number;
@@ -138,7 +143,8 @@ const DonationAuditDelivery = () => {
         .from("donation_handovers")
         .select(`
           *,
-          cases(title, title_ar),
+          cases!donation_handovers_case_id_fkey(title, title_ar),
+          original_case:cases!donation_handovers_original_case_id_fkey(title, title_ar),
           donations(donor_name, amount, payment_code, created_at, confirmed_at)
         `)
         .order("handover_date", { ascending: false })
@@ -1107,9 +1113,17 @@ const DonationAuditDelivery = () => {
                                         <div className="space-y-1">
                                           <div className="flex items-center gap-2">
                                             <Package className="w-3 h-3 text-muted-foreground" />
-                                            <span className="text-muted-foreground text-xs">الحالة:</span>
+                                            <span className="text-muted-foreground text-xs">مسلم إلى:</span>
                                             <span className="text-xs">{group.case.title_ar}</span>
                                           </div>
+                                          {/* Show original case if cross-case handover */}
+                                          {record.original_case_id && record.original_case_id !== record.case_id && record.original_case && (
+                                            <div className="flex items-center gap-2 bg-amber-50 p-1.5 rounded border border-amber-200">
+                                              <AlertCircle className="w-3 h-3 text-amber-600" />
+                                              <span className="text-amber-700 text-xs font-medium">تحويل من:</span>
+                                              <span className="text-xs text-amber-800">{record.original_case.title_ar || record.original_case.title}</span>
+                                            </div>
+                                          )}
                                           {record.handover_notes && (
                                             <div className="mt-2">
                                               <p className="text-xs font-medium text-muted-foreground mb-1">ملاحظات التسليم:</p>

@@ -233,20 +233,22 @@ export const DonationsByCaseView = () => {
   });
 
   const handoverDonationMutation = useMutation({
-    mutationFn: async ({ donationId, caseId, amount, notes, shouldCreateReport }: { 
+    mutationFn: async ({ donationId, caseId, originalCaseId, amount, notes, shouldCreateReport }: { 
       donationId: string; 
       caseId: string; 
+      originalCaseId: string;
       amount: number; 
       notes: string;
       shouldCreateReport: boolean;
     }) => {
       try {
-        // Insert handover record
+        // Insert handover record with original case tracking for audit
         const { error: handoverError } = await supabase
           .from("donation_handovers")
           .insert({
             donation_id: donationId,
             case_id: caseId,
+            original_case_id: originalCaseId,
             handover_amount: amount,
             handover_notes: notes,
             handed_over_by: (await supabase.auth.getUser()).data.user?.id
@@ -376,6 +378,7 @@ export const DonationsByCaseView = () => {
     handoverDonationMutation.mutate({
       donationId: selectedDonation.id,
       caseId: targetCaseId,
+      originalCaseId: selectedDonation.case_id,
       amount: amount,
       notes: handoverNotes,
       shouldCreateReport: createReport
