@@ -50,6 +50,11 @@ const formSchema = z.object({
   task_level: z.enum(["case_level", "kid_level"]).default("case_level"),
   kid_ids: z.array(z.string()).default([]),
   profile_field_mapping: z.enum(["health_state", "current_grade", "school_name", "education_progress", "certificates", "ongoing_courses"]).optional().nullable(),
+  is_recurring: z.boolean().default(false),
+  recurrence_interval: z.enum(["weekly", "monthly"]).optional().nullable(),
+}).refine((data) => !data.is_recurring || !!data.recurrence_interval, {
+  message: "يرجى اختيار فترة التكرار",
+  path: ["recurrence_interval"],
 }).refine((data) => {
   // Either create_for_all_cases is true OR case_id is provided
   return data.create_for_all_cases || (data.case_id && data.case_id.length > 0);
@@ -79,7 +84,7 @@ export default function FollowupActionForm({
   onOpenChange,
 }: FollowupActionFormProps) {
   console.log("FollowupActionForm: Props received:", { caseId, open, onOpenChange });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answerOptions, setAnswerOptions] = useState<string[]>([]);
   const [newOption, setNewOption] = useState("");
@@ -103,12 +108,15 @@ export default function FollowupActionForm({
       task_level: "case_level",
       kid_ids: [],
       profile_field_mapping: null,
+      is_recurring: false,
+      recurrence_interval: null,
     },
   });
 
   const createForAllCases = form.watch("create_for_all_cases");
   const selectedCaseId = form.watch("case_id") || caseId;
   const taskLevel = form.watch("task_level");
+  const isRecurring = form.watch("is_recurring");
 
   // Reset kid selection when task level changes to case_level
   useEffect(() => {
@@ -201,7 +209,7 @@ export default function FollowupActionForm({
     try {
       const { data: userData } = await supabase.auth.getUser();
       console.log("FollowupActionForm: User data:", userData);
-      
+
       if (!userData.user) {
         throw new Error("يجب تسجيل الدخول أولاً");
       }
@@ -227,18 +235,20 @@ export default function FollowupActionForm({
         kid_ids: values.task_level === "kid_level" ? values.kid_ids : [],
         profile_field_mapping: values.task_level === "kid_level" ? (values.profile_field_mapping || null) : null,
         created_by: userData.user.id,
+        is_recurring: values.is_recurring,
+        recurrence_interval: values.is_recurring ? values.recurrence_interval : null,
       };
 
       if (values.create_for_all_cases) {
         if (values.task_level === "kid_level") {
           // Create kid-level tasks for all kids in all cases
           console.log("FollowupActionForm: Creating kid-level tasks for all kids in all cases");
-          
+
           // Fetch all cases with their kids
           const { data: allCases, error: casesError } = await supabase
             .from("cases")
             .select("id");
-          
+
           if (casesError) {
             throw new Error("فشل في جلب قائمة الحالات: " + casesError.message);
           }
@@ -251,7 +261,7 @@ export default function FollowupActionForm({
           const { data: allKids, error: kidsError } = await supabase
             .from("case_kids")
             .select("id, case_id");
-          
+
           if (kidsError) {
             throw new Error("فشل في جلب قائمة الأطفال: " + kidsError.message);
           }
@@ -297,12 +307,12 @@ export default function FollowupActionForm({
         } else {
           // Create case-level tasks for all cases
           console.log("FollowupActionForm: Creating follow-up for all cases");
-          
+
           // Fetch all cases
           const { data: allCases, error: casesError } = await supabase
             .from("cases")
             .select("id");
-          
+
           if (casesError) {
             throw new Error("فشل في جلب قائمة الحالات: " + casesError.message);
           }
@@ -350,7 +360,7 @@ export default function FollowupActionForm({
       queryClient.invalidateQueries({ queryKey: ["followup-actions"] });
       queryClient.invalidateQueries({ queryKey: ["followup-actions-all"] });
       queryClient.invalidateQueries({ queryKey: ["followup-actions-dashboard"] });
-      
+
       form.reset();
       setAnswerOptions([]);
       setNewOption("");
@@ -365,7 +375,7 @@ export default function FollowupActionForm({
   };
 
   console.log("FollowupActionForm render - open:", open, "caseId:", caseId);
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" dir="rtl">
@@ -508,7 +518,7 @@ export default function FollowupActionForm({
                                     checked={selectedKidIds.includes(kid.id)}
                                     onCheckedChange={() => handleKidToggle(kid.id)}
                                   />
-                                  <Label 
+                                  <Label
                                     htmlFor={`kid-${kid.id}`}
                                     className="font-normal cursor-pointer flex-1"
                                     onClick={(e) => {
@@ -585,9 +595,9 @@ export default function FollowupActionForm({
                 <FormItem>
                   <FormLabel>التكلفة المتوقعة (جنيه)</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="0" 
+                    <Input
+                      type="number"
+                      placeholder="0"
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
@@ -676,8 +686,8 @@ export default function FollowupActionForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ربط الإجابة بحقل الملف الشخصي (اختياري)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(value === "none" ? null : value)} 
+                      <Select
+                        onValueChange={(value) => field.onChange(value === "none" ? null : value)}
                         value={field.value || "none"}
                       >
                         <FormControl>
@@ -782,6 +792,51 @@ export default function FollowupActionForm({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="is_recurring"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>تكرار المتابعة</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        تكرار هذه المتابعة بشكل دوري
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {isRecurring && (
+                <FormField
+                  control={form.control}
+                  name="recurrence_interval"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>فترة التكرار</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر فترة التكرار" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="weekly">أسبوعي</SelectItem>
+                          <SelectItem value="monthly">شهري</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <DialogFooter>

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { CheckCircle, Clock, XCircle, Plus, User, Users, Edit, Save } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Plus, User, Users, Edit, Save, Repeat } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface FollowupAction {
@@ -32,6 +32,11 @@ interface FollowupAction {
   kid_ids?: string[];
   kids?: Array<{ id: string; name: string; age: number }>;
   kid_answers?: { [kidId: string]: any };
+  answer_type?: string | null;
+  answer_options?: any;
+  profile_field_mapping?: string | null;
+  is_recurring?: boolean;
+  recurrence_interval?: string | null;
 }
 
 interface FollowupActionsListProps {
@@ -374,6 +379,12 @@ export default function FollowupActionsList({ caseId, onCreateNew }: FollowupAct
                 <div className="flex items-center gap-1 text-sm text-purple-600">
                   <Users className="h-3 w-3" />
                   <span>يتطلب إجراء من المتطوع</span>
+                </div>
+              )}
+              {action.is_recurring && (
+                <div className="flex items-center gap-1 text-sm text-indigo-600">
+                  <Repeat className="h-3 w-3" />
+                  <span>متكرر ({action.recurrence_interval === 'weekly' ? 'أسبوعي' : 'شهري'})</span>
                 </div>
               )}
             </div>
