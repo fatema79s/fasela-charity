@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   User,
   MapPin,
   Heart,
@@ -14,6 +22,7 @@ import {
   Calendar,
   Users,
   FileText,
+  Wallet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -238,6 +247,10 @@ export default function AdminCaseProfile() {
               <FileText className="h-4 w-4 ml-2" />
               المتابعات
             </TabsTrigger>
+            <TabsTrigger value="donations">
+              <Wallet className="h-4 w-4 ml-2" />
+              التبرعات ({caseData.donations?.length || 0})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -346,6 +359,98 @@ export default function AdminCaseProfile() {
                     setFollowupFormOpen(true);
                   }} 
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="donations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>تبرعات الحالة</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {caseData.donations && caseData.donations.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">المبلغ</TableHead>
+                        <TableHead className="text-right">النوع</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">المسلم</TableHead>
+                        <TableHead className="text-right">حالة التسليم</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {caseData.donations.map((donation: any) => (
+                        <TableRow key={donation.id}>
+                          <TableCell className="font-medium">
+                            {Number(donation.amount).toLocaleString()} ج.م
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {donation.donation_type === "monthly" ? "شهري" : "لمرة واحدة"}
+                            </Badge>
+                            {donation.donation_type === "monthly" && donation.months_pledged > 1 && (
+                              <span className="text-xs text-muted-foreground mr-1">
+                                ({donation.months_pledged} شهر)
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                donation.status === "confirmed"
+                                  ? "default"
+                                  : donation.status === "pending"
+                                  ? "secondary"
+                                  : "destructive"
+                              }
+                            >
+                              {donation.status === "confirmed"
+                                ? "مؤكد"
+                                : donation.status === "pending"
+                                ? "معلق"
+                                : "ملغي"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {Number(donation.total_handed_over || 0).toLocaleString()} ج.م
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                donation.handover_status === "full"
+                                  ? "default"
+                                  : donation.handover_status === "partial"
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              className={
+                                donation.handover_status === "full"
+                                  ? "bg-green-600"
+                                  : donation.handover_status === "partial"
+                                  ? "bg-orange-500"
+                                  : ""
+                              }
+                            >
+                              {donation.handover_status === "full"
+                                ? "مسلم بالكامل"
+                                : donation.handover_status === "partial"
+                                ? "مسلم جزئياً"
+                                : "لم يسلم"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(donation.created_at), "dd/MM/yyyy", { locale: ar })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">لا توجد تبرعات لهذه الحالة</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
