@@ -46,24 +46,24 @@ export const FeaturedCasesCarousel = () => {
         throw casesError;
       }
 
-      // Fetch donations and handovers for each case
+      // Fetch donations for each case
       const casesWithStats = await Promise.all(
         (cases || []).map(async (caseItem) => {
-          ] = await Promise.all([
-          supabase
-            .from("donations")
-            .select("amount")
-            .eq("case_id", caseItem.id)
-            .eq("status", "confirmed"),
-        ]);
+          const [{ data: donations }] = await Promise.all([
+            supabase
+              .from("donations")
+              .select("amount")
+              .eq("case_id", caseItem.id)
+              .eq("status", "confirmed"),
+          ]);
 
-const directDonations = donations?.reduce((sum, d) => sum + Number(d.amount || 0), 0) || 0;
-const totalSecured = directDonations;
+          const directDonations = donations?.reduce((sum, d) => sum + Number(d.amount || 0), 0) || 0;
+          const totalSecured = directDonations;
 
-return {
-  ...caseItem,
-  total_secured_money: totalSecured
-};
+          return {
+            ...caseItem,
+            total_secured_money: totalSecured
+          };
         })
       );
 
