@@ -21,9 +21,132 @@ import {
   X,
   Info,
   Building2,
+  Wallet,
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import FollowupActionForm from "@/components/admin/FollowupActionForm";
 import FollowupActionsList from "@/components/admin/FollowupActionsList";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+
+// Donations Table Component
+function DonationsTable({ caseId }: { caseId: string }) {
+  const { data: donations, isLoading } = useQuery({
+    queryKey: ["case-donations", caseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("case_id", caseId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-4">جاري التحميل...</div>;
+  }
+
+  if (!donations || donations.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
+        <p>لا توجد تبرعات لهذه الحالة</p>
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-right">المبلغ</TableHead>
+          <TableHead className="text-right">النوع</TableHead>
+          <TableHead className="text-right">الحالة</TableHead>
+          <TableHead className="text-right">المسلم</TableHead>
+          <TableHead className="text-right">حالة التسليم</TableHead>
+          <TableHead className="text-right">اسم المتبرع</TableHead>
+          <TableHead className="text-right">التاريخ</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {donations.map((donation) => (
+          <TableRow key={donation.id}>
+            <TableCell className="font-medium">
+              {Number(donation.amount).toLocaleString()} ج.م
+            </TableCell>
+            <TableCell>
+              <Badge variant="outline">
+                {donation.donation_type === "monthly" ? "شهري" : "لمرة واحدة"}
+              </Badge>
+              {donation.donation_type === "monthly" && donation.months_pledged > 1 && (
+                <span className="text-xs text-muted-foreground mr-1">
+                  ({donation.months_pledged} شهر)
+                </span>
+              )}
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={
+                  donation.status === "confirmed"
+                    ? "default"
+                    : donation.status === "pending"
+                    ? "secondary"
+                    : "destructive"
+                }
+              >
+                {donation.status === "confirmed"
+                  ? "مؤكد"
+                  : donation.status === "pending"
+                  ? "معلق"
+                  : "ملغي"}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              {Number(donation.total_handed_over || 0).toLocaleString()} ج.م
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={
+                  donation.handover_status === "full"
+                    ? "default"
+                    : donation.handover_status === "partial"
+                    ? "secondary"
+                    : "outline"
+                }
+                className={
+                  donation.handover_status === "full"
+                    ? "bg-green-600"
+                    : donation.handover_status === "partial"
+                    ? "bg-orange-500"
+                    : ""
+                }
+              >
+                {donation.handover_status === "full"
+                  ? "مسلم بالكامل"
+                  : donation.handover_status === "partial"
+                  ? "مسلم جزئياً"
+                  : "لم يسلم"}
+              </Badge>
+            </TableCell>
+            <TableCell>{donation.donor_name || "غير معروف"}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {format(new Date(donation.created_at), "dd/MM/yyyy", { locale: ar })}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
 import CaseSpecificCalendar from "@/components/admin/CaseSpecificCalendar";
 import { KidsInfo } from "@/components/KidsInfo";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -365,11 +488,15 @@ export default function AdminCaseView() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue={searchParams.get("tab") || "followups"} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue={searchParams.get("tab") || "followups"} className="w-full mt-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="followups" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             المتابعات
+          </TabsTrigger>
+          <TabsTrigger value="donations" className="flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            التبرعات
           </TabsTrigger>
           <TabsTrigger value="handovers" className="flex items-center gap-2">
             <Calendar className="w-4 w-4" />
@@ -382,7 +509,6 @@ export default function AdminCaseView() {
         </TabsList>
 
         {/* Followups Tab */}
-        {/* Followups Tab */}
         <TabsContent value="followups" className="space-y-4">
           <Card>
             <CardHeader>
@@ -393,6 +519,18 @@ export default function AdminCaseView() {
                 caseId={id!}
                 onCreateNew={() => setFollowupFormOpen(true)}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Donations Tab */}
+        <TabsContent value="donations" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>تبرعات الحالة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DonationsTable caseId={id!} />
             </CardContent>
           </Card>
         </TabsContent>
