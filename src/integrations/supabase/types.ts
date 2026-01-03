@@ -843,7 +843,6 @@ export type Database = {
           handover_notes: string | null
           id: string
           is_report_checkpoint: boolean | null
-          report_image_url: string | null
           original_case_id: string | null
           updated_at: string
         }
@@ -856,7 +855,6 @@ export type Database = {
           handover_date?: string
           handover_notes?: string | null
           is_report_checkpoint?: boolean | null
-          report_image_url?: string | null
           id?: string
           original_case_id?: string | null
           updated_at?: string
