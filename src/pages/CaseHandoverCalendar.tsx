@@ -82,19 +82,41 @@ export default function CaseHandoverCalendar() {
 
       const { data: handovers, error: handoversError } = await supabase
         .from("donation_handovers")
-        .select("id, case_id, handover_amount, handover_date, handover_notes, is_report_checkpoint, report_image_url")
+        .select("id, case_id, handover_amount, handover_date, handover_notes, is_report_checkpoint")
         .gte("handover_date", startDate.toISOString())
         .lte("handover_date", endDate.toISOString());
 
       if (handoversError) throw handoversError;
 
+      // Fetch monthly reports for the year
+      const { data: reports, error: reportsError } = await supabase
+        .from("monthly_reports")
+        .select("id, case_id, report_date, images")
+        .gte("report_date", startDate.toISOString())
+        .lte("report_date", endDate.toISOString());
+
+      if (reportsError) throw reportsError;
+
       const result: CaseHandovers[] = cases.map(caseItem => {
         const caseHandovers = handovers.filter(h => h.case_id === caseItem.id);
+        const caseReports = reports.filter(r => r.case_id === caseItem.id);
         const handoversByMonth: Record<string, HandoverData[]> = {};
 
         caseHandovers.forEach(handover => {
           const date = new Date(handover.handover_date);
           const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+          // Find matching report image for this month
+          const monthReport = caseReports.find(r => {
+            const rDate = new Date(r.report_date);
+            return `${rDate.getFullYear()}-${String(rDate.getMonth() + 1).padStart(2, '0')}` === monthKey;
+          });
+
+          // Get the first image from the report if available
+          let reportImageUrl = undefined;
+          if (monthReport && monthReport.images && Array.isArray(monthReport.images) && monthReport.images.length > 0) {
+            reportImageUrl = monthReport.images[0] as string;
+          }
 
           if (!handoversByMonth[monthKey]) {
             handoversByMonth[monthKey] = [];
@@ -106,7 +128,7 @@ export default function CaseHandoverCalendar() {
             date: handover.handover_date,
             notes: handover.handover_notes || undefined,
             is_report_checkpoint: handover.is_report_checkpoint || false,
-            report_image_url: handover.report_image_url || undefined,
+            report_image_url: reportImageUrl,
           });
         });
 
@@ -176,6 +198,7 @@ export default function CaseHandoverCalendar() {
       const preciseAmount = Number(Number(data.amount).toFixed(2));
       let reportImageUrl = null;
 
+      // Handle Image Upload if provided
       if (data.isReportCheckpoint && data.reportFile) {
         setIsUploading(true);
         const fileExt = data.reportFile.name.split('.').pop();
@@ -199,6 +222,46 @@ export default function CaseHandoverCalendar() {
         setIsUploading(false);
       }
 
+      // Handle Monthly Report Record
+      if (data.isReportCheckpoint && reportImageUrl) {
+        // Check if report exists for this month
+        const startDate = new Date(data.year, data.month, 1).toISOString();
+        const endDate = new Date(data.year, data.month + 1, 0).toISOString();
+
+        const { data: existingReports } = await supabase
+          .from("monthly_reports")
+          .select("*")
+          .eq("case_id", data.caseId)
+          .gte("report_date", startDate)
+          .lte("report_date", endDate);
+
+        const existingReport = existingReports?.[0];
+
+        if (existingReport) {
+          // Update existing report
+          const currentImages = Array.isArray(existingReport.images) ? existingReport.images : [];
+          const newImages = [...currentImages, reportImageUrl];
+
+          await supabase
+            .from("monthly_reports")
+            .update({ images: newImages })
+            .eq("id", existingReport.id);
+        } else {
+          // Create new report
+          await supabase
+            .from("monthly_reports")
+            .insert({
+              case_id: data.caseId,
+              title: `تقرير تسليم - ${months[data.month]} ${data.year}`,
+              description: data.notes || "تم التسليم بنجاح",
+              report_date: handoverDate.toISOString(),
+              status: 'completed',
+              category: 'general',
+              images: [reportImageUrl]
+            });
+        }
+      }
+
       if (data.handoverId) {
         const updateData: any = {
           handover_amount: preciseAmount,
@@ -207,10 +270,6 @@ export default function CaseHandoverCalendar() {
           is_report_checkpoint: data.isReportCheckpoint,
           updated_at: new Date().toISOString(),
         };
-
-        if (reportImageUrl) {
-          updateData.report_image_url = reportImageUrl;
-        }
 
         const { error } = await supabase
           .from("donation_handovers")
@@ -228,7 +287,6 @@ export default function CaseHandoverCalendar() {
             handover_date: handoverDate.toISOString(),
             handover_notes: data.notes,
             is_report_checkpoint: data.isReportCheckpoint,
-            report_image_url: reportImageUrl,
           });
 
         if (error) throw error;
