@@ -141,7 +141,7 @@ export const DonationSection = ({
           payment_code: paymentCode,
           donation_type: donationType,
           status: 'pending'
-        });
+        } as any);
 
       if (error) {
         console.error('Error recording donation:', error);

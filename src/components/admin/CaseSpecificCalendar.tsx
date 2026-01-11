@@ -167,7 +167,7 @@ export default function CaseSpecificCalendar({
             handover_amount: preciseAmount,
             handover_date: data.date,
             handover_notes: data.notes || null,
-          });
+          } as any);
 
         if (error) throw error;
       }

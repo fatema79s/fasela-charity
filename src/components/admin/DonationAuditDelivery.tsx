@@ -233,7 +233,7 @@ const DonationAuditDelivery = () => {
             handover_notes: notes,
             handover_date: date,
             handed_over_by: (await supabase.auth.getUser()).data.user?.id
-          });
+          } as any);
 
         if (handoverError) throw handoverError;
 
@@ -273,7 +273,7 @@ const DonationAuditDelivery = () => {
               report_date: date,
               status: 'completed',
               category: 'handover'
-            });
+            } as any);
 
           if (reportError) throw reportError;
         }

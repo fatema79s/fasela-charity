@@ -106,7 +106,7 @@ const ReportForm = () => {
           status: data.status,
           category: data.category,
           images: uploadedImages
-        });
+        } as any);
 
       if (error) throw error;
 

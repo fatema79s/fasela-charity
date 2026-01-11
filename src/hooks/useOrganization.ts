@@ -76,7 +76,7 @@ export function useUpdateOrganization() {
     }) => {
       const { data, error } = await supabase
         .from("organizations")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();
