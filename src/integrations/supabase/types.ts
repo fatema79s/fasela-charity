@@ -324,6 +324,7 @@ export type Database = {
           created_at: string
           id: string
           monthly_amount: number
+          organization_id: string
           updated_at: string
         }
         Insert: {
@@ -332,6 +333,7 @@ export type Database = {
           created_at?: string
           id?: string
           monthly_amount?: number
+          organization_id: string
           updated_at?: string
         }
         Update: {
@@ -340,6 +342,7 @@ export type Database = {
           created_at?: string
           id?: string
           monthly_amount?: number
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -357,6 +360,13 @@ export type Database = {
             referencedRelation: "charities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "case_charities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       case_confidential_info: {
@@ -367,6 +377,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_zakah: boolean
+          organization_id: string
           refer_name: string
         }
         Insert: {
@@ -376,6 +387,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_zakah?: boolean
+          organization_id: string
           refer_name: string
         }
         Update: {
@@ -385,6 +397,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_zakah?: boolean
+          organization_id?: string
           refer_name?: string
         }
         Relationships: [
@@ -393,6 +406,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: true
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_confidential_info_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -412,6 +432,7 @@ export type Database = {
           id: string
           name: string
           ongoing_courses: Json | null
+          organization_id: string
           school_name: string | null
           updated_at: string
         }
@@ -429,6 +450,7 @@ export type Database = {
           id?: string
           name: string
           ongoing_courses?: Json | null
+          organization_id: string
           school_name?: string | null
           updated_at?: string
         }
@@ -446,6 +468,7 @@ export type Database = {
           id?: string
           name?: string
           ongoing_courses?: Json | null
+          organization_id?: string
           school_name?: string | null
           updated_at?: string
         }
@@ -457,6 +480,13 @@ export type Database = {
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "case_kids_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       case_private_spending: {
@@ -466,6 +496,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          organization_id: string
         }
         Insert: {
           amount: number
@@ -473,6 +504,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          organization_id: string
         }
         Update: {
           amount?: number
@@ -480,6 +512,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          organization_id?: string
         }
         Relationships: [
           {
@@ -487,6 +520,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_private_spending_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -544,6 +584,7 @@ export type Database = {
           monthly_cost: number
           months_covered: number
           months_needed: number
+          organization_id: string
           parent_age: number | null
           payment_code: string | null
           photo_url: string | null
@@ -583,6 +624,7 @@ export type Database = {
           monthly_cost: number
           months_covered?: number
           months_needed: number
+          organization_id: string
           parent_age?: number | null
           payment_code?: string | null
           photo_url?: string | null
@@ -622,6 +664,7 @@ export type Database = {
           monthly_cost?: number
           months_covered?: number
           months_needed?: number
+          organization_id?: string
           parent_age?: number | null
           payment_code?: string | null
           photo_url?: string | null
@@ -639,7 +682,15 @@ export type Database = {
           updated_at?: string | null
           work_ability?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       charities: {
         Row: {
@@ -649,6 +700,7 @@ export type Database = {
           id: string
           name: string
           name_ar: string
+          organization_id: string
           updated_at: string
         }
         Insert: {
@@ -658,6 +710,7 @@ export type Database = {
           id?: string
           name: string
           name_ar: string
+          organization_id: string
           updated_at?: string
         }
         Update: {
@@ -667,9 +720,18 @@ export type Database = {
           id?: string
           name?: string
           name_ar?: string
+          organization_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "charities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       charity_events: {
         Row: {
@@ -842,7 +904,7 @@ export type Database = {
           handover_date: string
           handover_notes: string | null
           id: string
-          is_report_checkpoint: boolean | null
+          organization_id: string
           original_case_id: string | null
           updated_at: string
         }
@@ -854,8 +916,8 @@ export type Database = {
           handover_amount: number
           handover_date?: string
           handover_notes?: string | null
-          is_report_checkpoint?: boolean | null
           id?: string
+          organization_id: string
           original_case_id?: string | null
           updated_at?: string
         }
@@ -868,6 +930,7 @@ export type Database = {
           handover_date?: string
           handover_notes?: string | null
           id?: string
+          organization_id?: string
           original_case_id?: string | null
           updated_at?: string
         }
@@ -884,6 +947,13 @@ export type Database = {
             columns: ["donation_id"]
             isOneToOne: false
             referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_handovers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -909,6 +979,7 @@ export type Database = {
           handover_status: string | null
           id: string
           months_pledged: number
+          organization_id: string
           payment_code: string
           payment_reference: string | null
           status: string
@@ -928,6 +999,7 @@ export type Database = {
           handover_status?: string | null
           id?: string
           months_pledged?: number
+          organization_id: string
           payment_code: string
           payment_reference?: string | null
           status?: string
@@ -947,6 +1019,7 @@ export type Database = {
           handover_status?: string | null
           id?: string
           months_pledged?: number
+          organization_id?: string
           payment_code?: string
           payment_reference?: string | null
           status?: string
@@ -959,6 +1032,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1259,8 +1339,8 @@ export type Database = {
           difficulty: string
           duration: string
           experiment_method:
-          | Database["public"]["Enums"]["experiment_method_enum"]
-          | null
+            | Database["public"]["Enums"]["experiment_method_enum"]
+            | null
           grade_level_id: number | null
           id: string
           image_url: string | null
@@ -1297,8 +1377,8 @@ export type Database = {
           difficulty: string
           duration: string
           experiment_method?:
-          | Database["public"]["Enums"]["experiment_method_enum"]
-          | null
+            | Database["public"]["Enums"]["experiment_method_enum"]
+            | null
           grade_level_id?: number | null
           id?: string
           image_url?: string | null
@@ -1335,8 +1415,8 @@ export type Database = {
           difficulty?: string
           duration?: string
           experiment_method?:
-          | Database["public"]["Enums"]["experiment_method_enum"]
-          | null
+            | Database["public"]["Enums"]["experiment_method_enum"]
+            | null
           grade_level_id?: number | null
           id?: string
           image_url?: string | null
@@ -1475,6 +1555,7 @@ export type Database = {
           id: string
           is_recurring: boolean | null
           kid_ids: Json | null
+          organization_id: string
           profile_field_mapping: string | null
           recurrence_interval: string | null
           requires_case_action: boolean
@@ -1504,6 +1585,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           kid_ids?: Json | null
+          organization_id: string
           profile_field_mapping?: string | null
           recurrence_interval?: string | null
           requires_case_action?: boolean
@@ -1533,6 +1615,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           kid_ids?: Json | null
+          organization_id?: string
           profile_field_mapping?: string | null
           recurrence_interval?: string | null
           requires_case_action?: boolean
@@ -1548,6 +1631,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_actions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2389,6 +2479,7 @@ export type Database = {
           description: string | null
           id: string
           images: Json | null
+          organization_id: string
           report_date: string
           status: string
           title: string
@@ -2401,6 +2492,7 @@ export type Database = {
           description?: string | null
           id?: string
           images?: Json | null
+          organization_id: string
           report_date?: string
           status?: string
           title: string
@@ -2413,6 +2505,7 @@ export type Database = {
           description?: string | null
           id?: string
           images?: Json | null
+          organization_id?: string
           report_date?: string
           status?: string
           title?: string
@@ -2424,6 +2517,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2545,6 +2645,86 @@ export type Database = {
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      org_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          settings: Json
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          settings?: Json
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          settings?: Json
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3603,110 +3783,30 @@ export type Database = {
         }
         Relationships: []
       }
-      organizations: {
-        Row: {
-          id: string
-          name: string
-          slug: string
-          logo_url: string | null
-          settings: Record<string, unknown>
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          slug: string
-          logo_url?: string | null
-          settings?: Record<string, unknown>
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          slug?: string
-          logo_url?: string | null
-          settings?: Record<string, unknown>
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      org_invitations: {
-        Row: {
-          id: string
-          organization_id: string
-          email: string
-          role: Database["public"]["Enums"]["app_role"]
-          invited_by: string | null
-          status: string
-          token: string
-          expires_at: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          organization_id: string
-          email: string
-          role?: Database["public"]["Enums"]["app_role"]
-          invited_by?: string | null
-          status?: string
-          token?: string
-          expires_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          organization_id?: string
-          email?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          invited_by?: string | null
-          status?: string
-          token?: string
-          expires_at?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "org_invitations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       user_roles: {
         Row: {
           created_at: string
           id: string
+          is_super_admin: boolean
+          organization_id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
-          organization_id: string
-          is_super_admin: boolean
         }
         Insert: {
           created_at?: string
           id?: string
+          is_super_admin?: boolean
+          organization_id: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id: string
-          organization_id: string
-          is_super_admin?: boolean
         }
         Update: {
           created_at?: string
           id?: string
+          is_super_admin?: boolean
+          organization_id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
-          organization_id?: string
-          is_super_admin?: boolean
         }
         Relationships: [
           {
@@ -3715,7 +3815,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       wise_user_partners: {
@@ -4067,6 +4167,18 @@ export type Database = {
           unit: string
         }[]
       }
+      get_my_org_id: { Args: never; Returns: string }
+      get_user_organizations: {
+        Args: { check_user_id?: string }
+        Returns: {
+          is_super_admin: boolean
+          organization_id: string
+          organization_logo_url: string
+          organization_name: string
+          organization_slug: string
+          user_role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4077,6 +4189,8 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_admin_or_volunteer: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
+      is_org_member: { Args: { org_id: string }; Returns: boolean }
+      is_super_admin: { Args: { check_user_id?: string }; Returns: boolean }
       make_user_admin: { Args: { user_email: string }; Returns: boolean }
       save_basket_item: {
         Args: {
@@ -4102,25 +4216,25 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "volunteer"
       experiment_method_enum: "Engineering Design Process" | "Scientific Method"
       listing_status: "active" | "sold" | "cancelled"
       olive_type:
-      | "agizy"
-      | "cypriot"
-      | "tafahi"
-      | "baladi"
-      | "manzanillo"
-      | "kalamata"
-      | "koroneiki"
-      | "coratina"
-      | "frantoio"
-      | "arbequina"
-      | "maraki"
-      | "picual"
-      | "wateqan"
-      | "hamid"
-      | "khudairi"
+        | "agizy"
+        | "cypriot"
+        | "tafahi"
+        | "baladi"
+        | "manzanillo"
+        | "kalamata"
+        | "koroneiki"
+        | "coratina"
+        | "frantoio"
+        | "arbequina"
+        | "maraki"
+        | "picual"
+        | "wateqan"
+        | "hamid"
+        | "khudairi"
       transaction_status: "pending" | "completed" | "cancelled"
       user_role: "user" | "admin"
       user_type: "farmer" | "trader"
@@ -4137,121 +4251,121 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "volunteer"],
       experiment_method_enum: [
         "Engineering Design Process",
         "Scientific Method",
