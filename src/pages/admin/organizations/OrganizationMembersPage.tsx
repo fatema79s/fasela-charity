@@ -50,7 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight, Mail, Shield, Trash2, UserPlus, X } from "lucide-react";
+import { ArrowRight, Copy, Mail, Shield, Trash2, UserPlus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -195,6 +195,14 @@ export default function OrganizationMembersPage() {
         variant: "destructive",
       });
     }
+  };
+  const handleCopyLink = (token: string) => {
+    const url = `${window.location.origin}/accept-invitation?token=${token}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "تم النسخ",
+      description: "تم نسخ رابط الدعوة إلى الحافظة",
+    });
   };
 
   return (
@@ -400,13 +408,24 @@ export default function OrganizationMembersPage() {
                       {format(new Date(invitation.expires_at), "d MMM yyyy", { locale: ar })}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleCancelInvitation(invitation.id)}
-                      >
-                        <X className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCopyLink(invitation.token)}
+                          title="نسخ رابط الدعوة"
+                        >
+                          <Copy className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleCancelInvitation(invitation.id)}
+                          title="إلغاء الدعوة"
+                        >
+                          <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
