@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FileText, Users, BarChart3, CreditCard, Heart, CheckSquare, ExternalLink, Copy, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 
 const AdminDashboard = () => {
@@ -18,6 +19,8 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const { currentOrg, userOrgs, isSuperAdmin, isLoading: orgsLoading } = useOrganization();
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -27,8 +30,6 @@ const AdminDashboard = () => {
 
         if (!session?.user) {
           navigate("/auth");
-        } else {
-          checkUserRole(session.user.id);
         }
       }
     );
@@ -41,13 +42,25 @@ const AdminDashboard = () => {
 
       if (!session?.user) {
         navigate("/auth");
-      } else {
-        checkUserRole(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Decide if the current user is an admin for the selected org (or a super admin)
+  useEffect(() => {
+    if (!session?.user) return;
+
+    if (isSuperAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+
+    // Find user's role for currentOrg
+    const currentUserOrg = userOrgs.find(o => o.id === currentOrg?.id);
+    setIsAdmin((currentUserOrg?.role === "admin") || false);
+  }, [session, userOrgs, currentOrg, isSuperAdmin]);
 
   const checkUserRole = async (userId: string) => {
     try {
@@ -101,17 +114,98 @@ const AdminDashboard = () => {
 
 const StatsOverview = () => {
   const { toast } = useToast();
+  const { currentOrg, userOrgs, isSuperAdmin } = useOrganization();
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["admin-stats"],
+    queryKey: ["admin-stats", currentOrg?.id, isSuperAdmin],
     queryFn: async () => {
+      // If user is super admin, return global stats; otherwise scope to selected org
+      if (isSuperAdmin) {
+        const [casesData, donationsData, reportsData, kidsData, followupsData, handoversData] = await Promise.all([
+          supabase.from("cases").select("*"),
+          supabase.from("donations").select("*"),
+          supabase.from("monthly_reports").select("*"),
+          supabase.from("case_kids").select("*"),
+          supabase.from("followup_actions").select("*"),
+          supabase.from("donation_handovers").select("*"),
+        ]);
+
+        const confirmedDonations = donationsData.data?.filter(d => d.status === "confirmed") || [];
+        const pendingDonations = donationsData.data?.filter(d => d.status === "pending") || [];
+        const pendingFollowups = followupsData.data?.filter(f => f.status === "pending") || [];
+        const completedFollowups = followupsData.data?.filter(f => f.status === "completed") || [];
+
+        return {
+          totalCases: casesData.data?.length || 0,
+          activeCases: casesData.data?.filter(c => c.status === "active" && c.is_published).length || 0,
+          completedCases: casesData.data?.filter(c => c.lifecycle_status === "completed").length || 0,
+          totalKids: kidsData.data?.length || 0,
+          totalDonations: confirmedDonations.reduce((sum, d) => sum + Number(d.amount), 0),
+          pendingDonationsAmount: pendingDonations.reduce((sum, d) => sum + Number(d.amount), 0),
+          pendingDonationsCount: pendingDonations.length,
+          monthlyReports: reportsData.data?.length || 0,
+          totalFollowups: followupsData.data?.length || 0,
+          pendingFollowups: pendingFollowups.length,
+          completedFollowups: completedFollowups.length,
+          totalHandovers: handoversData.data?.reduce((sum, h) => sum + Number(h.handover_amount), 0) || 0,
+        };
+      }
+
+      // Organization-scoped stats (non-super-admin)
+      if (!currentOrg?.id) {
+        return {
+          totalCases: 0,
+          activeCases: 0,
+          completedCases: 0,
+          totalKids: 0,
+          totalDonations: 0,
+          pendingDonationsAmount: 0,
+          pendingDonationsCount: 0,
+          monthlyReports: 0,
+          totalFollowups: 0,
+          pendingFollowups: 0,
+          completedFollowups: 0,
+          totalHandovers: 0,
+        };
+      }
+
+      // 1) Get case ids for the organization
+      const { data: casesForOrg, error: casesError } = await supabase
+        .from("cases")
+        .select("id")
+        .eq("organization_id", currentOrg.id);
+
+      if (casesError) throw casesError;
+
+      const caseIds = (casesForOrg || []).map((c: any) => c.id);
+
+      // If no cases, return zeros
+      if (caseIds.length === 0) {
+        return {
+          totalCases: 0,
+          activeCases: 0,
+          completedCases: 0,
+          totalKids: 0,
+          totalDonations: 0,
+          pendingDonationsAmount: 0,
+          pendingDonationsCount: 0,
+          monthlyReports: 0,
+          totalFollowups: 0,
+          pendingFollowups: 0,
+          completedFollowups: 0,
+          totalHandovers: 0,
+        };
+      }
+
+      // 2) Fetch scoped data using case ids where relevant
       const [casesData, donationsData, reportsData, kidsData, followupsData, handoversData] = await Promise.all([
-        supabase.from("cases").select("*"),
-        supabase.from("donations").select("*"),
-        supabase.from("monthly_reports").select("*"),
-        supabase.from("case_kids").select("*"),
-        supabase.from("followup_actions").select("*"),
-        supabase.from("donation_handovers").select("*"),
+        // casesData we already have but fetch full rows for counts
+        supabase.from("cases").select("*").in("id", caseIds),
+        supabase.from("donations").select("*").in("case_id", caseIds),
+        supabase.from("monthly_reports").select("*").in("case_id", caseIds),
+        supabase.from("case_kids").select("*").in("case_id", caseIds),
+        supabase.from("followup_actions").select("*").in("case_id", caseIds),
+        supabase.from("donation_handovers").select("*").in("case_id", caseIds),
       ]);
 
       const confirmedDonations = donationsData.data?.filter(d => d.status === "confirmed") || [];

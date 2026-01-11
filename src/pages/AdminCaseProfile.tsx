@@ -29,21 +29,24 @@ import { ar } from "date-fns/locale";
 import FollowupActionForm from "@/components/admin/FollowupActionForm";
 import FollowupActionsList from "@/components/admin/FollowupActionsList";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export default function AdminCaseProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [followupFormOpen, setFollowupFormOpen] = useState(false);
+  const { currentOrg, isSuperAdmin } = useOrganization();
 
   const { data: caseData, isLoading } = useQuery({
     queryKey: ["admin-case-profile", id],
     queryFn: async () => {
-      // Fetch case data
-      const { data: caseInfo, error: caseError } = await supabase
-        .from("cases")
-        .select("*")
-        .eq("id", id)
-        .single();
+      // Fetch case data (scope by org for non-super-admins)
+      let caseQuery = supabase.from("cases").select("*").eq("id", id);
+      if (!isSuperAdmin) {
+        if (!currentOrg?.id) throw new Error("No organization selected");
+        caseQuery = caseQuery.eq("organization_id", currentOrg.id);
+      }
+      const { data: caseInfo, error: caseError } = await caseQuery.single();
 
       if (caseError) throw caseError;
 
@@ -73,7 +76,7 @@ export default function AdminCaseProfile() {
         donations: donationsData.data || [],
       };
     },
-    enabled: !!id,
+    enabled: !!id && (isSuperAdmin || !!currentOrg?.id),
   });
 
   // ------ Fixed Financial Summary: match admin case list logic ------

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Calendar, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const ReportsList = () => {
   const [loading, setLoading] = useState<string | null>(null);
@@ -14,6 +15,36 @@ const ReportsList = () => {
   const { data: reports, refetch } = useQuery({
     queryKey: ["admin-reports"],
     queryFn: async () => {
+      const { currentOrg, isSuperAdmin } = useOrganization();
+
+      // If super admin, return all reports; otherwise scope to reports for cases in the current org
+      if (isSuperAdmin) {
+        const { data, error } = await supabase
+          .from("monthly_reports")
+          .select(`
+            *,
+            cases (
+              title_ar,
+              title
+            )
+          `)
+          .order("report_date", { ascending: false });
+
+        if (error) throw error;
+        return data;
+      }
+
+      if (!currentOrg?.id) return [];
+
+      // Get case ids for the organization
+      const { data: casesForOrg, error: casesError } = await supabase
+        .from("cases")
+        .select("id")
+        .eq("organization_id", currentOrg.id);
+      if (casesError) throw casesError;
+      const caseIds = (casesForOrg || []).map((c: any) => c.id);
+      if (caseIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from("monthly_reports")
         .select(`
@@ -23,7 +54,11 @@ const ReportsList = () => {
             title
           )
         `)
+        .in("case_id", caseIds)
         .order("report_date", { ascending: false });
+
+      if (error) throw error;
+      return data;
       
       if (error) throw error;
       return data;

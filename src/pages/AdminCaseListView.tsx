@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link } from "react-router-dom";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useToast } from "@/hooks/use-toast";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const AdminCaseListView = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,17 +32,27 @@ const AdminCaseListView = () => {
   const { data: cases, isLoading } = useQuery({
     queryKey: ["admin-cases-list"],
     queryFn: async () => {
-      const { data: casesData, error: casesError } = await supabase
-        .from("cases")
-        .select("*, admin_profile_picture_url")
-        .order("created_at", { ascending: false });
+      const { currentOrg, isSuperAdmin } = useOrganization();
+
+      // Fetch cases scoped to organization for non-super-admins
+      let casesQuery = supabase.from("cases").select("*, admin_profile_picture_url");
+      if (!isSuperAdmin) {
+        if (!currentOrg?.id) return [];
+        casesQuery = casesQuery.eq("organization_id", currentOrg.id);
+      }
+      casesQuery = casesQuery.order("created_at", { ascending: false });
+
+      const { data: casesData, error: casesError } = await casesQuery;
       
       if (casesError) throw casesError;
       
       // Get confirmed donations for each case
+      // get donations only for the visible cases
+      const caseIds = (casesData || []).map((c: any) => c.id);
       const { data: confirmedDonations, error: confirmedError } = await supabase
         .from("donations")
         .select("case_id, amount")
+        .in("case_id", caseIds)
         .eq("status", "confirmed");
       
       if (confirmedError) throw confirmedError;
@@ -50,6 +61,7 @@ const AdminCaseListView = () => {
       const { data: redeemedDonations, error: redeemedError } = await supabase
         .from("donations")
         .select("case_id, amount")
+        .in("case_id", caseIds)
         .eq("status", "redeemed");
       
       if (redeemedError) throw redeemedError;
@@ -57,14 +69,16 @@ const AdminCaseListView = () => {
       // Get new handover amounts from donation_handovers table
       const { data: handovers, error: handoversError } = await supabase
         .from("donation_handovers")
-        .select("case_id, handover_amount");
+        .select("case_id, handover_amount")
+        .in("case_id", caseIds);
       
       if (handoversError) throw handoversError;
       
       // Get follow-up actions count for each case
       const { data: followups, error: followupsError } = await supabase
         .from("followup_actions")
-        .select("case_id");
+        .select("case_id")
+        .in("case_id", caseIds);
       
       if (followupsError) throw followupsError;
       

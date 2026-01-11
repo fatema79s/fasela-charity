@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, User, Calendar, CreditCard, Check, X, Package, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import {
   Table,
   TableBody,
@@ -76,11 +77,20 @@ export const DonationsByCaseView = () => {
   const { data: paymentReferences } = useQuery({
     queryKey: ["payment-references"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("donations")
-        .select("payment_reference")
-        .not("payment_reference", "is", null)
-        .neq("payment_reference", "");
+      const { currentOrg, isSuperAdmin } = useOrganization();
+
+      // If not super admin, limit to donations for this org's cases
+      let donationQuery = supabase.from("donations").select("payment_reference").not("payment_reference", "is", null).neq("payment_reference", "");
+      if (!isSuperAdmin) {
+        if (!currentOrg?.id) return [];
+        // get case ids for org
+        const { data: casesForOrg } = await supabase.from("cases").select("id").eq("organization_id", currentOrg.id);
+        const caseIds = (casesForOrg || []).map((c: any) => c.id);
+        if (caseIds.length === 0) return [];
+        donationQuery = donationQuery.in("case_id", caseIds as any);
+      }
+
+      const { data, error } = await donationQuery;
 
       if (error) throw error;
       
@@ -93,11 +103,16 @@ export const DonationsByCaseView = () => {
   const { data: casesWithDonations, isLoading } = useQuery({
     queryKey: ["donations-by-case"],
     queryFn: async () => {
-      // First get all cases (including unpublished and completed)
-      const { data: cases, error: casesError } = await supabase
-        .from("cases")
-        .select("id, title, title_ar, monthly_cost, total_secured_money, months_covered, status")
-        .order("title_ar", { ascending: true });
+      const { currentOrg, isSuperAdmin } = useOrganization();
+
+      // First get cases (scope to org if not super admin)
+      let casesQuery = supabase.from("cases").select("id, title, title_ar, monthly_cost, total_secured_money, months_covered, status").order("title_ar", { ascending: true });
+      if (!isSuperAdmin) {
+        if (!currentOrg?.id) return [];
+        casesQuery = casesQuery.eq("organization_id", currentOrg.id);
+      }
+
+      const { data: cases, error: casesError } = await casesQuery;
 
       if (casesError) throw casesError;
 
@@ -105,7 +120,7 @@ export const DonationsByCaseView = () => {
       const { data: donations, error: donationsError } = await supabase
         .from("donations")
         .select("*, total_handed_over, handover_status")
-        .in("case_id", cases.map(c => c.id))
+        .in("case_id", cases.map((c: any) => c.id))
         .order("created_at", { ascending: false });
 
       if (donationsError) throw donationsError;

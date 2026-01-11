@@ -35,6 +35,7 @@ import FollowupActionForm from "@/components/admin/FollowupActionForm";
 import FollowupActionsList from "@/components/admin/FollowupActionsList";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 // Donations Table Component
 function DonationsTable({ caseId }: { caseId: string }) {
@@ -155,6 +156,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminCaseView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentOrg, isSuperAdmin } = useOrganization();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -172,12 +174,16 @@ export default function AdminCaseView() {
   const { data: caseData, isLoading } = useQuery({
     queryKey: ["admin-case-view", id],
     queryFn: async () => {
-      // Fetch case data
-      const { data: caseInfo, error: caseError } = await supabase
-        .from("cases")
-        .select("*, admin_profile_picture_url")
-        .eq("id", id)
-        .single();
+      const { currentOrg, isSuperAdmin } = useOrganization();
+
+      // Fetch case data (scope by organization for non-super-admins)
+      let caseQuery = supabase.from("cases").select("*, admin_profile_picture_url").eq("id", id);
+      if (!isSuperAdmin) {
+        if (!currentOrg?.id) throw new Error("No organization selected");
+        caseQuery = caseQuery.eq("organization_id", currentOrg.id);
+      }
+
+      const { data: caseInfo, error: caseError } = await caseQuery.single();
 
       if (caseError) throw caseError;
 
@@ -232,7 +238,7 @@ export default function AdminCaseView() {
         }
       };
     },
-    enabled: !!id,
+    enabled: !!id && (isSuperAdmin || !!currentOrg?.id),
   });
 
   const updateCaseMutation = useMutation({
