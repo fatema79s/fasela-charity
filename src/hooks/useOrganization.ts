@@ -327,12 +327,18 @@ export function useAcceptInvitation() {
         throw new Error("Invitation has expired");
       }
 
-      // Create user role
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: session.user.id,
-        organization_id: invitation.organization_id,
-        role: invitation.role,
-      });
+      // Create or ensure user role exists (idempotent)
+      // Use upsert with onConflict to avoid duplicate key errors if the role already exists
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .upsert(
+          {
+            user_id: session.user.id,
+            organization_id: invitation.organization_id,
+            role: invitation.role,
+          },
+          { onConflict: "user_id,organization_id,role" }
+        );
 
       if (roleError) throw roleError;
 
