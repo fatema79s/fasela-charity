@@ -592,7 +592,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
           .insert({
             name: newCharityName || newCharityNameAr,
             name_ar: newCharityNameAr,
-          })
+          } as any)
           .select()
           .single();
 
@@ -769,7 +769,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
           const { error: kidsError } = await supabase
             .from("case_kids")
-            .insert(kidsToInsert);
+            .insert(kidsToInsert as any);
 
           if (kidsError) throw kidsError;
         }
@@ -792,7 +792,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
           const { error: charitiesError } = await supabase
             .from("case_charities")
-            .insert(charitiesToInsert);
+            .insert(charitiesToInsert as any);
 
           if (charitiesError) throw charitiesError;
         }
@@ -839,7 +839,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
             health_state: data.health_state || null,
             parent_age: data.parent_age || null,
             total_secured_money: 0
-          })
+          } as any)
           .select()
           .single();
 
@@ -883,7 +883,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
           const { error: kidsError } = await supabase
             .from("case_kids")
-            .insert(kidsToInsert);
+            .insert(kidsToInsert as any);
 
           if (kidsError) throw kidsError;
         }
@@ -898,7 +898,7 @@ const CaseForm = ({ caseId, onSuccess }: CaseFormProps) => {
 
           const { error: charitiesError } = await supabase
             .from("case_charities")
-            .insert(charitiesToInsert);
+            .insert(charitiesToInsert as any);
 
           if (charitiesError) throw charitiesError;
         }

@@ -82,7 +82,7 @@ export default function CaseHandoverCalendar() {
 
       const { data: handovers, error: handoversError } = await supabase
         .from("donation_handovers")
-        .select("id, case_id, handover_amount, handover_date, handover_notes, is_report_checkpoint")
+        .select("id, case_id, handover_amount, handover_date, handover_notes")
         .gte("handover_date", startDate.toISOString())
         .lte("handover_date", endDate.toISOString());
 
@@ -127,7 +127,7 @@ export default function CaseHandoverCalendar() {
             amount: handover.handover_amount,
             date: handover.handover_date,
             notes: handover.handover_notes || undefined,
-            is_report_checkpoint: handover.is_report_checkpoint || false,
+            is_report_checkpoint: (handover as any).is_report_checkpoint || false,
             report_image_url: reportImageUrl,
           });
         });
@@ -258,7 +258,7 @@ export default function CaseHandoverCalendar() {
               status: 'completed',
               category: 'general',
               images: [reportImageUrl]
-            });
+            } as any);
         }
       }
 
@@ -267,7 +267,6 @@ export default function CaseHandoverCalendar() {
           handover_amount: preciseAmount,
           handover_notes: data.notes,
           donation_id: data.donationId,
-          is_report_checkpoint: data.isReportCheckpoint,
           updated_at: new Date().toISOString(),
         };
 
@@ -286,8 +285,7 @@ export default function CaseHandoverCalendar() {
             handover_amount: preciseAmount,
             handover_date: handoverDate.toISOString(),
             handover_notes: data.notes,
-            is_report_checkpoint: data.isReportCheckpoint,
-          });
+          } as any);
 
         if (error) throw error;
       }

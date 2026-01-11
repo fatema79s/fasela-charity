@@ -252,7 +252,7 @@ export const DonationsByCaseView = () => {
             handover_amount: amount,
             handover_notes: notes,
             handed_over_by: (await supabase.auth.getUser()).data.user?.id
-          });
+          } as any);
 
         if (handoverError) throw handoverError;
 
@@ -292,7 +292,7 @@ export const DonationsByCaseView = () => {
               report_date: new Date().toISOString().split('T')[0],
               status: 'completed',
               category: 'handover'
-            });
+            } as any);
 
           if (reportError) throw reportError;
         }
