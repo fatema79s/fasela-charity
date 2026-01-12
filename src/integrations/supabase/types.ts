@@ -4144,6 +4144,7 @@ export type Database = {
           item_sort_order: number
         }[]
       }
+      get_current_user_email: { Args: never; Returns: string }
       get_daily_signups: {
         Args: { days_back: number }
         Returns: {
