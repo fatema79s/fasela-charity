@@ -174,35 +174,47 @@ export default function AdminCaseView() {
   const { data: caseData, isLoading } = useQuery({
     queryKey: ["admin-case-view", id],
     queryFn: async () => {
-      // Use the OrganizationContext values from component scope
-      // Fetch case data (scope by organization for non-super-admins)
-      let caseQuery = supabase.from("cases").select("*, admin_profile_picture_url").eq("id", id);
-      if (!isSuperAdmin) {
-        if (!currentOrg?.id) throw new Error("No organization selected");
-        caseQuery = caseQuery.eq("organization_id", currentOrg.id);
-      }
+      // Fetch the case unscoped first so we can determine its organization
+      const { data: caseInfoUnscoped, error: caseInfoError } = await supabase
+        .from("cases")
+        .select("organization_id, *, admin_profile_picture_url")
+        .eq("id", id)
+        .maybeSingle();
 
-      // Use maybeSingle to avoid throwing when not found so we can implement a fallback for super-admins
-      const { data: caseInfo, error: caseError } = await caseQuery.maybeSingle();
-      if (caseError) throw caseError;
-
-      // If not found and user is super-admin, try again without org scoping (defensive)
-      let resolvedCase = caseInfo;
-      if (!resolvedCase && isSuperAdmin) {
-        const { data: fallbackCase, error: fallbackError } = await supabase
-          .from("cases")
-          .select("*, admin_profile_picture_url")
-          .eq("id", id)
-          .maybeSingle();
-
-        if (fallbackError) throw fallbackError;
-        resolvedCase = fallbackCase;
-      }
-
-      if (!resolvedCase) {
-        // Not found or no access
+      if (caseInfoError) throw caseInfoError;
+      if (!caseInfoUnscoped) {
         throw new Error("Case not found");
       }
+
+      // Authorization for non-super-admins:
+      // - If currentOrg is set it must match the case's organization_id
+      // - If currentOrg is not set, verify the user has an admin role on the case's organization
+      if (!isSuperAdmin) {
+        if (currentOrg?.id) {
+          if (caseInfoUnscoped.organization_id !== currentOrg.id) {
+            throw new Error("No organization selected or access denied");
+          }
+        } else {
+          // No org selected in the UI: check user_roles for permission on this case's org
+          const sessionRes = await supabase.auth.getSession();
+          const userId = sessionRes?.data?.session?.user?.id;
+          if (!userId) throw new Error("Not authenticated");
+
+          const { data: roleRow, error: roleError } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId)
+            .eq("organization_id", caseInfoUnscoped.organization_id)
+            .eq("role", "admin")
+            .maybeSingle();
+
+          if (roleError) throw roleError;
+          if (!roleRow) throw new Error("No organization selected");
+        }
+      }
+
+      // Use the authorized case as the resolvedCase
+      const resolvedCase = caseInfoUnscoped;
 
       // Fetch all related data
       const [kidsData, donationsData, reportsData, followupsData, handoversData, charitiesData] = await Promise.all([
@@ -238,8 +250,8 @@ export default function AdminCaseView() {
       }));
 
       return {
-        ...caseInfo,
-        contact_phone: caseInfo.contact_phone || "", // Ensure it's defined
+        ...resolvedCase,
+        contact_phone: resolvedCase.contact_phone || "", // Ensure it's defined
         case_kids: kidsData.data || [],
         case_charities: caseCharities,
         stats: {
@@ -255,7 +267,8 @@ export default function AdminCaseView() {
         }
       };
     },
-    enabled: !!id && (isSuperAdmin || !!currentOrg?.id),
+    // Always attempt to load the case; authorization is handled in the queryFn above
+    enabled: !!id,
   });
 
   const updateCaseMutation = useMutation({
