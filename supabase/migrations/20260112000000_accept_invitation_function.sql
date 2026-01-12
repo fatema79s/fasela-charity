@@ -4,7 +4,7 @@
 BEGIN;
 
 -- Create function
-CREATE OR REPLACE FUNCTION public.accept_invitation(token text)
+CREATE OR REPLACE FUNCTION public.accept_invitation(p_token text)
 RETURNS TABLE(invitation_id uuid, organization_id uuid, role text) AS $$
 DECLARE
   inv record;
@@ -14,7 +14,7 @@ BEGIN
     RAISE EXCEPTION 'Authentication required';
   END IF;
 
-  SELECT * INTO inv FROM org_invitations WHERE org_invitations.token = token AND org_invitations.status = 'pending' LIMIT 1;
+  SELECT * INTO inv FROM org_invitations WHERE org_invitations.token = p_token AND org_invitations.status = 'pending' LIMIT 1;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Invitation not found or already used';
   END IF;
