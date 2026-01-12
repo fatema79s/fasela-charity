@@ -308,49 +308,12 @@ export function useAcceptInvitation() {
 
   return useMutation({
     mutationFn: async (token: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error("Not authenticated");
-
-      // Get the invitation
-      const { data: invitation, error: fetchError } = await supabase
-        .from("org_invitations")
-        .select("*")
-        .eq("token", token)
-        .eq("status", "pending")
-        .single();
-
-      if (fetchError) throw fetchError;
-      if (!invitation) throw new Error("Invitation not found");
-
-      // Check expiration
-      if (new Date(invitation.expires_at) < new Date()) {
-        throw new Error("Invitation has expired");
-      }
-
-      // Create or ensure user role exists (idempotent)
-      // Use upsert with onConflict to avoid duplicate key errors if the role already exists
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .upsert(
-          {
-            user_id: session.user.id,
-            organization_id: invitation.organization_id,
-            role: invitation.role,
-          },
-          { onConflict: "user_id,organization_id,role" }
-        );
-
-      if (roleError) throw roleError;
-
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from("org_invitations")
-        .update({ status: "accepted" })
-        .eq("id", invitation.id);
-
-      if (updateError) throw updateError;
-
-      return invitation;
+      // Use a secure, server-side Postgres function to accept the invitation.
+      // This avoids row-level security restrictions on client-side inserts into `user_roles`.
+      // The SQL migration to create the `accept_invitation(token uuid)` function is included in the repository notes.
+  const { data, error } = await (supabase as any).rpc("accept_invitation", { token });
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       refreshOrganizations();
