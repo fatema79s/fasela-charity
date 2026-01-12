@@ -1,8 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Heart, Settings, Users, Home, Route, Menu, X, Sparkles } from "lucide-react";
+import { Heart, Settings, Users, Home, Route, Menu, X, Sparkles, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
   const location = useLocation();
@@ -10,6 +12,9 @@ const Navigation = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -64,6 +69,18 @@ const Navigation = () => {
     { to: "/fasela50", icon: Sparkles, label: "فسيلة ٥٠" },
     { to: "/case-pipeline", icon: Route, label: "رحلة الكفالة" },
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      try { queryClient.clear(); } catch (e) {}
+      navigate('/auth');
+      toast({ title: 'تم تسجيل الخروج', description: 'تم تسجيل الخروج بنجاح' });
+    } catch (error: any) {
+      console.error('Error signing out', error);
+      toast({ title: 'خطأ أثناء تسجيل الخروج', description: error?.message || 'فشل في تسجيل الخروج', variant: 'destructive' });
+    }
+  }
 
   const NavLink = ({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) => (
     <Link
@@ -126,6 +143,16 @@ const Navigation = () => {
             <span>لوحة التحكم</span>
           </Link>
         )}
+
+        {user && (
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>تسجيل الخروج</span>
+          </button>
+        )}
       </nav>
 
       {/* Mobile Menu Button */}
@@ -172,6 +199,16 @@ const Navigation = () => {
 
             {user && isAdmin && (
               <NavLink to="/admin" icon={Settings} label="لوحة التحكم" />
+            )}
+
+            {user && (
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); handleSignOut(); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-white"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>تسجيل الخروج</span>
+              </button>
             )}
           </nav>
         </div>
