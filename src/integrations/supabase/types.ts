@@ -4179,6 +4179,10 @@ export type Database = {
           user_role: Database["public"]["Enums"]["app_role"]
         }[]
       }
+      has_pending_invitation: {
+        Args: { check_email: string; check_org_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
