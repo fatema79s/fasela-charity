@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
 import { Home, Users, Calendar, CreditCard, CheckSquare, FileText, LogOut, Settings, Building2 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -16,6 +17,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { currentOrg, isSuperAdmin } = useOrganization();
+
+  const queryClient = useQueryClient();
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -72,10 +75,17 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         variant: "destructive",
       });
     } else {
+      try {
+        queryClient.clear();
+      } catch (e) {
+        // ignore
+      }
+
       toast({
         title: "تم تسجيل الخروج",
         description: "تم تسجيل الخروج بنجاح",
       });
+
       navigate("/auth");
     }
   };

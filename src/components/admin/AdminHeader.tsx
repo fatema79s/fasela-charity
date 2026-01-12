@@ -1,4 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   LogOut,
@@ -24,10 +25,18 @@ export default function AdminHeader({
 }: AdminHeaderProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
+      // Clear client-side caches and redirect to auth
+      try {
+        queryClient.clear();
+      } catch (e) {
+        // ignore cache clear errors
+      }
+
       navigate("/auth");
       toast({
         title: "تم تسجيل الخروج",
@@ -35,6 +44,11 @@ export default function AdminHeader({
       });
     } catch (error) {
       console.error("Error signing out:", error);
+      toast({
+        title: "خطأ أثناء تسجيل الخروج",
+        description: (error as any)?.message || "فشل في تسجيل الخروج",
+        variant: "destructive",
+      });
     }
   };
 
