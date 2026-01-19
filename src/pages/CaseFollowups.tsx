@@ -41,9 +41,11 @@ export default function CaseFollowups() {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [caseName, setCaseName] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [taskAnswers, setTaskAnswers] = useState<{ [key: string]: any }>({});
+  // ✅ FIXED: Replaced "any" with "unknown" to provide better type safety
+  const [taskAnswers, setTaskAnswers] = useState<Record<string, unknown >>({});
   const [uploadedPhotos, setUploadedPhotos] = useState<{ [key: string]: string[] }>({});
-  const [kidTaskAnswers, setKidTaskAnswers] = useState<{ [key: string]: { [kidId: string]: any } }>({});
+  // ✅ FIXED: Using nested Record structure with 'unknown' for complex task answers
+  const [kidTaskAnswers, setKidTaskAnswers] = useState<Record<string, Record<string, unknown >>>({});
   const [kidUploadedPhotos, setKidUploadedPhotos] = useState<{ [key: string]: { [kidId: string]: string[] } }>({});
 
   // Check phone number and get case

@@ -1,6 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Heart, Settings, Users, Home, Route, Menu, X, Sparkles, LogOut } from "lucide-react";
+import {
+  Heart,
+  Settings,
+  Users,
+  Home,
+  Route,
+  Menu,
+  X,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,20 +29,20 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
 
-        if (session?.user) {
-          setTimeout(() => {
-            checkUserRole(session.user.id);
-          }, 0);
-        } else {
-          setIsAdmin(false);
-        }
+      if (session?.user) {
+        setTimeout(() => {
+          checkUserRole(session.user.id);
+        }, 0);
+      } else {
+        setIsAdmin(false);
       }
-    );
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -73,23 +83,42 @@ const Navigation = () => {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      try { queryClient.clear(); } catch (e) {}
-      navigate('/auth');
-      toast({ title: 'تم تسجيل الخروج', description: 'تم تسجيل الخروج بنجاح' });
-    } catch (error: any) {
-      console.error('Error signing out', error);
-      toast({ title: 'خطأ أثناء تسجيل الخروج', description: error?.message || 'فشل في تسجيل الخروج', variant: 'destructive' });
+      try {
+        queryClient.clear();
+      } catch {
+        // ✅ FIXED: Empty block warning resolved.
+        // We keep it empty intentionally to ensure logout continues even if cache clear fails.
+      }
+      navigate("/auth");
+      toast({ title: "تم تسجيل الخروج", description: "تم تسجيل الخروج بنجاح" });
+    } catch (error) {
+      // ✅ FIXED: Replaced 'any' with specific type for better type safety and IDE support.
+      const errorMessage =
+        error instanceof Error ? error.message : "فشل في تسجيل الخروج";
+      toast({
+        title: "خطأ أثناء تسجيل الخروج",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const NavLink = ({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) => (
+  const NavLink = ({
+    to,
+    icon: Icon,
+    label,
+  }: {
+    to: string;
+    icon: React.ElementType;
+    label: string;
+  }) => (
     <Link
       to={to}
       onClick={() => setIsMobileMenuOpen(false)}
       className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
         isActive(to)
-          ? 'bg-white text-primary font-bold shadow-sm scale-105'
-          : 'text-white/90 hover:bg-white/10 hover:text-white'
+          ? "bg-white text-primary font-bold shadow-sm scale-105"
+          : "text-white/90 hover:bg-white/10 hover:text-white"
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -107,8 +136,8 @@ const Navigation = () => {
             to={link.to}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
               isActive(link.to)
-                ? 'bg-white text-primary font-bold shadow-sm scale-105'
-                : 'text-white/90 hover:bg-white/10 hover:text-white'
+                ? "bg-white text-primary font-bold shadow-sm scale-105"
+                : "text-white/90 hover:bg-white/10 hover:text-white"
             }`}
           >
             <link.icon className="w-4 h-4" />
@@ -120,9 +149,9 @@ const Navigation = () => {
           <Link
             to="/auth"
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-              isActive('/auth')
-                ? 'bg-white text-primary font-bold shadow-sm scale-105'
-                : 'text-white/90 hover:bg-white/10 hover:text-white'
+              isActive("/auth")
+                ? "bg-white text-primary font-bold shadow-sm scale-105"
+                : "text-white/90 hover:bg-white/10 hover:text-white"
             }`}
           >
             <Users className="w-4 h-4" />
@@ -134,9 +163,9 @@ const Navigation = () => {
           <Link
             to="/admin"
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-              isActive('/admin')
-                ? 'bg-white text-primary font-bold shadow-sm scale-105'
-                : 'text-white/90 hover:bg-white/10 hover:text-white'
+              isActive("/admin")
+                ? "bg-white text-primary font-bold shadow-sm scale-105"
+                : "text-white/90 hover:bg-white/10 hover:text-white"
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -160,12 +189,16 @@ const Navigation = () => {
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         className="md:hidden flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white"
       >
-        {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {isMobileMenuOpen ? (
+          <X className="w-5 h-5" />
+        ) : (
+          <Menu className="w-5 h-5" />
+        )}
       </button>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -174,7 +207,7 @@ const Navigation = () => {
       {/* Mobile Menu */}
       <div
         className={`md:hidden fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-primary to-primary/90 z-50 transform transition-transform duration-300 ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="p-6">
@@ -187,15 +220,13 @@ const Navigation = () => {
               <X className="w-4 h-4" />
             </button>
           </div>
-          
+
           <nav className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <NavLink key={link.to} {...link} />
             ))}
 
-            {!user && (
-              <NavLink to="/auth" icon={Users} label="تسجيل الدخول" />
-            )}
+            {!user && <NavLink to="/auth" icon={Users} label="تسجيل الدخول" />}
 
             {user && isAdmin && (
               <NavLink to="/admin" icon={Settings} label="لوحة التحكم" />
@@ -203,7 +234,10 @@ const Navigation = () => {
 
             {user && (
               <button
-                onClick={() => { setIsMobileMenuOpen(false); handleSignOut(); }}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignOut();
+                }}
                 className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-white"
               >
                 <LogOut className="w-4 h-4" />

@@ -12,9 +12,10 @@ export interface Kid {
   health_state?: string;
   current_grade?: string;
   school_name?: string;
-  education_progress?: any[];
-  certificates?: any[];
-  ongoing_courses?: any[];
+  // ✅ FIXED: Replaced "any" with "unknown" to satisfy strict ESLint rules
+  education_progress?: Record<string, unknown>[];
+  certificates?: Record<string, unknown>[];
+  ongoing_courses?: Record<string, unknown>[];
   hobbies?: string[];
   case_id: string;
   cases?: {
